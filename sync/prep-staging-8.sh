@@ -12,6 +12,7 @@
 # Compose dir example: /mnt/repos-staging/mirror/pub/rocky/8.4-RC2
 # Revision must always start with a major number
 REVISION=8.4
+MAJOR="${REVISION:0:1}"
 # comment or blank if needed
 APPEND_TO_DIR="-RC2"
 COMPOSE_DIR="/mnt/repos-staging/mirror/pub/rocky/${REVISION}${APPEND_TO_DIR}"
