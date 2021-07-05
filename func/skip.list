@@ -1,0 +1,18 @@
+# Place skipped tests here. Typically we ask that a test that will be skipped
+# to be set -x, but there may be a need to just have a list instead to track
+# it.
+#
+# The format is this:
+#   -> Rocky Version ($RL_VER, so major version)
+#   -> Path to the test, relative to this file (eg, ./core/pkg_foo/10-bar.sh)
+#   -> Name (eg github username, RAS account name)
+#   -> Reason (must be a URL to a bugs.rl.o or related github issue)
+#     -> Must be a URL to bugs.rl.o, a github issue number, or a code, such as:
+#       * NEEDINFO
+#       * NOTREADY
+8|./core/pkg_archive/26-zmore.sh|nazunalika|NEEDINFO
+8|./core/pkg_nfs/12-prepare-autofs.sh|nazunalika|NEEDINFO
+8|./core/pkg_diffutils/00-install-diff.sh|nazunalika|NOTREADY
+8|./core/pkg_snmp/12-test-snmp-3.sh|nazunalika|NOTWORKING
+8|./core/pkg_samba/00-install-samba.sh|nazunalika|NOTWORKING
+8|./core/pkg_samba/10-test-samba.sh|nazunalika|NOTWORKING

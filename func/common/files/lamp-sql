@@ -1,0 +1,5 @@
+create database obsidiancore;
+use obsidiancore;
+create table tests (name varchar(20)) ;
+grant all on obsidiancore.* to 'rocky'@'localhost' identified by 'onyx';
+flush privileges;

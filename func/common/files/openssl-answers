@@ -1,0 +1,15 @@
+[ req ]
+default_bits       = 4096
+distinguished_name = req_distinguished_name
+string_mask        = nombstr
+[ req_distinguished_name ]
+countryName                     = Country Name (2 letter code)
+countryName_default             = US
+stateOrProvinceName             = State or Province Name (full name)
+stateOrProvinceName_default     = Arizona
+localityName                    = Locality Name (eg, city)
+localityName_default            = Phoenix
+0.organizationName              = Organization Name (eg, company)
+0.organizationName_default      = RESF
+organizationalUnitName          = Organizational Unit Name (eg, section)
+organizationalUnitName_default  = Rocky
