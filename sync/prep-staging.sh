@@ -104,9 +104,15 @@ for x in "${ARCHES[@]}"; do
   for y in "${MODS[@]}"; do
     echo "Modules: ${y} ${x}"
     cp "/mnt/compose/8_metadata/${x}/${y}-modules.yaml" /tmp/modules.yaml
-    modifyrepo --mdtype=modules /tmp/modules.yaml \
-      "${COMPOSE_DIR}/${y}/${x}/os/repodata" \
-      --compress --compress-type=gz
+    test -d "${COMPOSE_DIR}/${y}/${x}/os"
+    ret_val=$?
+    if [ "$ret_val" -eq 0 ]; then
+      modifyrepo --mdtype=modules /tmp/modules.yaml \
+        "${COMPOSE_DIR}/${y}/${x}/os/repodata" \
+        --compress --compress-type=gz
+    else
+      echo "${COMPOSE_DIR}/${y}/${x}/os does not exist"
+    fi
 
     rm /tmp/modules.yaml
     sleep 1
