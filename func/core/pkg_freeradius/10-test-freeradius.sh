@@ -9,9 +9,11 @@ rocky  Cleartext-Password := "rocky"
 EOF
 
 r_log "freeradius" "Testing..."
+systemctl start radiusd.service
+sleep 1
 echo "User-Name=rocky,User-Password=rocky " | radclient -x localhost:1812 auth testing123 | grep -q 'Access-Accept'
 r_checkExitStatus $?
 
 cp /etc/raddb/users.backup /etc/raddb/users
 rm -rf /etc/raddb/users.backup
-service radiusd stop
+systemctl stop radiusd.service
