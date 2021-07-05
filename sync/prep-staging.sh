@@ -72,6 +72,7 @@ for x in "${ARCHES[@]}"; do
         echo "${COMPOSE_DIR}/${y}/${x}/${z} does not exist"
       fi
     done
+  done
   # repos with comps/groups involved, but only debug
   for y in "${MODS_REPOS[@]}"; do
     test -d "${COMPOSE_DIR}/${y}/${x}/debug/tree"
