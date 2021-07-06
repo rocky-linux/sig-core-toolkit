@@ -1,11 +1,11 @@
 # you can delete this line if you're not using Docker
 #image: busybox:latest
 
-tags: container
-
 shellcheck:
   stage: test
   image: registry.gitlab.com/pipeline-components/shellcheck:latest
+  tags:
+    - container
   script:
     # anything ending on .sh, should be shell script
     - |
