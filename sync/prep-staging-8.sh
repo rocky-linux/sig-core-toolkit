@@ -119,4 +119,36 @@ for x in "${ARCHES[@]}"; do
     rm /tmp/modules.yaml
     sleep 1
   done
+
+  echo "** Fix variants"
+  TREEINFO_VAR="${COMPOSE_DIR}/BaseOS/${x}/os/.treeinfo"
+  test -f "${TREEINFO_VAR}"
+  treeinfo_retval=$?
+  test -x /usr/bin/python3
+  python_retval=$?
+  # There is an awk way to do this, but it was easier to implement python and
+  # cat heredoc together. It felt cleaner. This was a trick I had used in a
+  # previous life when I had to admin Solaris systems, and I needed a way to
+  # add a solaris 10 system into FreeIPA (it was not fun, let me tell you). But
+  # the take away is I learned something kind of on the fly and well, it worked.
+  # Emails should have stamps.
+  if [ "$treeinfo_retval" -eq 0 ] && [ "$python_retval" -eq 0 ]; then
+    cat <<EOF | /usr/bin/python3
+from configparser import ConfigParser
+config = ConfigParser()
+config.read('${COMPOSE_DIR}/BaseOS/${x}/os/.treeinfo')
+config.set('tree', 'variants', 'BaseOS,AppStream')
+config.add_section('variants-AppStream')
+config.set('variants-AppStream', 'id', 'AppStream')
+config.set('variants-AppStream', 'name', 'AppStream')
+config.set('variants-AppStream', 'type', 'variant')
+config.set('variants-AppStream', 'uid', 'AppStream')
+config.set('variants-AppStream', 'packages', '../../../AppStream/${x}/os/Packages')
+config.set('variants-AppStream', 'repository', '../../../AppStream/${x}/os/')
+with open('${COMPOSE_DIR}/BaseOS/${x}/os/.treeinfo', 'w') as configfile:
+    config.write(configfile)
+EOF
+  else
+    echo "${TREEINFO_VAR} or python3 does not exist on this system."
+  fi
 done
