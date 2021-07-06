@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# Source mangle vars
+source $(dirname "$0")/common
+# Source sync / migrate vars for repository information
+source $(dirname "$0")/../sync/common
+
+# How many 
+ARG1=${1}
+NUM=$(( ${ARG1:-${MIRROR_DISPLAY_COUNT}} + 2))
+
+print_result () {
+    if [[ "${result}" =~ "invalid repo or arch" ]]; then
+        printf "# repo = %s arch = %s\n" "${_repo}" "${arch}"
+        printf "# FAIL: invalid repo or arch\n\n"
+    else
+        printf "%s\n# number of mirrors returned: %s\n\n" "$( echo "$result" | head -${NUM})" "$(( $(echo "$result" | wc -l) - 2 ))"
+    fi
+}
+
+cleanup_repo () {
+    # plus is actually 'rockyplus'. Others may as well(?)
+    if [[ "${repo}" =~ ^(plus)$ ]]; then
+        repo="rocky${repo}"
+    elif [[ "${repo}" =~ ^(nfv)$ ]]; then
+        repo="${repo^^}"
+    else
+        repo="${repo}"
+    fi
+    return 0
+}
+
+for repo in "${ALL_REPOS[@]}"; do 
+
+    # Business logic must be done, sometimes...
+    cleanup_repo "${repo}"
+
+    # Print a nice header
+    printf "================\n${repo}\n================\n"
+    for arch in "${ARCHES[@]}" "source"; do
+        if [[ "${arch}" == "source" ]]; then
+            _repo="${repo}-8-source"
+        else
+            _repo="${repo}-8"
+        fi
+
+        result=$(curl -s "${MIRRORLIST_BASE}?repo=${_repo}&arch=${arch}&time&country=global")
+        print_result
+
+        if [[ "${arch}" =~ ^(x86_|aarch)64$ ]]; then
+            result=$(curl -s "${MIRRORLIST_BASE}?repo=${_repo}-debug&arch=${arch}&time&country=global")
+            print_result
+        fi
+    done
+    echo
+done
