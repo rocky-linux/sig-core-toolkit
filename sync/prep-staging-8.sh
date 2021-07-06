@@ -13,7 +13,7 @@
 
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
-source "$(dirname "$0")/common"
+source "$(dirname "$0")/common.sh"
 
 echo "** Updating source repos"
 for y in "${ALL_REPOS[@]}"; do

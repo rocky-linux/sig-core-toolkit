@@ -3,7 +3,7 @@
 # other scripts in this directory to assist.
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
-source $(dirname "$0")/common
+source $(dirname "$0")/common.sh
 
 # sync all pieces of a release, including extras, nfv, etc
 
