@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Source mangle vars
-source $(dirname "$0")/common
+source "$(dirname "$0")/common"
 # Source sync / migrate vars for repository information
-source $(dirname "$0")/../sync/common
+source "$(dirname "$0")/../sync/common"
 
 # How many 
 ARG1=${1}
@@ -11,7 +11,7 @@ NUM=$(( ${ARG1:-${MIRROR_DISPLAY_COUNT}} + 2))
 
 print_result () {
     if [[ "${result}" =~ "invalid repo or arch" ]]; then
-        printf "# repo = %s arch = %s\n" "${_repo}" "${arch}"
+        printf "# repo = %s arch = %s\n" "${repo}" "${arch}"
         printf "# FAIL: invalid repo or arch\n\n"
     else
         printf "%s\n# number of mirrors returned: %s\n\n" "$( echo "$result" | head -${NUM})" "$(( $(echo "$result" | wc -l) - 2 ))"
@@ -39,7 +39,7 @@ for repo in "${ALL_REPOS[@]}"; do
     cleanup_repo "${repo}"
 
     # Print a nice header
-    printf "================\n${repo}\n================\n"
+    printf "================\n%s\n================\n" "${repo}"
     for arch in "${ARCHES[@]}" "source"; do
         # Source is treated as its own architecture
         if [[ "${arch}" == "source" ]]; then
