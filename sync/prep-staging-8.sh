@@ -12,7 +12,7 @@
 # Compose dir example: /mnt/repos-staging/mirror/pub/rocky/8.4-RC2
 # Revision must always start with a major number
 REVISION=8.4
-MAJOR="${REVISION:0:1}"
+#MAJOR="${REVISION:0:1}"
 # comment or blank if needed
 APPEND_TO_DIR="-RC2"
 COMPOSE_DIR="/mnt/repos-staging/mirror/pub/rocky/${REVISION}${APPEND_TO_DIR}"
@@ -136,7 +136,7 @@ for x in "${ARCHES[@]}"; do
     cat <<EOF | /usr/bin/python3
 from configparser import ConfigParser
 config = ConfigParser()
-config.read('${COMPOSE_DIR}/BaseOS/${x}/os/.treeinfo')
+config.read('${TREEINFO_VAR}')
 config.set('tree', 'variants', 'BaseOS,AppStream')
 config.add_section('variants-AppStream')
 config.set('variants-AppStream', 'id', 'AppStream')
@@ -145,7 +145,7 @@ config.set('variants-AppStream', 'type', 'variant')
 config.set('variants-AppStream', 'uid', 'AppStream')
 config.set('variants-AppStream', 'packages', '../../../AppStream/${x}/os/Packages')
 config.set('variants-AppStream', 'repository', '../../../AppStream/${x}/os/')
-with open('${COMPOSE_DIR}/BaseOS/${x}/os/.treeinfo', 'w') as configfile:
+with open('${TREEINFO_VAR}', 'w') as configfile:
     config.write(configfile)
 EOF
   else
