@@ -2,7 +2,7 @@
 
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
-source "$(dirname "$0")/common.sh"
+source "$(dirname "$0")/common"
 
 # Major Version (eg, 8)
 MAJ=${1}
