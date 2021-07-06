@@ -12,6 +12,7 @@
 # Compose dir example: /mnt/repos-staging/mirror/pub/rocky/8.4-RC2
 
 # Source common variables
+# shellcheck disable=SC2046,1091
 source $(dirname "$0")/common
 
 echo "** Updating source repos"
@@ -64,7 +65,7 @@ for x in "${ARCHES[@]}"; do
     if [ "$ret_val" -eq 0 ]; then
       createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os" \
         --groupfile="/mnt/compose/8/latest-Rocky-8/work/${x}/comps/comps-${y}.${x}.xml" \
-        --xz --revision=${REVISION} \
+        --xz --revision="${REVISION}" \
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
         --workers=8 --checksum=sha256
     else

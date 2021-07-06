@@ -14,7 +14,7 @@ echo "Obsidian is the Release Name" > /srv/smb/test.txt
 mount -t cifs -o guest,ro //127.0.0.1/rocky /mnt/smb
 sleep 1
 
-cat /mnt/smb/test.txt | grep -q "Obsidian"
+grep -q "Obsidian" /mnt/smb/test.txt
 
 ret_val=$?
 umount /mnt/smb

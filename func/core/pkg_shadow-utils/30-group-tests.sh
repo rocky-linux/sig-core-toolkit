@@ -23,6 +23,8 @@ r_checkExitStatus $?
 # newgrp
 r_log "shadow" "Attempt to use newgrp for onyxuser"
 groups onyxuser | grep -q "onyxuser onyxgroup" || { r_log "shadow" "Groups information is incorrect."; r_checkExitStatus 1; }
+# I'll fix this eventually
+# shellcheck disable=SC2046,SC2005
 echo $( su - onyxuser << EOF
 newgrp onyxgroup
 groups
@@ -73,7 +75,7 @@ fi
 r_log "shadow" "Make sure that when a group is a primary user group, groupdel returns 8"
 groupdel onyxuser
 ret_val=$?
-if [ "$retval" -eq 8 ]; then
+if [ "$ret_val" -eq 8 ]; then
   r_checkExitStatus 0
 else
   r_log "shadow" "The group was removed..."
@@ -108,6 +110,6 @@ r_log "shadow" "Test sg"
 sg onyxuser "touch /var/tmp/onyxsg"
 r_checkExitStatus $?
 r_log "shadow" "Verify sg worked"
-ls -l /var/tmp/onyxsg | grep -q onyxuser
+stat --format="%U" /var/tmp/onyxsg | grep -q onyxuser
 r_checkExitStatus $?
 rm /var/tmp/onyxsg

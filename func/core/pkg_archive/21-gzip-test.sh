@@ -68,7 +68,7 @@ r_log "archive" "Check that -r functions"
 mkdir /var/tmp/gziptest
 touch /var/tmp/gziptest/{a,b}
 gzip -r /var/tmp/gziptest
-[ "$(ls /var/tmp/gziptest/*.gz | wc -l)" -eq "2" ] || r_checkExitStatus 1
+[ "$(find /var/tmp/gziptest/*.gz | wc -l)" -eq "2" ] || r_checkExitStatus 1
 
 # check different compression levels
 r_log "archive" "Check compression levels"

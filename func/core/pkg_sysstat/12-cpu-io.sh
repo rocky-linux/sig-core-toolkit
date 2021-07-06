@@ -17,7 +17,7 @@ echo 1 > /proc/sys/vm/drop_caches
 # wait
 sleep 5
 
-/bin/dd if=$DISK bs=$BLOCKS count=$COUNT 2> /dev/null | sha256sum -b - &> /dev/null
+/bin/dd if="$DISK" bs=$BLOCKS count=$COUNT 2> /dev/null | sha256sum -b - &> /dev/null
 
 # wait
 sleep 5

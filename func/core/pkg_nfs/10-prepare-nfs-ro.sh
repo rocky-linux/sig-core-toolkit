@@ -9,7 +9,7 @@ m_serviceCycler nfs-server restart
 
 r_log "nfs" "Mount NFS share"
 mount -t nfs 127.0.0.1:/export/rotest /mnt
-ls -la /mnt | grep -q "nfsfile"
+find /mnt | grep -q "nfsfile"
 r_checkExitStatus $?
 
 umount /mnt

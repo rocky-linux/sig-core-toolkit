@@ -11,6 +11,7 @@ PASSER=/var/tmp/cpio/pass
 r_log "cpio" "Test basic copy out"
 mkdir -p "$OUTTER" "$INNER" "$PASSER"
 
+# shellcheck disable=2012
 ls /tmp | cpio -o > "$OUTTER"/cpio.out
 r_checkExitStatus $?
 

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Source common variables
+# shellcheck disable=SC2046,1091
 source $(dirname "$0")/common
 
 # Major Version (eg, 8)
@@ -12,14 +13,12 @@ REV=${3}
 # Note, this should be lowercase. eg, storage.
 SIG=${4}
 
-cd /mnt/compose/${MAJ}/latest-${SHORT}-${MAJ}
+cd "/mnt/compose/${MAJ}/latest-${SHORT}-${MAJ}" || { echo "Failed to change directory"; ret_val=1; exit 1; }
 ret_val=$?
 
 if [ $ret_val -eq "0" ]; then
-  local TARGET=${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${SIG}
-  mkdir -p ${TARGET}
+  TARGET=${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${SIG}
+  mkdir -p "${TARGET}"
   sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
-      {} ${TARGET}
-else
-  echo "Failed to change directory"
+      {} "${TARGET}"
 fi

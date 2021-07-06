@@ -4,7 +4,7 @@ r_log "network" "Checking that iptraf runs and returns non-zero"
 TMPFILE=/var/tmp/iptraf
 
 [ -e ${TMPFILE} ] && rm ${TMPFILE}
-[ ${EUID} -eq 0 ] || { r_log "network" "SKIP: Not running as root."; exit $PASS; }
+[ ${EUID} -eq 0 ] || { r_log "network" "SKIP: Not running as root."; exit "$PASS"; }
 
 mkdir -p ${TMPFILE}
 
@@ -14,7 +14,7 @@ KILL=$(which iptraf-ng)
 STAT=$(which iptraf-ng)
 
 for x in $IPTRAF $PING $KILL $STAT; do
-  [ ! -f "$x" ] && { r_log "network" "$x not found. This is likely a problem."; exit $FAIL; }
+  [ ! -f "$x" ] && { r_log "network" "$x not found. This is likely a problem."; exit "$FAIL"; }
 done
 
 r_log "network" "Run iptraf on all available interfaces"
@@ -24,6 +24,7 @@ r_log "network" "Do a simple ping for iptraf"
 ${PING} -c 6 127.0.0.12 &> /dev/null
 
 LOGSIZE=$(stat -c '%s' ${TMPFILE})
+# shellcheck disable=SC2086
 kill -USR2 "$(pidof $IPTRAF)"
 
 r_log "network" "Verifying that iptraf log has data"

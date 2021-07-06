@@ -46,7 +46,8 @@ else
 fi
 
 cp "$DROPDIR/openssl.crt" "$SSLPATH/certs/"
-HASH=$(openssl x509 -noout -hash -in $SSLPATH/certs/openssl.crt)
+# shellcheck disable=SC2086
+HASH="$(openssl x509 -noout -hash -in $SSLPATH/certs/openssl.crt)"
 ret_val=$?
 if [ $ret_val -ne 0 ]; then
   r_log "openssl" "Could not create hash"

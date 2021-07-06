@@ -2,7 +2,7 @@
 r_log "kernel" "Testing the kernel keyring (GPG)"
 
 ARCH=$(uname -m)
-KERNEL=$(uname -r | cut -d'-' -f1)
+#KERNEL=$(uname -r | cut -d'-' -f1)
 
 if [ "${ARCH}" == "aarch64" ]; then
   r_log "kernel" "Architecture not tested: $ARCH"

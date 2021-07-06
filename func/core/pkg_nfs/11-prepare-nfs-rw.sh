@@ -10,7 +10,7 @@ m_serviceCycler nfs-server restart
 
 r_log "nfs" "Mount NFS share"
 mount -t nfs 127.0.0.1:/export/rwtest /mnt
-ls -la /mnt | grep -q "nfsfile"
+find /mnt | grep -q "nfsfile"
 r_checkExitStatus $?
 
 r_log "nfs" "Test that the NFS share is writeable"

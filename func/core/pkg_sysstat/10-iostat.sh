@@ -4,7 +4,7 @@ r_log "sysstat" "Test basic iostat disk measurements"
 TMPFILE=/var/tmp/iostat.disk
 BLOCKS=4096
 COUNT=10100
-SUM="$(expr $BLOCKS \* $COUNT / 1024)"
+SUM="$(( BLOCKS * COUNT / 1024 ))"
 DISK="$(fdisk -l | grep -Po -m1 '^/dev/[\D]+')"
 
 [ -e $TMPFILE ] && /bin/rm -f $TMPFILE
@@ -13,13 +13,13 @@ DISK="$(fdisk -l | grep -Po -m1 '^/dev/[\D]+')"
 echo 1 > /proc/sys/vm/drop_caches
 
 r_log "sysstat" "Running iostat on $DISK"
-/usr/bin/iostat -dkx 1 5 $DISK > $TMPFILE &
+/usr/bin/iostat -dkx 1 5 "$DISK" > $TMPFILE &
 
 # wait
 sleep 4
 
 # Generate traffic
-/bin/dd if=$DISK of=/dev/null bs=$BLOCKS count=$COUNT &> /dev/null
+/bin/dd if="$DISK" of=/dev/null bs=$BLOCKS count=$COUNT &> /dev/null
 
 # wait
 sleep 6

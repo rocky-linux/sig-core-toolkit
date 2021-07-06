@@ -28,6 +28,7 @@ r_checkExitStatus $?
 
 # lastlog
 r_log "shadow" "Verify lastlog"
+# shellcheck disable=SC2063
 lastlog -u obsidian | grep -q "**Never logged in**"
 r_checkExitStatus $?
 
