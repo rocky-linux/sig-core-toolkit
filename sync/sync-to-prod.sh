@@ -2,7 +2,7 @@
 # Syncs everything from staging to production
 
 # Source common variables
-source $(dirname "$0")/common
+source "./common"
 
 REV=${1}
 

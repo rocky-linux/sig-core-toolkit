@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source common variables
-source $(dirname "$0")/common
+source "./common"
 
 # Major Version (eg, 8)
 MAJ=${1}

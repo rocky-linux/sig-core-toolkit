@@ -12,7 +12,7 @@
 # Compose dir example: /mnt/repos-staging/mirror/pub/rocky/8.4-RC2
 
 # Source common variables
-source $(dirname "$0")/common
+source "./common"
 
 echo "** Updating source repos"
 for y in "${ALL_REPOS[@]}"; do
