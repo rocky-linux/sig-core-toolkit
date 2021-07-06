@@ -1,0 +1,51 @@
+# To be sourced by scripts to use
+
+# Revision must always start with a major number
+REVISION=8.4
+
+MAJOR="${REVISION:0:1}"
+MINOR="${REVISION:2:1}"
+
+# comment or blank if needed
+APPEND_TO_DIR="-RC2"
+
+STAGING_ROOT="/mnt/repos-staging"
+PRODUCTION_ROOT="/mnt/repos-production"
+
+# relative to ${ENV}_ROOT
+CATEGORY_STUB="mirror/pub/rocky"
+RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
+
+# Define arches we support
+ARCHES=(x86_64 aarch64)
+
+# Set all repos that have no comps/groups associated with them. This is even in
+# cases where repos will not be available by normal means. It's just for
+# consistency.
+NONMODS_REPOS=(
+  extras
+  Devel
+  nfv
+  storage/gluster9
+  plus
+)
+
+# These repos have comps/groups, except for debuginfo and sources
+MODS_REPOS=(
+  BaseOS
+  AppStream
+  HighAvailability
+  ResilientStorage
+  PowerTools
+)
+
+ALL_REPOS=(
+  "${NONMODS_REPOS[@]}"
+  "${MODS_REPOS[@]}"
+)
+
+# These repos have modules
+MODS=(
+  AppStream
+  PowerTools
+)
