@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 # Source mangle vars
+# shellcheck source=./common
 source "$(dirname "$0")/common"
 # Source sync / migrate vars for repository information
+# shellcheck source=../sync/common
 source "$(dirname "$0")/../sync/common"
 
 # How many 
