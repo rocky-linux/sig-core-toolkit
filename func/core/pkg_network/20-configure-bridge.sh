@@ -2,7 +2,7 @@
 r_log "network" "Test bridging functionality (non-network manager)"
 
 bridge=dummybr0
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,1090
 . "$(dirname "$0")"/imports.sh
 
 r_log "network" "Add a dummy bridge $bridge"
