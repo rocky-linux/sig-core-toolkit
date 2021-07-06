@@ -17,7 +17,7 @@ source "$(dirname "$0")/common"
 
 echo "** Updating source repos"
 for y in "${ALL_REPOS[@]}"; do
-  test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}"
+  test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree"
   ret_val=$?
   if [ "$ret_val" -eq 0 ]; then
     createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree" \
