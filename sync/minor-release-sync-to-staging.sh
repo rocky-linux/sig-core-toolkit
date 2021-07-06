@@ -2,7 +2,8 @@
 # Performs a full on sync of a minor release, directories and all. It calls the
 # other scripts in this directory to assist.
 # Source common variables
-source "./common"
+# shellcheck disable=SC2046,1091
+source $(dirname "$0")/common
 
 # sync all pieces of a release, including extras, nfv, etc
 

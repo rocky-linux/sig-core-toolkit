@@ -7,5 +7,5 @@ if [ -z "$pngFile" ]; then
   exit 0
 fi
 
-file -i $pngFile | grep -q 'image/png'
+file -i "$pngFile" | grep -q 'image/png'
 r_checkExitStatus $?

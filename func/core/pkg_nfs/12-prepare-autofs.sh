@@ -15,7 +15,7 @@ m_serviceCycler nfs-server restart
 m_serviceCycler rpcbind restart
 m_serviceCycler autofs restart
 r_log "nfs" "Attempt to access /export/autotest via autofs"
-ls -la /mnt/autofs | grep -q autofile
+find /mnt/autofs | grep -q autofile
 r_checkExitStatus $?
 
 # Remove unneeded configuration

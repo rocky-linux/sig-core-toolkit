@@ -1,8 +1,7 @@
 #!/bin/bash
 r_log "kernel" "Testing debrand"
-kernver=$(uname -r)
 
-strings /boot/vmlinuz-$(uname -r) | grep -qi rhel
+strings "/boot/vmlinuz-$(uname -r)" | grep -qi rhel
 ret_val=$?
 
 if [ "$ret_val" -eq "0" ]; then

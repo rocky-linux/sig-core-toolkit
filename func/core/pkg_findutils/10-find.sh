@@ -5,7 +5,7 @@ TMPDIR=/var/tmp/find
 
 [ -e $TMPDIR ] && rm -rf "$TMPDIR"
 
-mkdir -p "$TMPDIR" || { r_log "findutils" "Can't create $TMPDIR"; exit $FAIL; }
+mkdir -p "$TMPDIR" || { r_log "findutils" "Can't create $TMPDIR"; exit "$FAIL"; }
 touch "$TMPDIR/file1"
 touch "$TMPDIR/file with a space"
 r_log "findutils" "Check that find just works(tm)"
@@ -23,7 +23,7 @@ fi
 r_log "findutils" "Prepare for xargs test"
 LINES=$(find "$TMPDIR" -print0 | wc -l)
 
-if [ $LINES -eq 0 ]; then
+if [ "$LINES" -eq 0 ]; then
   r_checkExitStatus 0
 else
   r_checkExitStatus 1
@@ -34,8 +34,10 @@ find "$TMPDIR" -type f -print0 | xargs -0 ls &> /dev/null
 r_checkExitStatus $?
 
 r_log "findutils" "Perform for xargs test: fails with spaces in the name"
-find "$TMPDIR" -type f | xargs ls &> /dev/null && { r_log "findutils" "Why did this get a 0 exit?"; exit $FAIL; }
-if [ $? -ne 0 ]; then
+# shellcheck disable=SC2038
+find "$TMPDIR" -type f | xargs ls &> /dev/null && { r_log "findutils" "Why did this get a 0 exit?"; exit "$FAIL"; }
+ret_val=$?
+if [ "$ret_val" -ne 0 ]; then
   r_checkExitStatus $?
 fi
 

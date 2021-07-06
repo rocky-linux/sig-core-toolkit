@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Source common variables
-source "./common"
+# shellcheck disable=SC2046,1091
+source $(dirname "$0")/common
 
 # Major Version (eg, 8)
 MAJ=${1}
@@ -10,14 +11,12 @@ SHORT=${2}
 # The directory where we're going to, usually MAJOR.MINOR, sometimes it's MAJOR.MINOR-RCX
 REV=${3}
 
-cd /mnt/compose/${MAJ}/latest-${SHORT}-${MAJ}
+cd "/mnt/compose/${MAJ}/latest-${SHORT}-${MAJ}" || { echo "Failed to change directory"; ret_val=1; exit 1; }
 ret_val=$?
 
 if [ $ret_val -eq "0" ]; then
-  local TARGET=${STAGING_ROOT}/${CATEGORY_STUB}/${REV}
-  mkdir -p ${TARGET}
+  TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
+  mkdir -p "${TARGET}"
   sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
-      {} ${TARGET}
-else
-  echo "Failed to change directory"
+      {} "${TARGET}"
 fi

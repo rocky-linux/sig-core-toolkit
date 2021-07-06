@@ -1,6 +1,5 @@
 #!/bin/bash
 r_log "strace" "Run basic strace tests"
-STRACE=$(which strace)
 /usr/bin/strace ls &> /dev/null
 ret_val=$?
 

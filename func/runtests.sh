@@ -17,11 +17,12 @@ SELINUX=$(getenforce)
 # End
 ################################################################################
 
-# shellcheck source=/dev/null
+# shellcheck source=/dev/null disable=SC2015
 [ -f $COMMON_EXPORTS ] && source $COMMON_EXPORTS || { echo -e "\n[-] $(date): Variables cannot be sourced."; exit 1; }
-# shellcheck source=/dev/null
+# shellcheck source=/dev/null disable=SC2015
 [ -f $COMMON_IMPORTS ] && source $COMMON_IMPORTS || { echo -e "\n[-] $(date): Functions cannot be sourced."; exit 1; }
 # Init log
+# shellcheck disable=SC2015
 [ -e "$LOGFILE" ] && m_recycleLog || touch "$LOGFILE"
 # SELinux check
 if [ "$SELINUX" != "Enforcing" ]; then
@@ -37,10 +38,12 @@ r_log "internal" "Starting Release Engineering Core Tests"
 # Skip tests in a list - some tests are already -x, so it won't be an issue
 if [ -e skip.list ]; then
   r_log "internal" "Disabling tests"
+  # shellcheck disable=SC2162
   grep -E "^${RL_VER}" skip.list | while read line; do
-    testFile=$(echo $line | cut -d '|' -f 2)
+    # shellcheck disable=SC2086
+    testFile="$(echo $line | cut -d '|' -f 2)"
     r_log "internal" "SKIP ${testFile}"
-    chmod -x ${testFile}
+    chmod -x "${testFile}"
   done
   r_log "internal" "WARNING: Tests above were disabled."
 fi

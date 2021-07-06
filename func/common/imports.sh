@@ -28,12 +28,15 @@ function r_checkExitStatus() {
 # just having the files named differently, but that seemed more annoying than
 # just setting +x
 function r_processor() {
+  # shellcheck disable=SC2068
   exec 8< $@
+  # shellcheck disable=SC2162
   while read -u 8 file; do
+    # shellcheck disable=SC2086
     if [[ "$(basename ${file})" =~ README|^\.|^_ ]]; then
       continue
     fi
-    [ -x ${file} ] && ${file}
+    [ -x "${file}" ] && "${file}"
   done
   return 0
 }
@@ -45,6 +48,7 @@ function r_processor() {
 # Args: Any number of $1..X
 function p_installPackageNormal() {
   r_log "internal" "Attempting install: $*"
+  # shellcheck disable=SC2086
   /usr/bin/dnf --assumeyes --debuglevel ${DNFDEBUG} install "$@"
   r_checkExitStatus $?
 }
@@ -54,6 +58,7 @@ function p_installPackageNormal() {
 # Args: Any number of $1..X
 function p_installPackageNoWeaks() {
   r_log "internal" "Attempting install: $*"
+  # shellcheck disable=SC2086
   /usr/bin/dnf --assumeyes --debuglevel ${DNFDEBUG} --setopt install_weak_deps=0 install "$@"
   r_checkExitStatus $?
 }
@@ -62,6 +67,7 @@ function p_installPackageNoWeaks() {
 # Args: Any number of $1..X
 function p_removePackage() {
   r_log "internal" "Attempting uninstall: $*"
+  # shellcheck disable=SC2086
   /usr/bin/dnf --assumeyes --debuglevel ${DNFDEBUG} remove "$@"
   r_checkExitStatus $?
 }
@@ -70,6 +76,7 @@ function p_removePackage() {
 # Args: Any number of $1..X
 function p_enableModule() {
   r_log "internal" "Enabling module: $*"
+  # shellcheck disable=SC2086
   /usr/bin/dnf --assumeyes --debuglevel ${DNFDEBUG} module enable "$@"
   r_checkExitStatus $?
 }
@@ -78,20 +85,21 @@ function p_enableModule() {
 # Args: Any number of $1..X
 function p_resetModule() {
   r_log "internal" "Resetting module: $*"
+  # shellcheck disable=SC2086
   /usr/bin/dnf --assumeyes --debuglevel ${DNFDEBUG} module reset "$@"
   r_checkExitStatus $?
 }
 
 function p_getPackageRelease() {
-  rpm -q --queryformat '%{RELEASE}' $1
+  rpm -q --queryformat '%{RELEASE}' "$1"
 }
 
 function p_getPackageArch() {
-  rpm -q --queryformat '%{ARCH}' $1
+  rpm -q --queryformat '%{ARCH}' "$1"
 }
 
 function p_getDist() {
-  rpm -q $(rpm -qf /etc/redhat-release) --queryformat '%{version}\n' | cut -d'.' -f1
+  rpm -q "$(rpm -qf /etc/redhat-release)" --queryformat '%{version}\n' | cut -d'.' -f1
 }
 
 ################################################################################
@@ -101,10 +109,13 @@ function p_getDist() {
 # prevent potential race conditions.
 function m_serviceCycler() {
   if [ "$2" = "cycle" ]; then
+    # shellcheck disable=SC2086
     /bin/systemctl stop $1
     sleep 3
+    # shellcheck disable=SC2086
     /bin/systemctl start $1
   else
+    # shellcheck disable=SC2086
     /bin/systemctl $2 $1
   fi
   sleep 3
@@ -113,6 +124,7 @@ function m_serviceCycler() {
 function m_checkForPort() {
   while true; do
     sleep 1
+    # shellcheck disable=SC2086
     if echo > /dev/tcp/localhost/$1 >/dev/null 2>&1; then
       r_log "internal" "Waiting for TCP port $1 to start listening"
       break
