@@ -12,8 +12,8 @@
 # Compose dir example: /mnt/repos-staging/mirror/pub/rocky/8.4-RC2
 
 # Source common variables
-# shellcheck disable=SC2046,1091
-source $(dirname "$0")/common
+# shellcheck disable=SC2046,1091,1090
+source "$(dirname "$0")/common"
 
 echo "** Updating source repos"
 for y in "${ALL_REPOS[@]}"; do
