@@ -4,6 +4,9 @@
 shellcheck:
   stage: test
   image: registry.gitlab.com/pipeline-components/shellcheck:latest
+  variables:
+    CUSTOM_ENV_CI_REGISTRY: git.rockylinux.org
+    CUSTOM_ENV_CI_REGISTRY_USER: neil
   tags:
     - container
   script:
