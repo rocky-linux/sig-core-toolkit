@@ -109,7 +109,7 @@ from configparser import ConfigParser
 config = ConfigParser()
 config.read('${TREEINFO_VAR}')
 config.set('tree', 'variants', 'BaseOS,AppStream')
-config.add_section('variants-AppStream')
+config.add_section('variant-AppStream')
 config.set('variants-AppStream', 'id', 'AppStream')
 config.set('variants-AppStream', 'name', 'AppStream')
 config.set('variants-AppStream', 'type', 'variant')
