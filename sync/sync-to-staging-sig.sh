@@ -4,14 +4,18 @@
 # shellcheck disable=SC2046,1091,1090
 source "$(dirname "$0")/common"
 
+if [[ $# -eq 0 ]] || [[ $# -eq 1 ]]; then
+  echo "Not enough information."
+  echo "You must use: shortname sig"
+  exit 1
+fi
+
 # Major Version (eg, 8)
-MAJ=${1}
+MAJ=${RLVER}
 # Short name (eg, NFV, extras, Rocky, gluster9)
-SHORT=${2}
-# The directory where we're going to, usually MAJOR.MINOR, sometimes it's MAJOR.MINOR-RCX
-REV=${3}
+SHORT=${1}
 # Note, this should be lowercase. eg, storage.
-SIG=${4}
+SIG=${2}
 
 cd "/mnt/compose/${MAJ}/latest-${SHORT}-${MAJ}/compose" || { echo "Failed to change directory"; ret_val=1; exit 1; }
 ret_val=$?

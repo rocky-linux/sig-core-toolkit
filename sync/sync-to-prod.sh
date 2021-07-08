@@ -5,7 +5,7 @@
 # shellcheck disable=SC2046,1091,1090
 source "$(dirname "$0")/common"
 
-REV=${1}
+REV=${REVISION}${APPEND_TO_DIR}
 
 cd "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" || { echo "Failed to change directory"; ret_val=1; exit 1; }
 ret_val=$?

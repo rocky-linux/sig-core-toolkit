@@ -1,51 +1,30 @@
 # To be sourced by scripts to use
 
-# Revision must always start with a major number
-REVISION=8.4
-
-MAJOR="${REVISION:0:1}"
-MINOR="${REVISION:2:1}"
-
-# comment or blank if needed
-APPEND_TO_DIR="-RC2"
+# Temporary probably. This makes it so if RLVER=... is called before the script
+# it will set the version for the variables to call up. This was easier than
+# creating duplicates of a bunch of stuff. Default version is 8.
+if [ -z "$RLVER" ]; then
+  export RLVER=8
+fi
 
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
 
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
-RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
+
+# should be overriden in other commons
+#RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
 
 # Define arches we support
 ARCHES=(x86_64 aarch64)
 
-# Set all repos that have no comps/groups associated with them. This is even in
-# cases where repos will not be available by normal means. It's just for
-# consistency.
-NONMODS_REPOS=(
-  extras
-  Devel
-  nfv
-  storage/gluster9
-  plus
-)
+#Source Major common
+test -f "$(dirname "$0")/common_${RLVER}" && source "$(dirname "$0")/common_${RLVER}"
+if [ "$?" -ne 0 ]; then
+  echo "Could not source common_${RLVER}"
+  exit 1
+fi
 
-# These repos have comps/groups, except for debuginfo and sources
-MODS_REPOS=(
-  BaseOS
-  AppStream
-  HighAvailability
-  ResilientStorage
-  PowerTools
-)
-
-ALL_REPOS=(
-  "${NONMODS_REPOS[@]}"
-  "${MODS_REPOS[@]}"
-)
-
-# These repos have modules
-MODS=(
-  AppStream
-  PowerTools
-)
+# Combined variables based on common data
+REV="${REVISION}${APPEND_TO_DIR}"

@@ -13,6 +13,7 @@
 
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
+export RLVER=8
 source "$(dirname "$0")/common"
 
 echo "** Updating source repos"
