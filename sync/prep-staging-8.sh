@@ -12,6 +12,7 @@
 # Compose dir example: /mnt/repos-staging/mirror/pub/rocky/8.4-RC2
 
 # Source common variables
+export RLVER=8
 # shellcheck disable=SC2046,1091,1090
 source "$(dirname "$0")/common"
 

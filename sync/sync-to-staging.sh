@@ -4,12 +4,15 @@
 # shellcheck disable=SC2046,1091,1090
 source "$(dirname "$0")/common"
 
+if [[ $# -eq 0 ]]; then
+  echo "You must specify a short name."
+  exit 1
+fi
+
 # Major Version (eg, 8)
-MAJ=${1}
+MAJ=${RLVER}
 # Short name (eg, NFV, extras, Rocky, gluster9)
-SHORT=${2}
-# The directory where we're going to, usually MAJOR.MINOR, sometimes it's MAJOR.MINOR-RCX
-REV=${3}
+SHORT=${1}
 
 cd "/mnt/compose/${MAJ}/latest-${SHORT}-${MAJ}/compose" || { echo "Failed to change directory"; ret_val=1; exit 1; }
 ret_val=$?
