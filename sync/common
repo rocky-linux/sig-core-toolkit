@@ -28,3 +28,12 @@ fi
 
 # Combined variables based on common data
 REV="${REVISION}${APPEND_TO_DIR}"
+
+# These repos have modules
+MODS=(
+  AppStream
+  PowerTools
+)
+
+# Used to iterate over ISOs?
+VARIANTS=(boot minimal dvd1)
