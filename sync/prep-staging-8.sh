@@ -51,7 +51,7 @@ for x in "${ARCHES[@]}"; do
     test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree"
     ret_val=$?
     if [ "$ret_val" -eq 0 ]; then
-      createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}" \
+      createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree" \
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree does not exist"
