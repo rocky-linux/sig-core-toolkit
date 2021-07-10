@@ -1,5 +1,13 @@
 # To be sourced by scripts to use
 
+# Variables that can be overriden should be noted with optional context. It is
+# expected that these values are here in this file (per variable or per set):
+#
+#   * Allowed
+#   * Allowed with caveats
+#   * Not Allowed
+#   * Required
+
 # Temporary probably. This makes it so if RLVER=... is called before the script
 # it will set the version for the variables to call up. This was easier than
 # creating duplicates of a bunch of stuff. Default version is 8.
@@ -7,19 +15,23 @@ if [ -z "$RLVER" ]; then
   export RLVER=8
 fi
 
+# Override: Not Allowed
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
 
+# Override: Not Allowed
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
 
-# should be overriden in other commons
+# Override: Required
 #RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
 
 # Define arches we support
+# Override: Not Allowed
 ARCHES=(x86_64 aarch64)
 
-#Source Major common
+# Source Major common
+# Override: Not Allowed
 test -f "$(dirname "$0")/common_${RLVER}" && source "$(dirname "$0")/common_${RLVER}"
 if [ "$?" -ne 0 ]; then
   echo "Could not source common_${RLVER}"
@@ -27,13 +39,23 @@ if [ "$?" -ne 0 ]; then
 fi
 
 # Combined variables based on common data
+# Override: Capable with caveats
 REV="${REVISION}${APPEND_TO_DIR}"
 
 # These repos have modules
+# Override: Allowed
+# This variable can (and probably should) be overriden by their common_X files
+# that are sourced. The reason is because future EL's can potentially change up
+# which repos are module based (whether adding/removing). This is something to
+# keep in mind. For example, Fedora (sanely) has a "base" repo and then an
+# updates repo for both their regular packages *and* their modularity repos.
+# This obviously makes sense and I can only hope Red Hat decides to bring that
+# back in some way.
 MODS=(
   AppStream
   PowerTools
 )
 
 # Used to iterate over ISOs?
+# Override: Allowed
 VARIANTS=(boot minimal dvd1)
