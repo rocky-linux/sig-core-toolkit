@@ -11,7 +11,7 @@ USAGE="usage: $NAME <torrentdir>"
 ISODIR=${1}
 
 if [[ -z "${ISODIR}"  || $# == 0 ]]; then
-    echo $USAGE
+    echo "$USAGE"
     exit
 fi
 
@@ -22,7 +22,7 @@ if [ -f "$LOCKFILE" ]; then
    exit
 fi
 
-trap "rm -f $LOCKFILE" EXIT
+trap 'rm -f $LOCKFILE' EXIT
 touch $LOCKFILE
 
 # stamp the email
@@ -63,25 +63,26 @@ for variant in "${VARIANTS[@]}"; do
 
         printf "** Linking Version: %s; Arch: %s; Variant: %s\n" "${REVISION}" "${arch}" "${variant}"
         ln -sv \
-            ${ISODIR}/${arch}/{CHECKSUM*,${name_template}.iso*} \
-            ${name_template}/
+            "${ISODIR}"/"${arch}"/{CHECKSUM*,"${name_template}".iso*} \
+            "${name_template}"/
     done
 done
 
 
 printf "* Step 2: Generate torrents\n"
-for torrent_directory in ${TORRENT_DOWNLOAD_DIR}/Rocky-${REVISION}-*; do 
+for torrent_directory in "${TORRENT_DOWNLOAD_DIR}"/Rocky-"${REVISION}"-*; do 
     name="$(basename "${torrent_directory}")"
 
     if [[ -d "${torrent_directory}" ]]; then 
-        printf "** Creating torrent for ${torrent_directory}\n"
+        printf "** Creating torrent for %s\n" "${torrent_directory}"
     else
         continue
     fi
-    torrenttools create \
-        --announce "${TORRENT_TRACKERS[@]}" --name "${name}"                \
-        --exclude "${TORRENT_EXCLUDES}" --output "${TORRENT_START_DIR}"  \
-        --threads "${THREADS}" --comment "${TORRENT_COMMENT}"             \
+
+    torrenttools create                                                 \
+        --announce "${TORRENT_TRACKERS[@]}" --name "${name}"            \
+        --exclude "${TORRENT_EXCLUDES}" --output "${TORRENT_START_DIR}" \
+        --threads "${THREADS}" --comment "${TORRENT_COMMENT}"           \
         "${torrent_directory}"
     res=$?
     if [[ $res -ne 0 ]]; then
