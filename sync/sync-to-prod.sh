@@ -18,4 +18,9 @@ if [ $ret_val -eq "0" ]; then
   # shellcheck disable=SC2035
   sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
       {} "${TARGET}"
+
+  # Full file list update
+  cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
+  find . > fullfilelist
 fi
+
