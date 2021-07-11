@@ -23,6 +23,8 @@ for y in "${ALL_REPOS[@]}"; do
   if [ "$ret_val" -eq 0 ]; then
     createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree" \
       "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
+    test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
+      "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
   else
     echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree does not exist"
   fi
@@ -41,6 +43,8 @@ for x in "${ARCHES[@]}"; do
       if [ "$ret_val" -eq 0 ]; then
         createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}" \
           "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
+        test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
+          "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
       else
         echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z} does not exist"
       fi
@@ -53,6 +57,8 @@ for x in "${ARCHES[@]}"; do
     if [ "$ret_val" -eq 0 ]; then
       createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree" \
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
+      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree does not exist"
     fi
@@ -69,6 +75,8 @@ for x in "${ARCHES[@]}"; do
         --xz --revision="${REVISION}" \
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
         --workers=8 --checksum=sha256
+      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os does not exist"
     fi
@@ -84,6 +92,9 @@ for x in "${ARCHES[@]}"; do
       modifyrepo --mdtype=modules /tmp/modules.yaml \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata" \
         --compress --compress-type=gz
+      # This might not be necessary, but it does not hurt incase repomd is modified
+      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os does not exist"
     fi
