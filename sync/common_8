@@ -59,3 +59,59 @@ MODS=(
   AppStream
   PowerTools
 )
+
+# functions
+# Note, EL8 and EL9 may not be the same, do not put in 'common'
+function treeinfoFixer() {
+  BaseOSArch="${1}"
+  TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo"
+  PRISTINE_TREE="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo-pristine"
+  test -f "${PRISTINE_TREE}"
+  pris_retval=$?
+  if [ "$pris_retval" -eq 0 ]; then
+    /bin/cp "${PRISTINE_TREE}" "${TREEINFO_VAR}"
+  else
+    echo "WARNING: We do not have a pristine treeinfo to copy from"
+  fi
+}
+
+# Note, EL8 and EL9 may not be the same, do not put in 'common'
+function treeinfoModder() {
+  BaseOSArch="${1}"
+  TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo"
+  PRISTINE_TREE="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo-pristine"
+  test -f "${TREEINFO_VAR}"
+  treeinfo_retval=$?
+  test -x /usr/bin/python3
+  python_retval=$?
+  # There is an awk way to do this, but it was easier to implement python and
+  # cat heredoc together. It felt cleaner. This was a trick I had used in a
+  # previous life when I had to admin Solaris systems, and I needed a way to
+  # add a solaris 10 system into FreeIPA (it was not fun, let me tell you). But
+  # the take away is I learned something kind of on the fly and well, it worked.
+  # Emails should have stamps.
+  if [ "$treeinfo_retval" -eq 0 ] && [ "$python_retval" -eq 0 ]; then
+    cat <<EOF | /usr/bin/python3
+from configparser import ConfigParser
+config = ConfigParser()
+config.read('${TREEINFO_VAR}')
+config.set('tree', 'variants', 'BaseOS,AppStream')
+config.add_section('variant-AppStream')
+config.set('variant-AppStream', 'id', 'AppStream')
+config.set('variant-AppStream', 'name', 'AppStream')
+config.set('variant-AppStream', 'type', 'variant')
+config.set('variant-AppStream', 'uid', 'AppStream')
+config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/os/Packages')
+config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/os/')
+
+with open('${TREEINFO_VAR}', 'w') as configfile:
+    config.write(configfile)
+EOF
+  else
+    echo "${TREEINFO_VAR}, or python3 does not exist on this system."
+  fi
+  /bin/cp "${TREEINFO_VAR}" "${PRISTINE_TREE}"
+}
+
+export -f treeinfoFixer
+export -f treeinfoModder

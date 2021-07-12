@@ -47,6 +47,11 @@ for ARCH in "${ARCHES[@]}"; do
   done
 done
 
+# fix treeinfo
+for ARCH in "${ARCHES[@]}"; do
+  treeinfoModder "${ARCH}"
+done
+
 # sign all repos
 test -f $(dirname "$0")/sign-repos-only.sh
 ret_val=$?
