@@ -105,6 +105,7 @@ for x in "${ARCHES[@]}"; do
 
   echo "** Fix variants"
   TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${x}/os/.treeinfo"
+  IMAGES_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${x}/os/images"
   test -f "${TREEINFO_VAR}"
   treeinfo_retval=$?
   test -x /usr/bin/python3
@@ -116,6 +117,16 @@ for x in "${ARCHES[@]}"; do
   # the take away is I learned something kind of on the fly and well, it worked.
   # Emails should have stamps.
   if [ "$treeinfo_retval" -eq 0 ] && [ "$python_retval" -eq 0 ]; then
+    # shellcheck disable=SC2086
+    BOOTISO_CHECKSUM="$(sha256sum ${IMAGES_VAR}/boot.iso | cut -d' ' -f1)"
+    # shellcheck disable=SC2086
+    EFIBOOT_CHECKSUM="$(sha256sum ${IMAGES_VAR}/efiboot.img | cut -d' ' -f1)"
+    # shellcheck disable=SC2086
+    INSTALLIMG_CHECKSUM="$(sha256sum ${IMAGES_VAR}/install.img | cut -d' ' -f1)"
+    # shellcheck disable=SC2086
+    INITRD_CHECKSUM="$(sha256sum ${IMAGES_VAR}/pxeboot/initrd.img | cut -d' ' -f1)"
+    # shellcheck disable=SC2086
+    VMLINUZ_CHECKSUM="$(sha256sum ${IMAGES_VAR}/pxeboot/vmlinuz | cut -d' ' -f1)"
     cat <<EOF | /usr/bin/python3
 from configparser import ConfigParser
 config = ConfigParser()
@@ -128,6 +139,20 @@ config.set('variants-AppStream', 'type', 'variant')
 config.set('variants-AppStream', 'uid', 'AppStream')
 config.set('variants-AppStream', 'packages', '../../../AppStream/${x}/os/Packages')
 config.set('variants-AppStream', 'repository', '../../../AppStream/${x}/os/')
+config.add_section('images-${x}')
+config.set('images-${x}', 'boot.iso', 'images/boot.iso')
+config.set('images-${x}', 'efiboot.img', 'images/efiboot.img')
+config.set('images-${x}', 'initrd', 'images/pxeboot/initrd.img')
+config.set('images-${x}', 'kernel', 'images/pxeboot/vmlinuz')
+config.add_section('stage2')
+config.set('stage2', 'mainimage', 'images/install.img')
+config.add_section('checksums')
+config.set('checksums', 'images/boot.iso', 'sha256:${BOOTISO_CHECKSUM}')
+config.set('checksums', 'images/efiboot.img', 'sha256:${EFIBOOT_CHECKSUM}')
+config.set('checksums', 'images/install.img', 'sha256:${INSTALLIMG_CHECKSUM}')
+config.set('checksums', 'images/pxeboot/initrd.img', 'sha256:${INITRD_CHECKSUM}')
+config.set('checksums', 'images/pxeboot/vmlinuz', 'sha256:${VMLINUZ_CHECKSUM}')
+
 with open('${TREEINFO_VAR}', 'w') as configfile:
     config.write(configfile)
 EOF
