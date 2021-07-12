@@ -41,6 +41,19 @@ ALL_REPOS=(
   "${MODS_REPOS[@]}"
 )
 
+NONSIG_COMPOSE=(
+  Rocky
+  Rocky-devel
+  Extras
+  Plus
+  NFV
+)
+
+declare -A SIG_COMPOSE
+SIG_COMPOSE=(
+  [Gluster9]="storage/gluster9"
+)
+
 # These repos have modules
 MODS=(
   AppStream
