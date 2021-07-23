@@ -24,7 +24,7 @@ NONMODS_REPOS=(
   Devel
   nfv
   storage/gluster9
-  virt/advanced-virtualization
+  virt/advanced-virt
   plus
 )
 
