@@ -25,8 +25,8 @@ for y in "${ALL_REPOS[@]}"; do
       "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
     test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
       "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
-    sed -i '/<open-size><\/open-size>/d' \
-      "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
+    #sed -i '/<open-size><\/open-size>/d' \
+    #  "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
   else
     echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree does not exist"
   fi
@@ -47,8 +47,8 @@ for x in "${ARCHES[@]}"; do
           "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
         test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
           "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
-        sed -i '/<open-size><\/open-size>/d' \
-          "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
+        #sed -i '/<open-size><\/open-size>/d' \
+        #  "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
       else
         echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z} does not exist"
       fi
@@ -63,8 +63,8 @@ for x in "${ARCHES[@]}"; do
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
-      sed -i '/<open-size><\/open-size>/d' \
-        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
+      #sed -i '/<open-size><\/open-size>/d' \
+      #  "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree does not exist"
     fi
@@ -83,8 +83,8 @@ for x in "${ARCHES[@]}"; do
         --workers=8 --checksum=sha256
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
-      sed -i '/<open-size><\/open-size>/d' \
-        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
+      #sed -i '/<open-size><\/open-size>/d' \
+      #  "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os does not exist"
     fi
@@ -103,8 +103,8 @@ for x in "${ARCHES[@]}"; do
       # This might not be necessary, but it does not hurt incase repomd is modified
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
-      sed -i '/<open-size><\/open-size>/d' \
-        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
+      #sed -i '/<open-size><\/open-size>/d' \
+      #  "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os does not exist"
     fi
