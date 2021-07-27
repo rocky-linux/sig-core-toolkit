@@ -99,7 +99,7 @@ for x in "${ARCHES[@]}"; do
     if [ "$ret_val" -eq 0 ]; then
       modifyrepo --mdtype=modules /tmp/modules.yaml \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata" \
-        --compress --compress-type=gz
+        --compress --compress-type=xz
       # This might not be necessary, but it does not hurt incase repomd is modified
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
