@@ -49,7 +49,7 @@ done
 
 # make a kickstart directory
 for ARCH in "${ARCHES[@]}"; do
-  for REPO in ${MODS_REPOS[@]}; do
+  for REPO in "${MODS_REPOS[@]}"; do
     SOURCE="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${REPO}/${ARCH}/os"
     TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${REPO}/${ARCH}/kickstart"
     cp -na "${SOURCE}" "${TARGET}"
