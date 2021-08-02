@@ -53,6 +53,7 @@ NONSIG_COMPOSE=(
 declare -A SIG_COMPOSE
 SIG_COMPOSE=(
   [Gluster9]="storage/gluster9"
+  [advanced-virt]="virt/advanced-virt"
 )
 
 # These repos have modules
