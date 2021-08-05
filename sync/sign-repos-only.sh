@@ -8,6 +8,8 @@ for y in "${ALL_REPOS[@]}"; do
   test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree"
   ret_val=$?
   if [ "$ret_val" -eq 0 ]; then
+    sed -i '/<open-size><\/open-size>/d' \
+      "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
     test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
       "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
   else
@@ -25,6 +27,8 @@ for x in "${ARCHES[@]}"; do
       test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}"
       ret_val=$?
       if [ "$ret_val" -eq 0 ]; then
+        sed -i '/<open-size><\/open-size>/d' \
+          "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
         test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
           "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
       else
@@ -37,6 +41,8 @@ for x in "${ARCHES[@]}"; do
     test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree"
     ret_val=$?
     if [ "$ret_val" -eq 0 ]; then
+      sed -i '/<open-size><\/open-size>/d' \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
     else
@@ -50,6 +56,8 @@ for x in "${ARCHES[@]}"; do
     test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os"
     ret_val=$?
     if [ "$ret_val" -eq 0 ]; then
+      sed -i '/<open-size><\/open-size>/d' \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
     else
@@ -62,6 +70,8 @@ for x in "${ARCHES[@]}"; do
     test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os"
     ret_val=$?
     if [ "$ret_val" -eq 0 ]; then
+      sed -i '/<open-size><\/open-size>/d' \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
       # This might not be necessary, but it does not hurt incase repomd is modified
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
