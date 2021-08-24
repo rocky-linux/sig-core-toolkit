@@ -35,6 +35,7 @@ MODS_REPOS=(
   HighAvailability
   ResilientStorage
   PowerTools
+  RT
 )
 
 ALL_REPOS=(
