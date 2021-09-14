@@ -23,7 +23,7 @@ for x in "${ARCHES[@]}"; do
   # regular repos, no comps
   for y in "${NONMODS_REPOS[@]}"; do
     # os and debug/tree directories
-    for z in os debug/tree; do
+    for z in os debug/tree kickstart; do
       test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}"
       ret_val=$?
       if [ "$ret_val" -eq 0 ]; then
@@ -58,6 +58,8 @@ for x in "${ARCHES[@]}"; do
     if [ "$ret_val" -eq 0 ]; then
       sed -i '/<open-size><\/open-size>/d' \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
+      sed -i '/<open-size><\/open-size>/d' \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/kickstart/repodata/repomd.xml"
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
     else
@@ -72,6 +74,8 @@ for x in "${ARCHES[@]}"; do
     if [ "$ret_val" -eq 0 ]; then
       sed -i '/<open-size><\/open-size>/d' \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
+      sed -i '/<open-size><\/open-size>/d' \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/kickstart/repodata/repomd.xml"
       # This might not be necessary, but it does not hurt incase repomd is modified
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
