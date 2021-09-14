@@ -23,9 +23,9 @@ for y in "${ALL_REPOS[@]}"; do
   if [ "$ret_val" -eq 0 ]; then
     createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree" \
       "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
-    test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
-      "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
     sed -i '/<open-size><\/open-size>/d' \
+      "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
+    test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
       "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
   else
     echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree does not exist"
@@ -39,15 +39,15 @@ for x in "${ARCHES[@]}"; do
   # regular repos, no comps
   for y in "${NONMODS_REPOS[@]}"; do
     # os and debug/tree directories
-    for z in os debug/tree; do
+    for z in os debug/tree kickstart; do
       test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}"
       ret_val=$?
       if [ "$ret_val" -eq 0 ]; then
         createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}" \
           "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
-        test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
-          "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
         sed -i '/<open-size><\/open-size>/d' \
+          "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
+        test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
           "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
       else
         echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z} does not exist"
@@ -61,9 +61,9 @@ for x in "${ARCHES[@]}"; do
     if [ "$ret_val" -eq 0 ]; then
       createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree" \
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
-      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
-        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
       sed -i '/<open-size><\/open-size>/d' \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
+      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree does not exist"
@@ -81,9 +81,11 @@ for x in "${ARCHES[@]}"; do
         --xz --revision="${REVISION}" \
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
         --workers=8 --checksum=sha256
-      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
+      sed -i '/<open-size><\/open-size>/d' \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
       sed -i '/<open-size><\/open-size>/d' \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/kickstart/repodata/repomd.xml"
+      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os does not exist"
@@ -101,9 +103,9 @@ for x in "${ARCHES[@]}"; do
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata" \
         --compress --compress-type=xz
       # This might not be necessary, but it does not hurt incase repomd is modified
-      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
-        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
       sed -i '/<open-size><\/open-size>/d' \
+        "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
+      test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
     else
       echo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os does not exist"
