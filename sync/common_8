@@ -24,8 +24,8 @@ NONMODS_REPOS=(
   Devel
   nfv
   storage/gluster9
-  virt/advanced-virt
   plus
+  rockyrpi
 )
 
 # These repos have comps/groups, except for debuginfo and sources
@@ -54,7 +54,6 @@ NONSIG_COMPOSE=(
 declare -A SIG_COMPOSE
 SIG_COMPOSE=(
   [Gluster9]="storage/gluster9"
-  [advanced-virt]="virt/advanced-virt"
 )
 
 # These repos have modules
