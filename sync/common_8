@@ -25,6 +25,7 @@ NONMODS_REPOS=(
   nfv
   storage/gluster9
   plus
+  rockyrpi
 )
 
 # These repos have comps/groups, except for debuginfo and sources
