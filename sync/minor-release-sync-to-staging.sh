@@ -70,5 +70,5 @@ if [ "$ret_val" -eq 0 ]; then
 fi
 
 # Change Symlink if required
-/bin/rm ${STAGING_ROOT}/${CATEGORY_STUB}/latest-8
-ln -sr ${STAGING_ROOT}/${CATEGORY_STUB}/${REV} latest-8
+/bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/latest-8"
+ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" latest-8
