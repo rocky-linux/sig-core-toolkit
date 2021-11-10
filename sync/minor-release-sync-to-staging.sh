@@ -73,6 +73,7 @@ done
 for ARCH in "${ARCHES[@]}"; do
   echo "Ensuring treeinfo is correct"
   treeinfoModder "${ARCH}"
+  treeinfoModderKickstart "${ARCH}"
 done
 
 # sign all repos
