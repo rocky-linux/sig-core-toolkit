@@ -9,7 +9,7 @@ source $(dirname "$0")/common
 MAJ=${RLVER}
 
 # sync all pieces of a release, including extras, nfv, etc
-for COMPOSE in Rocky "${NONSIG_COMPOSE[@]}"; do
+for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   echo "${COMPOSE}: Syncing"
   cd "/mnt/compose/${MAJ}/latest-${COMPOSE}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
 
