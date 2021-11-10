@@ -20,7 +20,11 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   # shellcheck disable=SC2035
   sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
       {} "${TARGET}"
+
+  # Return back to where we started
+  cd "$(dirname "$0")" || { echo "${COMPOSE}: Failed to change back"; break; }
 done
+
 
 # sync all sig stuff
 # Disabled as we will have a different method for sig content and sig content
