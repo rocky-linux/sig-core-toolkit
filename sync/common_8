@@ -20,7 +20,7 @@ RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
 # cases where repos will not be available by normal means. It's just for
 # consistency.
 NONMODS_REPOS=(
-  extras
+  Extras
   Devel
   nfv
   plus
