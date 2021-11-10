@@ -44,10 +44,10 @@ ALL_REPOS=(
 
 NONSIG_COMPOSE=(
   Rocky
-  Rocky-devel
   Extras
-  Plus
+  Rocky-devel
   NFV
+  Plus
   rockyrpi
 )
 
