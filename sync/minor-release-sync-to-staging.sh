@@ -49,10 +49,12 @@ for ARCH in "${ARCHES[@]}"; do
     TARGET_ARCH="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${x}/${ARCH}/iso"
     mkdir -p "${SOURCE}" "${TARGET}" "${TARGET_ARCH}"
     # Copy the ISO and manifests into their target architecture
-    cp "${SOURCE}/*.iso*" "${TARGET_ARCH}/"
-    cp "${SOURCE}/CHECKSUM" "${TARGET_ARCH}/"
+    cp -n "${SOURCE}"/*.iso "${TARGET_ARCH}/"
+    cp -n "${SOURCE}"/*.iso.manifest "${TARGET_ARCH}/"
+    cp -n "${SOURCE}/CHECKSUM" "${TARGET_ARCH}/"
     # Copy the ISO and manifests into the main isos target
-    cp "${SOURCE}/*.iso*" "${TARGET}/"
+    cp "${SOURCE}"/*.iso "${TARGET}/"
+    cp "${SOURCE}"/*.iso.manifest "${TARGET}/"
     cat "${SOURCE}/CHECKSUM" >> "${TARGET}/CHECKSUM"
   done
 done
