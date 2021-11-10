@@ -48,6 +48,7 @@ NONSIG_COMPOSE=(
   Extras
   Plus
   NFV
+  rockyrpi
 )
 
 declare -A SIG_COMPOSE
