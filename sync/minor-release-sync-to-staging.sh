@@ -11,7 +11,7 @@ MAJ=${RLVER}
 # sync all pieces of a release, including extras, nfv, etc
 for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   echo "${COMPOSE}: Syncing"
-  cd "/mnt/compose/${MAJ}/latest-${COMPOSE}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
+  pushd "/mnt/compose/${MAJ}/latest-${COMPOSE}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
   mkdir -p "${TARGET}"
@@ -22,7 +22,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
       {} "${TARGET}"
 
   # Return back to where we started
-  cd "$(dirname "$0")" || { echo "${COMPOSE}: Failed to change back"; break; }
+  popd "$(dirname "$0")" || { echo "${COMPOSE}: Failed to change back"; break; }
 done
 
 
