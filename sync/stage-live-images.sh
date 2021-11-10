@@ -9,8 +9,6 @@ if [[ $# -eq 0 ]]; then
   exit 1
 fi
 
-# Major Version (eg, 8)
-MAJ=${RLVER}
 # For now, only architecture that we support live is x86_64
 TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/Live/x86_64"
 mkdir -p "${TARGET}"
