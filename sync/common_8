@@ -23,7 +23,6 @@ NONMODS_REPOS=(
   extras
   Devel
   nfv
-  storage/gluster9
   plus
   rockyrpi
 )
@@ -52,9 +51,8 @@ NONSIG_COMPOSE=(
 )
 
 declare -A SIG_COMPOSE
-SIG_COMPOSE=(
-  [Gluster9]="storage/gluster9"
-)
+#SIG_COMPOSE=(
+#)
 
 # These repos have modules
 MODS=(
