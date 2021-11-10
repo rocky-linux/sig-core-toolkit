@@ -9,9 +9,9 @@ source $(dirname "$0")/common
 MAJ=${RLVER}
 
 # sync all pieces of a release, including extras, nfv, etc
-for COMPOSE in Rocky "${NONSIG_COMPOSE[@]}"; do
+for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   echo "${COMPOSE}: Syncing"
-  cd "/mnt/compose/${MAJ}/latest-${COMPOSE}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
+  pushd "/mnt/compose/${MAJ}/latest-${COMPOSE}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
   mkdir -p "${TARGET}"
@@ -20,7 +20,11 @@ for COMPOSE in Rocky "${NONSIG_COMPOSE[@]}"; do
   # shellcheck disable=SC2035
   sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
       {} "${TARGET}"
+
+  # Return back to where we started
+  popd "$(dirname "$0")" || { echo "${COMPOSE}: Failed to change back"; break; }
 done
+
 
 # sync all sig stuff
 # Disabled as we will have a different method for sig content and sig content
@@ -87,7 +91,7 @@ fi
 
 # Change Symlink if required
 echo "Setting symlink to ${REV}"
-pushd "${STAGING_ROOT}/${CATEGORY_STUB}"
+pushd "${STAGING_ROOT}/${CATEGORY_STUB}" || exit
 /bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/latest-8"
 ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" latest-8
-popd
+popd || exit
