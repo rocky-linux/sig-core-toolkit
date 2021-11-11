@@ -59,7 +59,7 @@ for ARCH in "${ARCHES[@]}"; do
     # Copy the ISO and manifests into the main isos target
     cp "${SOURCE}"/*.iso "${TARGET}/"
     cp "${SOURCE}"/*.iso.manifest "${TARGET}/"
-    pushd "${TARGET}" || exit
+    pushd "${TARGET}" || { echo "Could not change directory"; break; }
     # shellcheck disable=SC2086
     for file in *.iso; do
       printf "# %s: %s bytes\n%s\n" \
@@ -68,6 +68,7 @@ for ARCH in "${ARCHES[@]}"; do
         "$(sha256sum --tag ${file})" \
       | sudo tee -a CHECKSUM;
     done
+    popd || { echo "Could not change directory"; break; }
   done
 done
 
