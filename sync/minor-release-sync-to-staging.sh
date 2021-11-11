@@ -22,7 +22,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
       {} "${TARGET}"
 
   # Return back to where we started
-  popd "$(dirname "$0")" || { echo "${COMPOSE}: Failed to change back"; break; }
+  popd || { echo "${COMPOSE}: Failed to change back"; break; }
 done
 
 
