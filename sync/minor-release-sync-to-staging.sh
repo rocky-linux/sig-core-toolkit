@@ -59,7 +59,15 @@ for ARCH in "${ARCHES[@]}"; do
     # Copy the ISO and manifests into the main isos target
     cp "${SOURCE}"/*.iso "${TARGET}/"
     cp "${SOURCE}"/*.iso.manifest "${TARGET}/"
-    cat "${SOURCE}/CHECKSUM" >> "${TARGET}/CHECKSUM"
+    pushd "${TARGET}" || exit
+    # shellcheck disable=SC2086
+    for file in *.iso; do
+      printf "# %s: %s bytes\n%s\n" \
+        "${file}" \
+        "$(stat -c %s ${file})" \
+        "$(sha256sum --tag ${file})" \
+      | sudo tee -a CHECKSUM;
+    done
   done
 done
 
