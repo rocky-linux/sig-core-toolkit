@@ -59,9 +59,20 @@ for ARCH in "${ARCHES[@]}"; do
     # Copy the ISO and manifests into the main isos target
     cp "${SOURCE}"/*.iso "${TARGET}/"
     cp "${SOURCE}"/*.iso.manifest "${TARGET}/"
-    cat "${SOURCE}/CHECKSUM" >> "${TARGET}/CHECKSUM"
   done
 done
+
+# call out for checksum creation on the ISOs
+pushd "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" || { echo "Failed to change directory"; exit; }
+for file in isos/**/*iso*; do
+  arch=$(echo $file | cut -d\/ -f 2);
+  printf "# %s: %s bytes\n%s\n" \
+    "$(basename $file)" \
+    "$(stat -c %s $file)" \
+    "$(cd isos/${arch}/ && sha256sum --tag $(basename $file))" \
+  | sudo tee -a isos/${arch}/CHECKSUM;
+done
+popd || { echo "Failed to change directory"; exit; }
 
 # make a kickstart directory
 for ARCH in "${ARCHES[@]}"; do
