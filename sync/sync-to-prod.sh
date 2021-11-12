@@ -29,7 +29,8 @@ if [ $ret_val -eq "0" ]; then
     cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
     /bin/cp fullfiletimelist-rocky fullfiletimelist-rocky-old
     /usr/local/bin/create-filelist > fullfiletimelist-rocky
+    cp fullfiletimelist-rocky fullfiletimelist
   fi
-  chown 10004:10005 fullfilelist fullfiletimelist-rocky
+  chown 10004:10005 fullfilelist fullfiletimelist-rocky fullfiletimelist
 fi
 

@@ -60,16 +60,16 @@ for ARCH in "${ARCHES[@]}"; do
     cp "${SOURCE}"/*.iso "${TARGET}/"
     cp "${SOURCE}"/*.iso.manifest "${TARGET}/"
     pushd "${TARGET}" || { echo "Could not change directory"; break; }
-    # shellcheck disable=SC2086
-    for file in *.iso; do
-      printf "# %s: %s bytes\n%s\n" \
-        "${file}" \
-        "$(stat -c %s ${file})" \
-        "$(sha256sum --tag ${file})" \
-      | sudo tee -a CHECKSUM;
-    done
-    popd || { echo "Could not change directory"; break; }
   done
+  # shellcheck disable=SC2086
+  for file in *.iso; do
+    printf "# %s: %s bytes\n%s\n" \
+      "${file}" \
+      "$(stat -c %s ${file})" \
+      "$(sha256sum --tag ${file})" \
+    | sudo tee -a CHECKSUM;
+  done
+  popd || { echo "Could not change directory"; break; }
 done
 
 # make a kickstart directory
