@@ -116,8 +116,8 @@ EOF
 
 function treeinfoModderKickstart() {
   BaseOSArch="${1}"
-  TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo"
-  PRISTINE_TREE="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo-pristine"
+  TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/kickstart/.treeinfo"
+  PRISTINE_TREE="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/kickstart/.treeinfo-pristine"
   test -f "${TREEINFO_VAR}"
   treeinfo_retval=$?
   test -x /usr/bin/python3
