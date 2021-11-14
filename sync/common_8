@@ -141,6 +141,7 @@ from configparser import ConfigParser
 config = ConfigParser()
 config.read('${TREEINFO_VAR}')
 config.set('tree', 'variants', 'BaseOS,AppStream')
+config.add_section('variant-AppStream')
 config.set('variant-AppStream', 'id', 'AppStream')
 config.set('variant-AppStream', 'name', 'AppStream')
 config.set('variant-AppStream', 'type', 'variant')
