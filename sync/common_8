@@ -63,6 +63,13 @@ MODS=(
 
 # functions
 # Note, EL8 and EL9 may not be the same, do not put in 'common'
+function treeinfoSaver() {
+  BaseOSArch="${1}"
+  TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo"
+  PRISTINE_TREE="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo-pristine"
+  /bin/cp "${TREEINFO_VAR}" "${PRISTINE_TREE}"
+}
+
 function treeinfoFixer() {
   BaseOSArch="${1}"
   TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo"
@@ -134,7 +141,6 @@ from configparser import ConfigParser
 config = ConfigParser()
 config.read('${TREEINFO_VAR}')
 config.set('tree', 'variants', 'BaseOS,AppStream')
-config.add_section('variant-AppStream')
 config.set('variant-AppStream', 'id', 'AppStream')
 config.set('variant-AppStream', 'name', 'AppStream')
 config.set('variant-AppStream', 'type', 'variant')
