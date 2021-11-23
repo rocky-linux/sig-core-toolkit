@@ -52,8 +52,10 @@ NONSIG_COMPOSE=(
 )
 
 declare -A SIG_COMPOSE
-#SIG_COMPOSE=(
-#)
+SIG_COMPOSE=(
+  [kernel]="kernel/kernel"
+  [kmod]="kernel/kmod"
+)
 
 # These repos have modules
 MODS=(
@@ -141,6 +143,7 @@ from configparser import ConfigParser
 config = ConfigParser()
 config.read('${TREEINFO_VAR}')
 config.set('tree', 'variants', 'BaseOS,AppStream')
+config.add_section('variant-AppStream')
 config.set('variant-AppStream', 'id', 'AppStream')
 config.set('variant-AppStream', 'name', 'AppStream')
 config.set('variant-AppStream', 'type', 'variant')
