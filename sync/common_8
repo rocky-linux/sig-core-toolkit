@@ -52,8 +52,10 @@ NONSIG_COMPOSE=(
 )
 
 declare -A SIG_COMPOSE
-#SIG_COMPOSE=(
-#)
+SIG_COMPOSE=(
+  [kernel]="kernel/kernel"
+  [kmod]="kernel/kmod"
+)
 
 # These repos have modules
 MODS=(

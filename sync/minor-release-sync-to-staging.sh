@@ -27,20 +27,19 @@ done
 
 
 # sync all sig stuff
-# Disabled as we will have a different method for sig content and sig content
-# is available upstream.
-#for SIG in "${!SIG_COMPOSE[@]}"; do
-#  echo "${SIG}: Syncing"
-#  cd "/mnt/compose/${MAJ}/latest-${SIG}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
-#
-#  TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${SIG_COMPOSE[$SIG]}"
-#  mkdir -p "${TARGET}"
-#  # disabling because none of our files should be starting with dashes. If they
-#  # are something is *seriously* wrong here.
-#  # shellcheck disable=SC2035
-#  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
-#      {} "${TARGET}"
-#done
+# Only enabled for giving preferential treatment.
+for SIG in "${!SIG_COMPOSE[@]}"; do
+  echo "${SIG}: Syncing"
+  cd "/mnt/compose/${MAJ}/latest-${SIG}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
+
+  TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${SIG_COMPOSE[$SIG]}"
+  mkdir -p "${TARGET}"
+  # disabling because none of our files should be starting with dashes. If they
+  # are something is *seriously* wrong here.
+  # shellcheck disable=SC2035
+  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
+      {} "${TARGET}"
+done
 
 # copy around the ISOs a bit, make things comfortable
 for ARCH in "${ARCHES[@]}"; do
