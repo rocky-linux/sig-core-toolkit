@@ -21,8 +21,9 @@ for y in "${ALL_REPOS[@]}"; do
   test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree"
   ret_val=$?
   if [ "$ret_val" -eq 0 ]; then
-    createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree" \
-      "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
+    createrepo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree" \
+      "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
+      --workers 8
     sed -i '/<open-size><\/open-size>/d' \
       "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
     test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
@@ -44,7 +45,8 @@ for x in "${ARCHES[@]}"; do
       ret_val=$?
       if [ "$ret_val" -eq 0 ]; then
         createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}" \
-          "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
+          "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
+          --workers 8
         sed -i '/<open-size><\/open-size>/d' \
           "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
         test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
@@ -60,7 +62,8 @@ for x in "${ARCHES[@]}"; do
     ret_val=$?
     if [ "$ret_val" -eq 0 ]; then
       createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree" \
-        "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}"
+        "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
+        --workers 8
       sed -i '/<open-size><\/open-size>/d' \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
