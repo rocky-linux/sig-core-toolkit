@@ -1,7 +1,7 @@
 # To be sourced by scripts to use
 
 # Revision must always start with a major number
-REVISION=8.5
+REVISION=8.6
 
 MAJOR="${REVISION:0:1}"
 MINOR="${REVISION:2:1}"
