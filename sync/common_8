@@ -46,7 +46,6 @@ NONSIG_COMPOSE=(
   Rocky
   Extras
   Rocky-devel
-  NFV
   Plus
   rockyrpi
 )
