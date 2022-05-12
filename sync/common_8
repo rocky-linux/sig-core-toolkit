@@ -22,9 +22,13 @@ RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
 NONMODS_REPOS=(
   Extras
   Devel
-  nfv
   plus
   rockyrpi
+)
+
+# These repos were originally separate from the main compose and need symlinks
+LINK_REPOS=(
+  [NFV]="nfv"
 )
 
 # These repos have comps/groups, except for debuginfo and sources
@@ -35,6 +39,7 @@ MODS_REPOS=(
   ResilientStorage
   PowerTools
   RT
+  NFV
 )
 
 ALL_REPOS=(
