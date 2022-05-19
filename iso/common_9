@@ -1,0 +1,4 @@
+# To be sourced by scripts to use
+
+# These are the architectures supported for 9
+ARCHES=(x86_64 aarch64 ppc64le s390x)
