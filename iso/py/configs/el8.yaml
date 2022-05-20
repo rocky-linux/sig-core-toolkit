@@ -1,0 +1,45 @@
+---
+'8':
+  revision: '8.6'
+  rclvl: 'RC2'
+  allowed_arches:
+    - x86_64
+    - aarch64
+  provide_multilib: False
+  repo_url_list: []
+  required_packages:
+    - 'lorax'
+    - 'genisoimage'
+    - 'isomd5sum'
+  symlink_refs:
+    devel: 'Devel'
+    NFV: 'nfv'
+  all_repos:
+    - 'BaseOS'
+    - 'AppStream'
+    - 'HighAvailability'
+    - 'ResilientStorage'
+    - 'PowerTools'
+    - 'RT'
+    - 'NFV'
+    - 'extras'
+    - 'devel'
+    - 'plus'
+    - 'rockyrpi'
+  no_comps_or_groups:
+    - 'extras'
+    - 'devel'
+    - 'plus'
+    - 'rockyrpi'
+  comps_or_groups:
+    - 'BaseOS'
+    - 'AppStream'
+    - 'HighAvailability'
+    - 'ResilientStorage'
+    - 'PowerTools'
+    - 'RT'
+    - 'NFV'
+  has_modules:
+    - 'AppStream'
+    - 'PowerTools'
+...

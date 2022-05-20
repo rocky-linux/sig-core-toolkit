@@ -1,0 +1,66 @@
+---
+'9':
+  revision: '9.0'
+  rclvl: 'RC1'
+  allowed_arches:
+    - x86_64
+    - aarch64
+    - ppc64le
+    - s390x
+  provide_multilib: True
+  repo_url_list:
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/all'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/BaseOS'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/AppStream'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/CRB'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/HighAvailability'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/ResilientStorage'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/RT'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/NFV'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/SAP'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/SAPHANA'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/extras'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/devel'
+    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/plus'
+  required_packages:
+    - 'lorax'
+    - 'genisoimage'
+    - 'isomd5sum'
+  symlink_refs:
+    devel: 'Devel'
+    NFV: 'nfv'
+  renames:
+    all: 'nplb'
+  all_repos:
+    - 'nplb'
+    - 'BaseOS'
+    - 'AppStream'
+    - 'HighAvailability'
+    - 'ResilientStorage'
+    - 'CRB'
+    - 'RT'
+    - 'NFV'
+    - 'SAP'
+    - 'SAPHANA'
+    - 'extras'
+    - 'devel'
+    - 'plus'
+  no_comps_or_groups:
+    - 'nplb'
+    - 'extras'
+    - 'devel'
+    - 'plus'
+  comps_or_groups:
+    - 'BaseOS'
+    - 'AppStream'
+    - 'HighAvailability'
+    - 'ResilientStorage'
+    - 'CRB'
+    - 'RT'
+    - 'NFV'
+    - 'SAP'
+    - 'SAPHANA'
+  has_modules:
+    - 'AppStream'
+    - 'CRB'
+...
