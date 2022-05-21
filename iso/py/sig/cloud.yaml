@@ -1,0 +1,10 @@
+---
+'8':
+  cloud-kernel:
+    project_id: 'f91da90d-5bdb-4cf2-80ea-e07f8dae5a5c'
+  cloud-common:
+    project_id: ''
+'9':
+  cloud-common:
+    project_id: ''
+...

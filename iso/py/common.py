@@ -1,9 +1,11 @@
 # All imports are here
+import os
 import platform
 import time
 import glob
 import rpm
 import yaml
+import logging
 
 # These are a bunch of colors we may use in terminal output
 class Color:
@@ -19,10 +21,17 @@ class Color:
     END = '\033[0m'
 
 # vars and additional checks
-#RLVER = rpm.expandMacro('%rhel')
-RLVER = '9'
 rldict = {}
-arch = platform.machine()
+config = {
+    "rlmacro": rpm.expandMacro('%rhel'),
+    "arch": platform.machine(),
+    "date_stamp": time.strftime("%Y%m%d", time.localtime()),
+    "staging_root": "/mnt/repos-staging",
+    "production_root": "/mnt/repos-production",
+    "category_stub": "/mirror/pub/rocky",
+    "sig_category_stub": "/mirror/pub/sig",
+    "repo_base_url": "https://yumrepofs.build.resf.org/v1/projects/"
+}
 
 # Importing the config from yaml
 for conf in glob.iglob('configs/*.yaml'):
@@ -30,28 +39,17 @@ for conf in glob.iglob('configs/*.yaml'):
         rldict.update(yaml.safe_load(file))
 
 # The system needs to be a RHEL-like system. It cannot be Fedora or SuSE.
-#if "%rhel" in RLVER:
+#if "%rhel" in config['RLMACRO']:
 #    raise SystemExit(Color.BOLD + 'This is not a RHEL-like system.' + Color.END
 #            + '\n\nPlease verify you are running on a RHEL-like system that is '
 #            'not Fedora nor SuSE. This means that the %rhel macro will be '
 #            'defined with a value equal to the version you are targetting. RHEL'
 #            ' and its derivatives have this set.')
 
-# Generic rlvars for the particular EL release we're on. This does not have to
-# be used. A different one can be assigned based on script need.
-rlvars = rldict[RLVER]
 
-# Is our arch allowed for this particular release? Some previous releases do
-# not support ppc or s390x
-if arch not in rlvars['allowed_arches']:
-    raise SystemExit(Color.BOLD + 'This architecture is not supported.'
-            + Color.END + '\n\nEnsure that the architecture you are building '
-            'for is supported for this compose process.')
-
-date_stamp = time.strftime("%Y%m%d", time.localtime())
-COMPOSE_ROOT = "/mnt/compose/" + RLVER
-COMPOSE_ISO_WORKDIR = COMPOSE_ROOT + "work/" + arch + "/" + date_stamp
-STAGING_ROOT = "/mnt/repos-staging"
-PRODUCTION_ROOT = "/mnt/repos-production"
-CATEGORY_STUB = "/mirror/pub/rocky"
-REVISION = rlvars['revision'] + '-' + rlvars['rclvl']
+# These will be set in their respective var files
+#REVISION = rlvars['revision'] + '-' + rlvars['rclvl']
+#rlvars = rldict[RLVER]
+#rlvars = rldict[RLMACRO]
+#COMPOSE_ROOT = "/mnt/compose/" + RLVER
+#COMPOSE_ISO_WORKDIR = COMPOSE_ROOT + "work/" + arch + "/" + date_stamp

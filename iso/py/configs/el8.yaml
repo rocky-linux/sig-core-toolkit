@@ -6,14 +6,15 @@
     - x86_64
     - aarch64
   provide_multilib: False
-  repo_url_list: []
+  project_id: ''
   required_packages:
     - 'lorax'
     - 'genisoimage'
     - 'isomd5sum'
-  symlink_refs:
+  repo_symlinks:
     devel: 'Devel'
     NFV: 'nfv'
+  renames: {}
   all_repos:
     - 'BaseOS'
     - 'AppStream'

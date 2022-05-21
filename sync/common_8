@@ -30,6 +30,7 @@ NONMODS_REPOS=(
 declare -A LINK_REPOS
 LINK_REPOS=(
   [NFV]="nfv"
+  [Devel]="devel"
 )
 
 # These repos have comps/groups, except for debuginfo and sources

@@ -8,31 +8,18 @@
     - ppc64le
     - s390x
   provide_multilib: True
-  repo_url_list:
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/all'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/BaseOS'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/AppStream'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/CRB'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/HighAvailability'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/ResilientStorage'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/RT'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/NFV'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/SAP'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/SAPHANA'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/extras'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/devel'
-    - 'https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/plus'
+  project_id: '55b17281-bc54-4929-8aca-a8a11d628738'
   required_packages:
     - 'lorax'
     - 'genisoimage'
     - 'isomd5sum'
-  symlink_refs:
+  repo_symlinks:
     devel: 'Devel'
     NFV: 'nfv'
   renames:
     all: 'nplb'
   all_repos:
-    - 'nplb'
+    - 'all'
     - 'BaseOS'
     - 'AppStream'
     - 'HighAvailability'
@@ -46,7 +33,7 @@
     - 'devel'
     - 'plus'
   no_comps_or_groups:
-    - 'nplb'
+    - 'all'
     - 'extras'
     - 'devel'
     - 'plus'
