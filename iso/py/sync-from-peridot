@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+
+# This is intended for doing "full" syncs, not periodic update syncs.
+
+from common import *
+import argparse
+from util import Checks
+from util import RepoSync
+
+rlvars = rldict['9']
+r = Checks(rlvars, config['arch'])
+r.check_valid_arch()
+
+a = RepoSync(rlvars, config, major="9", repo="BaseOS")
+a.run()
+#a.generate_conf()
+#somedir = a.generate_compose_dirs()
+#print(a.sync())

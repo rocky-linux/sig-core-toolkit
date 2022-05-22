@@ -4,8 +4,8 @@
 
 * sync-variant-pungi
 * sync-variant-peridot
-* sync-all-pungi
-* sync-all-peridot
+* sync-from-pungi
+* sync-from-peridot
 * sync-sig
 * build-all-iso
 * sign-repos-only

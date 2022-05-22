@@ -25,12 +25,13 @@ rldict = {}
 config = {
     "rlmacro": rpm.expandMacro('%rhel'),
     "arch": platform.machine(),
-    "date_stamp": time.strftime("%Y%m%d", time.localtime()),
+    "date_stamp": time.strftime("%Y%m%d.%H%M%S", time.localtime()),
+    "compose_root": "/mnt/compose",
     "staging_root": "/mnt/repos-staging",
     "production_root": "/mnt/repos-production",
-    "category_stub": "/mirror/pub/rocky",
-    "sig_category_stub": "/mirror/pub/sig",
-    "repo_base_url": "https://yumrepofs.build.resf.org/v1/projects/"
+    "category_stub": "mirror/pub/rocky",
+    "sig_category_stub": "mirror/pub/sig",
+    "repo_base_url": "https://yumrepofs.build.resf.org/v1/projects"
 }
 
 # Importing the config from yaml
@@ -39,7 +40,7 @@ for conf in glob.iglob('configs/*.yaml'):
         rldict.update(yaml.safe_load(file))
 
 # The system needs to be a RHEL-like system. It cannot be Fedora or SuSE.
-#if "%rhel" in config['RLMACRO']:
+#if "%rhel" in config['rlmacro']:
 #    raise SystemExit(Color.BOLD + 'This is not a RHEL-like system.' + Color.END
 #            + '\n\nPlease verify you are running on a RHEL-like system that is '
 #            'not Fedora nor SuSE. This means that the %rhel macro will be '
@@ -49,7 +50,6 @@ for conf in glob.iglob('configs/*.yaml'):
 
 # These will be set in their respective var files
 #REVISION = rlvars['revision'] + '-' + rlvars['rclvl']
-#rlvars = rldict[RLVER]
-#rlvars = rldict[RLMACRO]
-#COMPOSE_ROOT = "/mnt/compose/" + RLVER
+#rlvars = rldict[rlver]
+#rlvars = rldict[rlmacro]
 #COMPOSE_ISO_WORKDIR = COMPOSE_ROOT + "work/" + arch + "/" + date_stamp

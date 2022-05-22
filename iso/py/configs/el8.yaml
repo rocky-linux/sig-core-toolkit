@@ -18,9 +18,9 @@
   all_repos:
     - 'BaseOS'
     - 'AppStream'
+    - 'PowerTools'
     - 'HighAvailability'
     - 'ResilientStorage'
-    - 'PowerTools'
     - 'RT'
     - 'NFV'
     - 'extras'
@@ -35,9 +35,9 @@
   comps_or_groups:
     - 'BaseOS'
     - 'AppStream'
+    - 'PowerTools'
     - 'HighAvailability'
     - 'ResilientStorage'
-    - 'PowerTools'
     - 'RT'
     - 'NFV'
   has_modules:
