@@ -8,6 +8,8 @@ import logging
 import sys
 import os
 import os.path
+import subprocess
+import shlex
 #import pipes
 from common import Color
 
@@ -32,6 +34,7 @@ class RepoSync:
             arch=None,
             ignore_debug=False,
             ignore_source=False,
+            parallel=False,
             dryrun: bool = False,
             fullrun: bool = False,
             nofail: bool = False,
@@ -43,6 +46,8 @@ class RepoSync:
         self.arch = arch
         self.ignore_debug = ignore_debug
         self.ignore_source = ignore_source
+        # Enables podman syncing, which should effectively speed up operations
+        self.parallel = parallel
         # Relevant config items
         self.major_version = major
         self.date_stamp = config['date_stamp']
@@ -55,6 +60,7 @@ class RepoSync:
         self.project_id = rlvars['project_id']
         self.repo_renames = rlvars['renames']
         self.repos = rlvars['all_repos']
+        self.multilib = rlvars['provide_multilib']
         self.repo = repo
 
         self.staging_dir = os.path.join(
@@ -89,6 +95,8 @@ class RepoSync:
 
         self.log.info('reposync init')
         self.log.info(self.revision)
+        self.dnf_config = self.generate_conf()
+
 
     def run(self):
         """
@@ -109,28 +117,194 @@ class RepoSync:
             self.log.error('A full and dry run is currently not supported.')
             raise SystemExit('\nA full and dry run is currently not supported.')
 
-        self.generate_conf()
-
+        # This should create the initial compose dir and set the path.
+        # Otherwise, just use the latest link.
         if self.fullrun:
             sync_root = os.path.join(
                     self.generate_compose_dirs(),
                     'compose'
             )
         else:
+            # Put in a verification here.
             sync_root = self.compose_latest_sync
+
+        self.sync(self.repo, sync_root, self.arch)
+
+        if self.fullrun:
+            self.symlink_to_latest()
 
     def sync(self, repo, sync_root, arch=None):
         """
-        Does the actual syncing of the repo. We generally sync each component
-        of a repo:
+        Calls out syncing of the repos. We generally sync each component of a
+        repo:
             * each architecture
             * each architecture debug
             * each source
+
+        If parallel is true, we will run in podman.
         """
+        if self.parallel:
+            self.podman_sync(repo, sync_root, arch)
+        else:
+            self.dnf_sync(repo, sync_root, arch)
+
+    def dnf_sync(self, repo, sync_root, arch):
+        """
+        This is for normal dnf syncs
+        """
+        cmd = self.reposync_cmd()
+
+        sync_single_arch = False
+        arches_to_sync = self.arches
+        if arch:
+            sync_single_arch = True
+            arches_to_sync = [arch]
+
+        sync_single_repo = False
+        repos_to_sync = self.repos
+        if repo and not self.fullrun:
+            sync_single_repo = True
+            repos_to_sync = [repo]
+
         # dnf reposync --download-metadata \
         #       --repoid fedora -p /tmp/test \
         #       --forcearch aarch64 --norepopath
-        cmd = self.reposync_cmd()
+
+        self.log.info(
+                Color.BOLD + '!! WARNING !! ' + Color.END + 'You are performing a '
+                'local reposync, which may incur delays in your compose.'
+        )
+
+        if self.fullrun:
+            self.log.info(
+                    Color.BOLD + '!! WARNING !! ' + Color.END + 'This is a full '
+                    'run! This will take a LONG TIME.'
+            )
+
+        for r in repos_to_sync:
+            for a in arches_to_sync:
+                repo_name = r
+                if r in self.repo_renames:
+                    repo_name = self.repo_renames[r]
+
+                os_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'os'
+                )
+
+                debug_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'debug/tree'
+                )
+
+                sync_cmd = "{} -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
+                        cmd,
+                        self.dnf_config,
+                        r,
+                        os_sync_path,
+                        a
+                )
+
+                debug_sync_cmd = "{} -c {} --download-metadata --repoid={}-debug -p {} --forcearch {} --norepopath".format(
+                        cmd,
+                        self.dnf_config,
+                        r,
+                        debug_sync_path,
+                        a
+                )
+
+                self.log.info('Syncing {} {}'.format(r, a))
+                #self.log.info(sync_cmd)
+                # Try to figure out where to send the actual output of this...
+                # Also consider on running a try/except here? Basically if
+                # something happens (like a repo doesn't exist for some arch,
+                # eg RT for aarch64), make a note of it somehow (but don't
+                # break the entire sync). As it stands with this
+                # implementation, if something fails, it just continues on.
+                process = subprocess.call(
+                        shlex.split(sync_cmd),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+                if not self.ignore_debug:
+                    self.log.info('Syncing {} {} (debug)'.format(r, a))
+                    process_debug = subprocess.call(
+                            shlex.split(debug_sync_cmd),
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL
+                    )
+
+                # There should be a check here that if it's "all" and multilib
+                # is on, i686 should get synced too.
+
+            if not self.ignore_source:
+                source_sync_path = os.path.join(
+                    sync_root,
+                    repo_name,
+                    'source/tree'
+                )
+
+                source_sync_cmd = "{} -c {} --download-metadata --repoid={}-source -p {} --norepopath".format(
+                    cmd,
+                    self.dnf_config,
+                    r,
+                    source_sync_path
+                )
+
+
+                self.log.info('Syncing {} source'.format(r))
+                process_source = subprocess.call(
+                        shlex.split(source_sync_cmd),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+        self.log.info('Syncing complete')
+
+    def podman_sync(self, repo, sync_root, arch):
+        """
+        This is for podman syncs
+
+        Create sync_root/work/entries
+        Generate scripts as needed into dir
+        Each container runs their own script
+        wait till all is finished
+        """
+        cmd = self.podman_cmd()
+        contrunlist = []
+        self.log.info('Generating container entries')
+        entries_dir = os.path.join(sync_root, "work", "entries")
+        if not os.path.exists(entries_dir):
+            os.makedirs(entries_dir, exist_ok=True)
+
+        sync_single_arch = False
+        arches_to_sync = self.arches
+        if arch:
+            sync_single_arch = True
+            arches_to_sync = [arch]
+
+        sync_single_repo = False
+        repos_to_sync = self.repos
+        if repo and not self.fullrun:
+            sync_single_repo = True
+            repos_to_sync = [repo]
+
+        for r in repos_to_sync:
+            for a in arches_to_sync:
+                repo_name = r
+                if r in self.repo_renames:
+                    repo_name = self.repo_renames[r]
+
+                # There should be a check here that if it's "all" and multilib
+                # is on, i686 should get synced too.
+
+                entry_name = '{}-{}'.format(r, a)
+                debug_entry_name = '{}-debug-{}'.format(r, a)
 
     def generate_compose_dirs(self) -> str:
         """
@@ -156,7 +330,7 @@ class RepoSync:
         """
         pass
 
-    def generate_conf(self, dest_path='/var/tmp'):
+    def generate_conf(self, dest_path='/var/tmp') -> str:
         """
         Generates the necessary repo conf file for the operation. This repo
         file should be temporary in nature. This will generate a repo file
@@ -221,7 +395,7 @@ class RepoSync:
             config_file.write("enabled=1\n")
             config_file.write("gpgcheck=0\n\n")
 
-
+        return fname
 
     def reposync_cmd(self) -> str:
         """
@@ -241,6 +415,24 @@ class RepoSync:
                     "system or a grossly modified EL8+ system, " + Color.BOLD +
                     "which tells us that you probably made changes to these tools "
                     "expecting them to work and got to this point." + Color.END)
+        return cmd
+
+    def podman_cmd(self) -> str:
+        """
+        This generates the podman run command. This is in the case that we want
+        to do reposyncs in parallel as we cannot reasonably run multiple
+        instances of dnf reposync on a single system.
+        """
+        cmd = None
+        if os.path.exists("/usr/bin/podman"):
+            cmd = "/usr/bin/podman run"
+        else:
+            self.log.error('/usr/bin/podman was not found. Good bye.')
+            raise SystemExit("\n\n/usr/bin/podman was not found.\n\nPlease "
+                    " ensure that you have installed the necessary packages on "
+                    " this system. " + Color.BOLD + "Note that docker is not "
+                    "supported." + Color.END
+            )
         return cmd
 
 class SigRepoSync:

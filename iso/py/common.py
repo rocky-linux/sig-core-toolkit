@@ -31,7 +31,8 @@ config = {
     "production_root": "/mnt/repos-production",
     "category_stub": "mirror/pub/rocky",
     "sig_category_stub": "mirror/pub/sig",
-    "repo_base_url": "https://yumrepofs.build.resf.org/v1/projects"
+    "repo_base_url": "https://yumrepofs.build.resf.org/v1/projects",
+    "container": "centos:stream9"
 }
 
 # Importing the config from yaml

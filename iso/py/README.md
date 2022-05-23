@@ -1,5 +1,11 @@
 # iso
 
+## TODO
+
+Verbose mode should exist to output everything that's being called or ran.
+
+There should be additional logging regardless, not just to stdout, but also to a file.
+
 ## scripts
 
 * sync-variant-pungi
