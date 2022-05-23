@@ -28,6 +28,10 @@ fi
 
 function copy(){
   for region in $REGIONS; do 
+    if find_image_by_name $region; then
+      echo "Found copy of $source_ami in $region - $found_image_id - Skipping"
+      continue
+    fi
     echo -n "Creating copy job for $region..."
     ami_id=$(aws --profile resf-ami ec2 copy-image \
       --region $region \
@@ -36,7 +40,7 @@ function copy(){
       --source-region "${source_region}" \
       --output text 2>&1)
     if [[ $? -eq 0 ]]; then
-      unset ami_ids[$region] 
+      unset ami_ids[$region]
       echo ". $ami_id"
       if [[ ! -z "$ami_id" ]]; then
         ami_ids[$region]="$ami_id"
@@ -93,28 +97,26 @@ function change_privacy(){
 }
 
 function find_image_by_name(){
-  # ami_ids[region]=ami_id
-  for region in $REGIONS; do
-    expected_name="Copy of ${source_ami} from ${source_region}"
-    # ami-id "name"
-    local query="$(printf 'Images[?Name==`%s`]|[?Public==`true`].[ImageId,Name][]' "${expected_name}")"
-    mapfile -t res < <(
-      aws --profile resf-ami ec2 describe-images --region $region --owners $RESF_AMI_ACCOUNT_ID \
-        --query "${query}" 2>/dev/null \
-        | jq -r '.|@sh'#  | tr "'" '"'
-              )
-    res=($res)
-    if [[ ${#res[@]} -eq 0 ]]; then
-      # Skip empty results
-      continue
-    fi
-    id=${res[0]//\"}
-    name=${res[@]/$id}
-    printf "Found public image: %s in %s with name '%s'\n" "$id" "$region" "${name//\"}"
-    ami_ids[$region]=$id
-  done
+  # found_ami_ids[region]=ami_id
+  # ami-id "name"
+  local query="$(printf 'Images[?Name==`%s`]|[?Public==`true`].[ImageId,Name][]' "${SOURCE_AMI_NAME}")"
+  mapfile -t res < <(
+    aws --profile resf-ami ec2 describe-images --region $region --owners $RESF_AMI_ACCOUNT_ID \
+      --query "${query}" 2>/dev/null \
+      | jq -r '.|@sh'
+    )
+  res=($res)
+  if [[ ${#res[@]} -eq 0 ]]; then
+    # Skip empty results
+    return 1 #not found
+  fi
+  id=${res[0]//\"}
+  name=${res[@]/$id}
+  # printf "Found public image: %s in %s with name '%s'\n" "$id" "$region" "${name//\"}"
+  found_image_id=$id
+  return 0 # found
 }
 
 declare -A ami_ids
 copy
-change_privacy Public # uses ami_ids 
+#change_privacy Public # uses ami_ids 
