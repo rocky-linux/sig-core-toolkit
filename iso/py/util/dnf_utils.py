@@ -122,24 +122,32 @@ class RepoSync:
         # This should create the initial compose dir and set the path.
         # Otherwise, just use the latest link.
         if self.fullrun:
+            work_root = os.path.join(
+                    self.generate_compose_dirs(),
+                    'work'
+            )
             sync_root = os.path.join(
                     self.generate_compose_dirs(),
                     'compose'
             )
         else:
             # Put in a verification here.
+            work_root = os.path.join(
+                    self.compose_latest_dir,
+                    'work'
+            )
             sync_root = self.compose_latest_sync
 
         if self.dryrun:
             self.log.error('Dry Runs are not supported just yet. Sorry!')
             raise SystemExit()
 
-        self.sync(self.repo, sync_root, self.arch)
+        self.sync(self.repo, sync_root, work_root, self.arch)
 
         if self.fullrun:
             self.symlink_to_latest()
 
-    def sync(self, repo, sync_root, arch=None):
+    def sync(self, repo, sync_root, work_root, arch=None):
         """
         Calls out syncing of the repos. We generally sync each component of a
         repo:
@@ -150,13 +158,13 @@ class RepoSync:
         If parallel is true, we will run in podman.
         """
         if self.parallel:
-            self.podman_sync(repo, sync_root, arch)
+            self.podman_sync(repo, sync_root, work_root, arch)
         else:
-            self.dnf_sync(repo, sync_root, arch)
+            self.dnf_sync(repo, sync_root, work_root, arch)
 
-    def dnf_sync(self, repo, sync_root, arch):
+    def dnf_sync(self, repo, sync_root, work_root, arch):
         """
-        This is for normal dnf syncs
+        This is for normal dnf syncs. This is very slow.
         """
         cmd = self.reposync_cmd()
 
@@ -297,7 +305,7 @@ class RepoSync:
 
         self.log.info('Syncing complete')
 
-    def podman_sync(self, repo, sync_root, arch):
+    def podman_sync(self, repo, sync_root, work_root, arch):
         """
         This is for podman syncs
 
@@ -309,7 +317,7 @@ class RepoSync:
         cmd = self.podman_cmd()
         contrunlist = []
         self.log.info('Generating container entries')
-        entries_dir = os.path.join(sync_root, "work", "entries")
+        entries_dir = os.path.join(work_root, "entries")
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
 
@@ -326,6 +334,7 @@ class RepoSync:
             repos_to_sync = [repo]
 
         for r in repos_to_sync:
+            podman_loop_list = []
             for a in arches_to_sync:
                 repo_name = r
                 if r in self.repo_renames:
@@ -388,7 +397,13 @@ class RepoSync:
 
                 entry_point_open.close()
                 debug_entry_point_open.close()
+                # Add to list here
+                podman_loop_list.append(entry_point_sh)
+                podman_loop_list.append(debug_entry_point_sh)
 
+            # Spawn up all podman processes for repo
+            print(podman_loop_list)
+            podman_loop_list.clear()
 
     def generate_compose_dirs(self) -> str:
         """
