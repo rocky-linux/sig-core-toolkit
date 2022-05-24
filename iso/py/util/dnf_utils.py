@@ -34,6 +34,7 @@ class RepoSync:
             arch=None,
             ignore_debug=False,
             ignore_source=False,
+            skip_all=False,
             parallel=False,
             dryrun: bool = False,
             fullrun: bool = False,
@@ -46,6 +47,7 @@ class RepoSync:
         self.arch = arch
         self.ignore_debug = ignore_debug
         self.ignore_source = ignore_source
+        self.skip_all = skip_all
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
         # Relevant config items
@@ -128,6 +130,10 @@ class RepoSync:
             # Put in a verification here.
             sync_root = self.compose_latest_sync
 
+        if self.dryrun:
+            self.log.error('Dry Runs are not supported just yet. Sorry!')
+            raise SystemExit()
+
         self.sync(self.repo, sync_root, self.arch)
 
         if self.fullrun:
@@ -165,6 +171,7 @@ class RepoSync:
         if repo and not self.fullrun:
             sync_single_repo = True
             repos_to_sync = [repo]
+
 
         # dnf reposync --download-metadata \
         #       --repoid fedora -p /tmp/test \
@@ -239,8 +246,32 @@ class RepoSync:
                             stderr=subprocess.DEVNULL
                     )
 
-                # There should be a check here that if it's "all" and multilib
-                # is on, i686 should get synced too.
+                # This is an ugly hack. We don't want to list i686 as an
+                # available arch for an el because that would imply each repo
+                # gets an i686 repo. However, being able to set "arch" to i686
+                # should be possible, thus avoiding this block altogether.
+                if 'x86_64' in a and 'all' in r and self.multilib:
+                    i686_os_sync_path = os.path.join(
+                            sync_root,
+                            repo_name,
+                            a,
+                            'os'
+                    )
+
+                    i686_sync_cmd = "{} -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
+                            cmd,
+                            self.dnf_config,
+                            r,
+                            i686_os_sync_path,
+                            'i686'
+                    )
+
+                    self.log.info('Syncing {} {}'.format(r, 'i686'))
+                    process_i686 = subprocess.call(
+                            shlex.split(i686_sync_cmd),
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL
+                    )
 
             if not self.ignore_source:
                 source_sync_path = os.path.join(
@@ -305,6 +336,59 @@ class RepoSync:
 
                 entry_name = '{}-{}'.format(r, a)
                 debug_entry_name = '{}-debug-{}'.format(r, a)
+
+                entry_point_sh = os.path.join(
+                        entries_dir,
+                        entry_name
+                )
+
+                debug_entry_point_sh = os.path.join(
+                        entries_dir,
+                        debug_entry_name
+                )
+
+                os_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'os'
+                )
+
+                debug_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'debug/tree'
+                )
+
+                sync_cmd = "/usr/bin/dnf -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
+                        self.dnf_config,
+                        r,
+                        os_sync_path,
+                        a
+                )
+
+                debug_sync_cmd = "/usr/bin/dnf -c {} --download-metadata --repoid={}-debug -p {} --forcearch {} --norepopath".format(
+                        self.dnf_config,
+                        r,
+                        debug_sync_path,
+                        a
+                )
+
+                entry_point_open = open(entry_point_sh, "w+")
+                debug_entry_point_open = open(debug_entry_point_sh, "w+")
+
+                entry_point_open.write('#!/bin/bash\n')
+                entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                entry_point_open.write(sync_cmd)
+
+                debug_entry_point_open.write('#!/bin/bash\n')
+                debug_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                debug_entry_point_open.write(debug_sync_cmd)
+
+                entry_point_open.close()
+                debug_entry_point_open.close()
+
 
     def generate_compose_dirs(self) -> str:
         """
@@ -395,6 +479,8 @@ class RepoSync:
             config_file.write("enabled=1\n")
             config_file.write("gpgcheck=0\n\n")
 
+
+        config_file.close()
         return fname
 
     def reposync_cmd(self) -> str:

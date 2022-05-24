@@ -11,7 +11,7 @@ rlvars = rldict['9']
 r = Checks(rlvars, config['arch'])
 r.check_valid_arch()
 
-a = RepoSync(rlvars, config, major="9", repo="ResilientStorage", parallel=False, ignore_debug=True, ignore_source=True)
+a = RepoSync(rlvars, config, major="9", repo="ResilientStorage", parallel=True, ignore_debug=True, ignore_source=True)
 a.run()
 #a.generate_conf()
 #somedir = a.generate_compose_dirs()
