@@ -11,6 +11,7 @@ import os.path
 import subprocess
 import shlex
 import time
+import re
 #import pipes
 from common import Color
 
@@ -90,6 +91,11 @@ class RepoSync:
                 "compose"
         )
 
+        self.compose_log_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/logs"
+        )
+
         # This is temporary for now.
         if logger is None:
             self.log = logging.getLogger("reposync")
@@ -130,12 +136,13 @@ class RepoSync:
         # This should create the initial compose dir and set the path.
         # Otherwise, just use the latest link.
         if self.fullrun:
+            generated_dir = self.generate_compose_dirs()
             work_root = os.path.join(
-                    self.generate_compose_dirs(),
+                    generated_dir,
                     'work'
             )
             sync_root = os.path.join(
-                    self.generate_compose_dirs(),
+                    generated_dir,
                     'compose'
             )
         else:
@@ -146,16 +153,21 @@ class RepoSync:
             )
             sync_root = self.compose_latest_sync
 
+        log_root = os.path.join(
+                work_root,
+                "logs"
+        )
+
         if self.dryrun:
             self.log.error('Dry Runs are not supported just yet. Sorry!')
             raise SystemExit()
 
-        self.sync(self.repo, sync_root, work_root, self.arch)
+        self.sync(self.repo, sync_root, work_root, log_root, self.arch)
 
         if self.fullrun:
             self.symlink_to_latest()
 
-    def sync(self, repo, sync_root, work_root, arch=None):
+    def sync(self, repo, sync_root, work_root, log_root, arch=None):
         """
         Calls out syncing of the repos. We generally sync each component of a
         repo:
@@ -166,7 +178,7 @@ class RepoSync:
         If parallel is true, we will run in podman.
         """
         if self.parallel:
-            self.podman_sync(repo, sync_root, work_root, arch)
+            self.podman_sync(repo, sync_root, work_root, log_root, arch)
         else:
             self.dnf_sync(repo, sync_root, work_root, arch)
 
@@ -196,6 +208,11 @@ class RepoSync:
         self.log.info(
                 Color.BOLD + '!! WARNING !! ' + Color.END + 'You are performing a '
                 'local reposync, which may incur delays in your compose.'
+        )
+
+        self.log.info(
+                Color.BOLD + '!! WARNING !! ' + Color.END + 'Standard dnf reposync '
+                'is not really a supported method. Only use this for general testing.'
         )
 
         if self.fullrun:
@@ -316,7 +333,7 @@ class RepoSync:
 
         self.log.info('Syncing complete')
 
-    def podman_sync(self, repo, sync_root, work_root, arch):
+    def podman_sync(self, repo, sync_root, work_root, log_root, arch):
         """
         This is for podman syncs
 
@@ -327,10 +344,15 @@ class RepoSync:
         """
         cmd = self.podman_cmd()
         contrunlist = []
+        bad_exit_list = []
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
+
+        # yeah, I know.
+        if not os.path.exists(log_root):
+            os.makedirs(log_root, exist_ok=True)
 
         sync_single_arch = False
         arches_to_sync = self.arches
@@ -386,18 +408,30 @@ class RepoSync:
                         'debug/tree'
                 )
 
-                sync_cmd = "/usr/bin/dnf reposync -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
+                sync_cmd = ("/usr/bin/dnf reposync -c {} --download-metadata "
+                        "--repoid={} -p {} --forcearch {} --norepopath 2>&1 "
+                        "| tee -a {}/{}-{}-{}.log").format(
                         self.dnf_config,
                         r,
                         os_sync_path,
-                        a
+                        a,
+                        log_root,
+                        repo_name,
+                        a,
+                        self.date_stamp
                 )
 
-                debug_sync_cmd = "/usr/bin/dnf reposync -c {} --download-metadata --repoid={}-debug -p {} --forcearch {} --norepopath".format(
+                debug_sync_cmd = ("/usr/bin/dnf reposync -c {} "
+                        "--download-metadata --repoid={}-debug -p {} --forcearch {} "
+                        "--norepopath 2>&1 | tee -a {}/{}-{}-debug-{}.log").format(
                         self.dnf_config,
                         r,
                         debug_sync_path,
-                        a
+                        a,
+                        log_root,
+                        repo_name,
+                        a,
+                        self.date_stamp
                 )
 
                 entry_point_open = open(entry_point_sh, "w+")
@@ -433,10 +467,15 @@ class RepoSync:
                         'source/tree'
                 )
 
-                source_sync_cmd = "/usr/bin/dnf reposync -c {} --download-metadata --repoid={}-source -p {} --norepopath".format(
+                source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
+                        "--download-metadata --repoid={}-source -p {} "
+                        "--norepopath | tee -a {}/{}-source-{}.log").format(
                         self.dnf_config,
                         repo_name,
-                        source_sync_path
+                        source_sync_path,
+                        log_root,
+                        repo_name,
+                        self.date_stamp
                 )
                 source_entry_point_open = open(source_entry_point_sh, "w+")
                 source_entry_point_open.write('#!/bin/bash\n')
@@ -450,7 +489,7 @@ class RepoSync:
 
             #print(entry_name_list)
             for pod in entry_name_list:
-                podman_cmd_entry = '{} run -d --rm -it -v "{}:{}:z" -v "{}:{}:z" -v "{}:{}:z" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it -v "{}:{}:z" -v "{}:{}:z" -v "{}:{}:z" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,
@@ -471,7 +510,7 @@ class RepoSync:
                 )
 
             join_all_pods = ' '.join(entry_name_list)
-            time.sleep(1)
+            time.sleep(3)
             self.log.info('Syncing %s ...' % r)
             pod_watcher = '{} wait {}'.format(
                     cmd,
@@ -481,12 +520,58 @@ class RepoSync:
             #print(pod_watcher)
             watch_man = subprocess.call(
                     shlex.split(pod_watcher),
-                    stdout=sys.stdout,
-                    stderr=sys.stderr
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+            )
+
+            # After the above is done, we'll check each pod process for an exit
+            # code.
+            pattern = "Exited (0)"
+            for pod in entry_name_list:
+                checkcmd = '{} ps -f status=exited -f name={}'.format(
+                        cmd,
+                        pod
+                )
+                podcheck = subprocess.Popen(
+                        checkcmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True
+                )
+
+                output, errors = podcheck.communicate()
+                if 'Exited (0)' in output.decode():
+                    self.log.info('%s seems ok' % pod)
+                else:
+                    self.log.error('%s had issues syncing' % pod)
+                    bad_exit_list.append(pod)
+
+            rmcmd = '{} rm {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            rmpod = subprocess.Popen(
+                    rmcmd,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    shell=True
             )
 
             entry_name_list.clear()
             self.log.info('Syncing %s completed' % r)
+
+        if len(bad_exit_list) > 0:
+            self.log.error(
+                    Color.BOLD + Color.RED + 'There were issues syncing these '
+                    'repositories:' + Color.END
+            )
+            for issue in bad_exit_list:
+                self.log.error(issue)
+
+        self.log.info('Compose repo directory: %s' % sync_root)
+        self.log.info('Compose logs: %s' % log_root)
+        self.log.info('Compose completed.')
 
     def generate_compose_dirs(self) -> str:
         """
