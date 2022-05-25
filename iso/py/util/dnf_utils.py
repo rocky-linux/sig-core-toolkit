@@ -10,6 +10,7 @@ import os
 import os.path
 import subprocess
 import shlex
+import time
 #import pipes
 from common import Color
 
@@ -54,6 +55,7 @@ class RepoSync:
         self.major_version = major
         self.date_stamp = config['date_stamp']
         self.repo_base_url = config['repo_base_url']
+        self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
 
         # Relevant major version items
@@ -64,6 +66,12 @@ class RepoSync:
         self.repos = rlvars['all_repos']
         self.multilib = rlvars['provide_multilib']
         self.repo = repo
+
+        # each el can have its own designated container to run stuff in,
+        # otherwise we'll just default to the default config.
+        self.container = config['container']
+        if 'container' in rlvars and len(rlvars['container']) > 0:
+            self.container = rlvars['container']
 
         self.staging_dir = os.path.join(
                     config['staging_root'],
@@ -258,6 +266,9 @@ class RepoSync:
                 # available arch for an el because that would imply each repo
                 # gets an i686 repo. However, being able to set "arch" to i686
                 # should be possible, thus avoiding this block altogether.
+                # "available_arches" in the configuration isn't meant to be a
+                # restriction here, but mainly a restriction in the lorax
+                # process (which isn't done here)
                 if 'x86_64' in a and 'all' in r and self.multilib:
                     i686_os_sync_path = os.path.join(
                             sync_root,
@@ -334,17 +345,22 @@ class RepoSync:
             repos_to_sync = [repo]
 
         for r in repos_to_sync:
-            podman_loop_list = []
-            for a in arches_to_sync:
-                repo_name = r
-                if r in self.repo_renames:
-                    repo_name = self.repo_renames[r]
+            entry_name_list = []
+            repo_name = r
+            if r in self.repo_renames:
+                repo_name = self.repo_renames[r]
 
+            for a in arches_to_sync:
                 # There should be a check here that if it's "all" and multilib
                 # is on, i686 should get synced too.
 
                 entry_name = '{}-{}'.format(r, a)
                 debug_entry_name = '{}-debug-{}'.format(r, a)
+
+                entry_name_list.append(entry_name)
+
+                if not self.ignore_debug:
+                    entry_name_list.append(debug_entry_name)
 
                 entry_point_sh = os.path.join(
                         entries_dir,
@@ -370,14 +386,14 @@ class RepoSync:
                         'debug/tree'
                 )
 
-                sync_cmd = "/usr/bin/dnf -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
+                sync_cmd = "/usr/bin/dnf reposync -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
                         self.dnf_config,
                         r,
                         os_sync_path,
                         a
                 )
 
-                debug_sync_cmd = "/usr/bin/dnf -c {} --download-metadata --repoid={}-debug -p {} --forcearch {} --norepopath".format(
+                debug_sync_cmd = "/usr/bin/dnf reposync -c {} --download-metadata --repoid={}-debug -p {} --forcearch {} --norepopath".format(
                         self.dnf_config,
                         r,
                         debug_sync_path,
@@ -389,21 +405,88 @@ class RepoSync:
 
                 entry_point_open.write('#!/bin/bash\n')
                 entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
-                entry_point_open.write(sync_cmd)
+                entry_point_open.write(sync_cmd + '\n')
 
                 debug_entry_point_open.write('#!/bin/bash\n')
                 debug_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
-                debug_entry_point_open.write(debug_sync_cmd)
+                debug_entry_point_open.write(debug_sync_cmd + '\n')
 
                 entry_point_open.close()
                 debug_entry_point_open.close()
-                # Add to list here
-                podman_loop_list.append(entry_point_sh)
-                podman_loop_list.append(debug_entry_point_sh)
+
+                os.chmod(entry_point_sh, 0o755)
+                os.chmod(debug_entry_point_sh, 0o755)
+
+            # We ignoring sources?
+            if not self.ignore_source:
+                source_entry_name = '{}-source'.format(r)
+                entry_name_list.append(source_entry_name)
+
+                source_entry_point_sh = os.path.join(
+                        entries_dir,
+                        source_entry_name
+                )
+
+                source_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        'source/tree'
+                )
+
+                source_sync_cmd = "/usr/bin/dnf reposync -c {} --download-metadata --repoid={}-source -p {} --norepopath".format(
+                        self.dnf_config,
+                        repo_name,
+                        source_sync_path
+                )
+                source_entry_point_open = open(source_entry_point_sh, "w+")
+                source_entry_point_open.write('#!/bin/bash\n')
+                source_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                source_entry_point_open.write(source_sync_cmd + '\n')
+                source_entry_point_open.close()
+                os.chmod(source_entry_point_sh, 0o755)
 
             # Spawn up all podman processes for repo
-            print(podman_loop_list)
-            podman_loop_list.clear()
+            self.log.info('Starting podman processes for %s ...' % r)
+
+            #print(entry_name_list)
+            for pod in entry_name_list:
+                podman_cmd_entry = '{} run -d --rm -it -v "{}:{}:z" -v "{}:{}:z" -v "{}:{}:z" --name {} --entrypoint {}/{} {}'.format(
+                        cmd,
+                        self.compose_root,
+                        self.compose_root,
+                        self.dnf_config,
+                        self.dnf_config,
+                        entries_dir,
+                        entries_dir,
+                        pod,
+                        entries_dir,
+                        pod,
+                        self.container
+                )
+                #print(podman_cmd_entry)
+                process = subprocess.call(
+                        shlex.split(podman_cmd_entry),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+            join_all_pods = ' '.join(entry_name_list)
+            time.sleep(1)
+            self.log.info('Syncing %s ...' % r)
+            pod_watcher = '{} wait {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            #print(pod_watcher)
+            watch_man = subprocess.call(
+                    shlex.split(pod_watcher),
+                    stdout=sys.stdout,
+                    stderr=sys.stderr
+            )
+
+            entry_name_list.clear()
+            self.log.info('Syncing %s completed' % r)
 
     def generate_compose_dirs(self) -> str:
         """
@@ -526,7 +609,7 @@ class RepoSync:
         """
         cmd = None
         if os.path.exists("/usr/bin/podman"):
-            cmd = "/usr/bin/podman run"
+            cmd = "/usr/bin/podman"
         else:
             self.log.error('/usr/bin/podman was not found. Good bye.')
             raise SystemExit("\n\n/usr/bin/podman was not found.\n\nPlease "
