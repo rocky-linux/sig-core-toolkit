@@ -509,7 +509,7 @@ class RepoSync:
 
             #print(entry_name_list)
             for pod in entry_name_list:
-                podman_cmd_entry = '{} run -d -it -v "{}:{}:z" -v "{}:{}:z" -v "{}:{}:z" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,
