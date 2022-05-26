@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 source_ami="$1"
-source_region="$2"
+source_region="${2:-us-east-1}"
 
 if [[ -z $source_ami || -z $source_region ]]; then
   echo "usage: $0 source_ami source_region"
@@ -69,7 +69,7 @@ function change_privacy(){
       aws --profile resf-ami ec2 modify-image-attribute \
         --region $region \
         --image-id "${ami_ids[$region]}" \
-        --launch-permission "${launch_permission}" 
+        --launch-permission "${launch_permission}" 2>/dev/null
       if [[ $? -eq 0 ]]; then
         unset ami_ids[$region] 
         echo ". Done"
@@ -119,4 +119,4 @@ function find_image_by_name(){
 
 declare -A ami_ids
 copy
-#change_privacy Public # uses ami_ids 
+change_privacy Public # uses ami_ids 

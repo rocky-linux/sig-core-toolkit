@@ -1,0 +1,25 @@
+#!/bin/bash
+
+version=$1
+
+if [[ -z "$1" ]]; then
+    printf "usage: $0 mmversion\n"; exit 2
+fi
+
+#tmpdir=$(mktemp -d)
+tmpdir=/tmp/
+outfile="${tmpdir}/mattermost-${version}.tar.gz"
+
+if [[ ! -f "${outfile}" ]]; then
+    curl -Lo "$outfile" "https://releases.mattermost.com/${version}/mattermost-${version}-linux-amd64.tar.gz" || exit 1
+fi
+
+outdir="${tmpdir}mattermost-${version}/"
+
+if [[ ! -d "${outdir}" ]]; then
+    mkdir "${outdir}"
+fi
+
+tar --strip-components 2 -C "${outdir}" -xvf "$outfile" mattermost/client
+
+echo "Wrote to ${outdir}"
