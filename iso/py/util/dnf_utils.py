@@ -383,7 +383,7 @@ class RepoSync:
         for r in repos_to_sync:
             entry_name_list = []
             repo_name = r
-            arch_sync = arches_to_sync
+            arch_sync = arches_to_sync.copy()
 
             if r in self.repo_renames:
                 repo_name = self.repo_renames[r]
