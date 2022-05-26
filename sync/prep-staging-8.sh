@@ -44,7 +44,7 @@ for x in "${ARCHES[@]}"; do
       test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}"
       ret_val=$?
       if [ "$ret_val" -eq 0 ]; then
-        createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}" \
+        createrepo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}" \
           "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
           --workers 8
         sed -i '/<open-size><\/open-size>/d' \

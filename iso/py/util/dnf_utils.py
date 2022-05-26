@@ -34,10 +34,11 @@ class RepoSync:
             major,
             repo=None,
             arch=None,
-            ignore_debug=False,
-            ignore_source=False,
-            skip_all=False,
-            parallel=False,
+            ignore_debug: bool = False,
+            ignore_source: bool = False,
+            repoclosure: bool = False,
+            skip_all: bool = False,
+            parallel: bool = False,
             dryrun: bool = False,
             fullrun: bool = False,
             nofail: bool = False,
@@ -50,6 +51,7 @@ class RepoSync:
         self.ignore_debug = ignore_debug
         self.ignore_source = ignore_source
         self.skip_all = skip_all
+        self.repoclosure = repoclosure
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
         # Relevant config items
@@ -73,6 +75,9 @@ class RepoSync:
         self.container = config['container']
         if 'container' in rlvars and len(rlvars['container']) > 0:
             self.container = rlvars['container']
+
+        if 'repoclosure_map' in rlvars and len(rlvars['repoclosure_map']) > 0:
+            self.repoclosure_map = rlvars['repoclosure_map']
 
         self.staging_dir = os.path.join(
                     config['staging_root'],
@@ -153,6 +158,12 @@ class RepoSync:
             )
             sync_root = self.compose_latest_sync
 
+            # Verify if the link even exists
+            if not os.path.exists(self.compose_latest_dir):
+                self.log.error('!! Latest compose link is broken does not exist: %s' % self.compose_latest_dir)
+                self.log.error('!! Please perform a full run if you have not done so.')
+                raise SystemExit()
+
         log_root = os.path.join(
                 work_root,
                 "logs"
@@ -166,6 +177,9 @@ class RepoSync:
 
         if self.fullrun:
             self.symlink_to_latest()
+
+        if self.repoclosure:
+            self.repoclosure_work(sync_root, work_root, log_root)
 
     def sync(self, repo, sync_root, work_root, log_root, arch=None):
         """
@@ -369,13 +383,19 @@ class RepoSync:
         for r in repos_to_sync:
             entry_name_list = []
             repo_name = r
+            arch_sync = arches_to_sync
+
             if r in self.repo_renames:
                 repo_name = self.repo_renames[r]
 
-            for a in arches_to_sync:
-                # There should be a check here that if it's "all" and multilib
-                # is on, i686 should get synced too.
 
+            if 'all' in r and 'x86_64' in arches_to_sync and self.multilib:
+                arch_sync.append('i686')
+
+            # There should be a check here that if it's "all" and multilib
+            # is on, i686 should get synced too.
+
+            for a in arch_sync:
                 entry_name = '{}-{}'.format(r, a)
                 debug_entry_name = '{}-debug-{}'.format(r, a)
 
@@ -471,7 +491,7 @@ class RepoSync:
                         "--download-metadata --repoid={}-source -p {} "
                         "--norepopath | tee -a {}/{}-source-{}.log").format(
                         self.dnf_config,
-                        repo_name,
+                        r,
                         source_sync_path,
                         log_root,
                         repo_name,
@@ -703,6 +723,9 @@ class RepoSync:
                     "supported." + Color.END
             )
         return cmd
+
+    def repoclosure_work(self, sync_root, work_root, log_root):
+        pass
 
 class SigRepoSync:
     """

@@ -1,18 +1,57 @@
 #!/usr/bin/env python3
 
-# This is intended for doing "full" syncs, not periodic update syncs.
+# This script can be called to do single syncs or full on syncs.
 
-from common import *
 import argparse
+from common import *
 from util import Checks
 from util import RepoSync
 
-rlvars = rldict['9']
+#rlvars = rldict['9']
+#r = Checks(rlvars, config['arch'])
+#r.check_valid_arch()
+
+# Start up the parser baby
+parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
+
+# All of our options
+parser.add_argument('--release', type=str, help="Major Release Version", required=True)
+parser.add_argument('--repo', type=str, help="Repository name")
+parser.add_argument('--arch', type=str, help="Architecture")
+parser.add_argument('--ignore-debug', action='store_true')
+parser.add_argument('--ignore-source', action='store_true')
+parser.add_argument('--repoclosure', action='store_true')
+parser.add_argument('--skip-all', action='store_true')
+parser.add_argument('--dry-run', action='store_true')
+parser.add_argument('--full-run', action='store_true')
+parser.add_argument('--no-fail', action='store_true')
+# I am aware this is confusing, I want podman to be the default option
+parser.add_argument('--simple', action='store_false')
+parser.add_argument('--logger', type=str)
+
+# Parse them
+results = parser.parse_args()
+
+rlvars = rldict[results.release]
 r = Checks(rlvars, config['arch'])
 r.check_valid_arch()
 
-a = RepoSync(rlvars, config, major="9", repo="ResilientStorage", parallel=True, ignore_debug=False, ignore_source=False)
+# Send them and do whatever I guess
+a = RepoSync(
+        rlvars,
+        config,
+        major=results.release,
+        repo=results.repo,
+        arch=results.arch,
+        ignore_debug=results.ignore_debug,
+        ignore_source=results.ignore_source,
+        repoclosure=results.repoclosure,
+        skip_all=results.skip_all,
+        parallel=results.simple,
+        dryrun=results.dry_run,
+        fullrun=results.full_run,
+        nofail=results.no_fail,
+        logger=results.logger
+)
+
 a.run()
-#a.generate_conf()
-#somedir = a.generate_compose_dirs()
-#print(a.sync())
