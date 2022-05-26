@@ -458,10 +458,12 @@ class RepoSync:
                 debug_entry_point_open = open(debug_entry_point_sh, "w+")
 
                 entry_point_open.write('#!/bin/bash\n')
+                entry_point_open.write('set -o pipefail')
                 entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
                 entry_point_open.write(sync_cmd + '\n')
 
                 debug_entry_point_open.write('#!/bin/bash\n')
+                debug_entry_point_open.write('set -o pipefail')
                 debug_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
                 debug_entry_point_open.write(debug_sync_cmd + '\n')
 
@@ -499,6 +501,7 @@ class RepoSync:
                 )
                 source_entry_point_open = open(source_entry_point_sh, "w+")
                 source_entry_point_open.write('#!/bin/bash\n')
+                source_entry_point_open.write('set -o pipefail')
                 source_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
                 source_entry_point_open.write(source_sync_cmd + '\n')
                 source_entry_point_open.close()
