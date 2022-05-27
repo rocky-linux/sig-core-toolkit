@@ -428,10 +428,18 @@ class RepoSync:
                         'debug/tree'
                 )
 
-                sync_cmd = ("/usr/bin/dnf reposync -c {} --download-metadata "
+                arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
+                    a,
+                    self.dnf_config,
+                    self.dnf_config,
+                    a
+                ))
+
+                sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                         "--repoid={} -p {} --forcearch {} --norepopath 2>&1 "
                         "| tee -a {}/{}-{}-{}.log").format(
                         self.dnf_config,
+                        a,
                         r,
                         os_sync_path,
                         a,
@@ -441,10 +449,11 @@ class RepoSync:
                         self.date_stamp
                 )
 
-                debug_sync_cmd = ("/usr/bin/dnf reposync -c {} "
+                debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
                         "--norepopath 2>&1 | tee -a {}/{}-{}-debug-{}.log").format(
                         self.dnf_config,
+                        a,
                         r,
                         debug_sync_path,
                         a,
@@ -459,11 +468,13 @@ class RepoSync:
 
                 entry_point_open.write('#!/bin/bash\n')
                 entry_point_open.write('set -o pipefail\n')
+                entry_point_open.write(arch_force_cp + '\n')
                 entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
                 entry_point_open.write(sync_cmd + '\n')
 
                 debug_entry_point_open.write('#!/bin/bash\n')
                 debug_entry_point_open.write('set -o pipefail\n')
+                debug_entry_point_open.write(arch_force_cp + '\n')
                 debug_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
                 debug_entry_point_open.write(debug_sync_cmd + '\n')
 
