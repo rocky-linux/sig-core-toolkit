@@ -809,6 +809,7 @@ class RepoSync:
                 repoclosure_entry_point_open.write('#!/bin/bash\n')
                 repoclosure_entry_point_open.write('set -o pipefail\n')
                 repoclosure_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                repoclosure_entry_point_open.write('/usr/bin/dnf clean all\n')
                 repoclosure_entry_point_open.write(repoclosure_cmd + '\n')
                 repoclosure_entry_point_open.close()
                 os.chmod(repoclosure_entry_point_sh, 0o755)
