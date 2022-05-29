@@ -791,13 +791,14 @@ class RepoSync:
                         repoclosure_entry_name
                 )
                 repoclosure_cmd = ('/usr/bin/dnf repoclosure {} '
-                        '--repofrompath={},file://{}/{}/{}/os --check={} {} '
+                        '--repofrompath={},file://{}/{}/{}/os --repo={} --check={} {} '
                         '| tee -a {}/{}-repoclosure-{}.log').format(
                         repoclosure_arch_list,
                         repo,
                         sync_root,
                         repo,
                         arch,
+                        repo,
                         repo,
                         join_repo_comb,
                         log_root,
