@@ -43,4 +43,29 @@
   has_modules:
     - 'AppStream'
     - 'PowerTools'
+  repoclosure_map:
+    arches:
+      x86_64: '--arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
+      aarch64: '--arch=aarch64 --arch=noarch'
+      ppc64le: '--arch=ppc64le --arch=noarch'
+      s390x: '--arch=s390x --arch=noarch'
+    repos:
+      BaseOS: []
+      AppStream:
+        - BaseOS
+      PowerTools:
+        - BaseOS
+        - AppStream
+      HighAvailability:
+        - BaseOS
+        - AppStream
+      ResilientStorage:
+        - BaseOS
+        - AppStream
+      RT:
+        - BaseOS
+        - AppStream
+      NFV:
+        - BaseOS
+        - AppStream
 ...
