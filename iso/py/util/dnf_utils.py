@@ -792,7 +792,7 @@ class RepoSync:
                 )
                 repoclosure_cmd = ('/usr/bin/dnf repoclosure {} '
                         '--repofrompath={},file://{}/{}/{}/os --repo={} --check={} {} '
-                        '| tee -a {}/{}-repoclosure-{}.log').format(
+                        '| tee -a {}/{}-repoclosure-{}-{}.log').format(
                         repoclosure_arch_list,
                         repo,
                         sync_root,
@@ -803,7 +803,8 @@ class RepoSync:
                         join_repo_comb,
                         log_root,
                         repo,
-                        arch
+                        arch,
+                        self.date_stamp
                 )
                 repoclosure_entry_point_open = open(repoclosure_entry_point_sh, "w+")
                 repoclosure_entry_point_open.write('#!/bin/bash\n')
