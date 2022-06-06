@@ -50,6 +50,16 @@
   has_modules:
     - 'AppStream'
     - 'CRB'
+  iso_map:
+    hosts:
+      x86_64: ''
+      aarch64: ''
+      ppc64le: ''
+      s390x: ''
+    images:
+      - dvd1
+      - minimal
+      - boot
   repoclosure_map:
     arches:
       x86_64: '--arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
@@ -57,6 +67,7 @@
       ppc64le: '--arch=ppc64le --arch=noarch'
       s390x: '--arch=s390x --arch=noarch'
     repos:
+      nplb: []
       BaseOS: []
       AppStream:
         - BaseOS
@@ -83,4 +94,13 @@
         - BaseOS
         - AppStream
         - HighAvailability
+  extra_files:
+    git_repo: 'https://git.rockylinux.org/staging/src/rocky-release.git'
+    branch: 'r9'
+    list:
+      - 'SOURCES/COMMUNITY-CHARTER'
+      - 'SOURCES/EULA'
+      - 'SOURCES/LICENSE'
+      - 'SOURCES/RPM-GPG-KEY-Rocky-9'
+      - 'SOURCES/RPM-GPG-KEY-Rocky-9-Testing'
 ...

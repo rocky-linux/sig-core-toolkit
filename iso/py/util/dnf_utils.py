@@ -69,6 +69,7 @@ class RepoSync:
         self.repos = rlvars['all_repos']
         self.multilib = rlvars['provide_multilib']
         self.repo = repo
+        self.extra_files = rlvars['extra_files']
 
         # each el can have its own designated container to run stuff in,
         # otherwise we'll just default to the default config.
@@ -176,6 +177,7 @@ class RepoSync:
         self.sync(self.repo, sync_root, work_root, log_root, self.arch)
 
         if self.fullrun:
+            self.deploy_extra_files()
             self.symlink_to_latest()
 
         if self.repoclosure:
@@ -893,6 +895,12 @@ class RepoSync:
             )
             for issue in bad_exit_list:
                 self.log.error(issue)
+
+    def deploy_extra_files(self):
+        """
+        deploys extra files based on info of rlvars
+        """
+        pass
 
 class SigRepoSync:
     """
