@@ -4,7 +4,7 @@ r_log "release" "Ensure the release is actually where it should be"
 case $RELEASE_NAME in
   rocky)
     r_log "rocky release" "Base Repo Check"
-    grep -q 'name=Rocky' /etc/yum.repos.d/Rocky*-Base*.repo
+    grep -q 'name=Rocky' /etc/yum.repos.d/*ocky*.repo
     r_checkExitStatus $?
     r_log "rocky release" "Check /etc/rocky-release"
     grep -q "Rocky" /etc/rocky-release

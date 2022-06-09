@@ -60,12 +60,15 @@
       - dvd1
       - minimal
       - boot
+    repos:
+      - 'BaseOS'
+      - 'AppStream'
   repoclosure_map:
     arches:
-      x86_64: '--arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
-      aarch64: '--arch=aarch64 --arch=noarch'
-      ppc64le: '--arch=ppc64le --arch=noarch'
-      s390x: '--arch=s390x --arch=noarch'
+      x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
+      aarch64: '--forcearch=aarch64 --arch=aarch64 --arch=noarch'
+      ppc64le: '--forcearch=ppc64le --arch=ppc64le --arch=noarch'
+      s390x: '--forcearch=s390x --arch=s390x --arch=noarch'
     repos:
       nplb: []
       BaseOS: []
