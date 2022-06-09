@@ -1,13 +1,15 @@
 # To be sourced by scripts to use
 
 # Revision must always start with a major number
-REVISION=8.6
+REVISION=9.0
+
+ARCHES=(x86_64 aarch64 ppc64le s390x)
 
 MAJOR="${REVISION:0:1}"
 MINOR="${REVISION:2:1}"
 
 # comment or blank if needed
-APPEND_TO_DIR="-RC2"
+APPEND_TO_DIR="-RC1"
 
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
@@ -30,7 +32,6 @@ NONMODS_REPOS=(
 declare -A LINK_REPOS
 LINK_REPOS=(
   [NFV]="nfv"
-  [Devel]="devel"
 )
 
 # These repos have comps/groups, except for debuginfo and sources
@@ -39,9 +40,11 @@ MODS_REPOS=(
   AppStream
   HighAvailability
   ResilientStorage
-  PowerTools
+  CRB
   RT
   NFV
+  SAP
+  SAPHANA
 )
 
 ALL_REPOS=(

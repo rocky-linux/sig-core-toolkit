@@ -38,7 +38,7 @@ TORRENT_TRACKERS=(
 )
 # Regex of paths to exclude
 TORRENT_EXCLUDES='.*\/CHECKSUM.asc'
-TORRENT_COMMENT="https://docs.rockylinux.org/release_notes/${REVISION}/"
+TORRENT_COMMENT="https://docs.rockylinux.org/release_notes/${REVISION//\./_}/" # dots are bad, mkay?
 THREADS=10
 
 printf "* Step 1: Create scaffolding and link\n"

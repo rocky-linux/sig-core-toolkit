@@ -4,7 +4,7 @@ r_log "kernel" "Testing the kernel keyring (GPG)"
 ARCH=$(uname -m)
 #KERNEL=$(uname -r | cut -d'-' -f1)
 
-if [ "${ARCH}" == "aarch64" ]; then
+if [ "${ARCH}" == "aarch64" ] || [ "${ARCH}" == "ppc64le" ] || [ "${ARCH}" == "s390x" ]; then
   r_log "kernel" "Architecture not tested: $ARCH"
   exit 0
 fi

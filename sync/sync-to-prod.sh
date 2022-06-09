@@ -16,7 +16,10 @@ if [ $ret_val -eq "0" ]; then
   # disabling because none of our files should be starting with dashes. If they
   # are something is *seriously* wrong here.
   # shellcheck disable=SC2035
-  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
+  sudo -l && find ./ -mindepth 1 -maxdepth 1 -type d -exec find {}/ -mindepth 1 -maxdepth 1 -type d \;|sed 's/^..//g' | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
+      {} "${TARGET}"
+  # shellcheck disable=SC2035
+  sudo -l && find ** -maxdepth 0 -type l | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
       {} "${TARGET}"
 
   # Full file list update

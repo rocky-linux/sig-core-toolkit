@@ -41,6 +41,12 @@ for SIG in "${!SIG_COMPOSE[@]}"; do
       {} "${TARGET}"
 done
 
+# Create symlinks for repos that were once separate from the main compose
+for LINK in "${LINK_REPOS[@]}"; do
+  ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${LINK}" \
+    "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${LINK_REPOS[$LINK]}"
+done
+
 # copy around the ISOs a bit, make things comfortable
 for ARCH in "${ARCHES[@]}"; do
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/isos/${ARCH}"
@@ -50,11 +56,12 @@ for ARCH in "${ARCHES[@]}"; do
     # Hardcoding this for now
     SOURCE="/mnt/compose/${MAJ}/latest-Rocky-${MAJ}/compose/${x}/${ARCH}/iso"
     TARGET_ARCH="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${x}/${ARCH}/iso"
-    mkdir -p "${SOURCE}" "${TARGET}" "${TARGET_ARCH}"
+    mkdir -p "${TARGET}"
+    #mkdir -p "${SOURCE}" "${TARGET}" "${TARGET_ARCH}"
     # Copy the ISO and manifests into their target architecture
-    cp -n "${SOURCE}"/*.iso "${TARGET_ARCH}/"
-    cp -n "${SOURCE}"/*.iso.manifest "${TARGET_ARCH}/"
-    cp -n "${SOURCE}/CHECKSUM" "${TARGET_ARCH}/"
+    #cp -n "${SOURCE}"/*.iso "${TARGET_ARCH}/"
+    #cp -n "${SOURCE}"/*.iso.manifest "${TARGET_ARCH}/"
+    #cp -n "${SOURCE}/CHECKSUM" "${TARGET_ARCH}/"
     # Copy the ISO and manifests into the main isos target
     cp "${SOURCE}"/*.iso "${TARGET}/"
     cp "${SOURCE}"/*.iso.manifest "${TARGET}/"

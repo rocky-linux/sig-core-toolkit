@@ -1,0 +1,12 @@
+---
+'8':
+  rockyrpi:
+    project_id: ''
+    additional_dirs:
+      - 'images'
+'9':
+  rockyrpi:
+    project_id: ''
+    additional_dirs:
+      - 'images'
+...

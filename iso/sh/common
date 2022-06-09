@@ -1,0 +1,50 @@
+# To be sourced by scripts to use
+
+# Variables that can be overriden should be noted with optional context. It is
+# expected that these values are here in this file (per variable or per set):
+#
+#   * Allowed
+#   * Allowed with caveats
+#   * Not Allowed
+#   * Required
+
+# Set the Rocky Linux version.
+# Override: Required
+if [ -z "$RLVER" ]; then
+  echo "RLVER is not defined."
+  exit 2
+fi
+
+# Architecture of the system - Overriding this would be a mistake. Lorax and
+# other runroot-like operations should occur on their respective architectures.
+# Override: Not Allowed
+ARCH="$(uname -p)"
+
+# Source Major common
+# Override: Not Allowed
+test -f "$(dirname "$0")/common_${RLVER}" && source "$(dirname "$0")/common_${RLVER}"
+if [ "$?" -ne 0 ]; then
+  echo "Could not source common_${RLVER}"
+  exit 1
+fi
+
+DATE_STAMP="$(date +%Y%m%d)"
+COMPOSE_ROOT="/mnt/compose/${RLVER}"
+COMPOSE_ISO_WORKDIR="${COMPOSE_ROOT}/work/${ARCH}/${DATE_STAMP}"
+
+# ISO Functions
+function build_graft_points() {
+  echo ""
+}
+
+function build_lorax_source_list() {
+  echo ""
+}
+
+function build_lorax() {
+  echo ""
+}
+
+function build_extra_iso() {
+  echo ""
+}
