@@ -760,6 +760,9 @@ class RepoSync:
 
         self.log.info('Beginning repoclosure phase')
         for repo in self.repoclosure_map['repos']:
+            if self.repo and repo not in self.repo:
+                continue
+
             repoclosure_entry_name_list = []
             self.log.info('Setting up repoclosure for {}'.format(repo))
 
