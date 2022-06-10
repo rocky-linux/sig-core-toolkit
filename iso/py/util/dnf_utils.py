@@ -521,6 +521,12 @@ class RepoSync:
             os.makedirs(dest_path, exist_ok=True)
         config_file = open(fname, "w+")
         for repo in self.repos:
+
+            # The all repo doesn't get hashed. Likely due to how long it takes
+            # to hash in the first place?
+            if 'all' in repo:
+                prehashed = ''
+
             constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
                     self.repo_base_url,
                     self.project_id,
