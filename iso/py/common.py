@@ -22,6 +22,7 @@ class Color:
 
 # vars and additional checks
 rldict = {}
+sigdict = {}
 config = {
     "rlmacro": rpm.expandMacro('%rhel'),
     "arch": platform.machine(),
@@ -39,6 +40,11 @@ config = {
 for conf in glob.iglob('configs/*.yaml'):
     with open(conf, 'r', encoding="utf-8") as file:
         rldict.update(yaml.safe_load(file))
+
+# Import all SIG configs from yaml
+for conf in glob.iglob('sig/*.yaml'):
+    with open(conf, 'r', encoding="utf-8") as file:
+        sigdict.update(yaml.safe_load(file))
 
 # The system needs to be a RHEL-like system. It cannot be Fedora or SuSE.
 #if "%rhel" in config['rlmacro']:

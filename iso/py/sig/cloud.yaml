@@ -1,10 +1,22 @@
 ---
-'8':
-  cloud-kernel:
-    project_id: 'f91da90d-5bdb-4cf2-80ea-e07f8dae5a5c'
-  cloud-common:
-    project_id: ''
-'9':
-  cloud-common:
-    project_id: ''
+cloud:
+  '8':
+    cloud-kernel:
+      project_id: 'f91da90d-5bdb-4cf2-80ea-e07f8dae5a5c'
+      allowed_arches:
+        - aarch64
+        - x86_64
+    cloud-common:
+      allowed_arches:
+        - aarch64
+        - x86_64
+      project_id: ''
+  '9':
+    cloud-common:
+      project_id: ''
+      allowed_arches:
+        - aarch64
+        - x86_64
+        - ppc64le
+        - s390x
 ...

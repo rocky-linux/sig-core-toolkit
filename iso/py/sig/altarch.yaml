@@ -1,12 +1,17 @@
 ---
-'8':
-  rockyrpi:
-    project_id: ''
-    additional_dirs:
-      - 'images'
-'9':
-  rockyrpi:
-    project_id: ''
-    additional_dirs:
-      - 'images'
+altarch:
+  '8':
+    rockyrpi:
+      allowed_arches:
+        - aarch64
+      project_id: ''
+      additional_dirs:
+        - 'images'
+  '9':
+    rockyrpi:
+      allowed_arches:
+        - aarch64
+      project_id: ''
+      additional_dirs:
+        - 'images'
 ...

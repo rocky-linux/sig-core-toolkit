@@ -38,6 +38,7 @@ class RepoSync:
             ignore_source: bool = False,
             repoclosure: bool = False,
             skip_all: bool = False,
+            hashed: bool = False,
             parallel: bool = False,
             dryrun: bool = False,
             fullrun: bool = False,
@@ -51,6 +52,7 @@ class RepoSync:
         self.ignore_debug = ignore_debug
         self.ignore_source = ignore_source
         self.skip_all = skip_all
+        self.hashed = hashed
         self.repoclosure = repoclosure
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
@@ -206,152 +208,9 @@ class RepoSync:
         """
         This is for normal dnf syncs. This is very slow.
         """
-        cmd = self.reposync_cmd()
-
-        sync_single_arch = False
-        arches_to_sync = self.arches
-        if arch:
-            sync_single_arch = True
-            arches_to_sync = [arch]
-
-        sync_single_repo = False
-        repos_to_sync = self.repos
-        if repo and not self.fullrun:
-            sync_single_repo = True
-            repos_to_sync = [repo]
-
-
-        # dnf reposync --download-metadata \
-        #       --repoid fedora -p /tmp/test \
-        #       --forcearch aarch64 --norepopath
-
-        self.log.info(
-                Color.BOLD + '!! WARNING !! ' + Color.END + 'You are performing a '
-                'local reposync, which may incur delays in your compose.'
-        )
-
-        self.log.info(
-                Color.BOLD + '!! WARNING !! ' + Color.END + 'Standard dnf reposync '
-                'is not really a supported method. Only use this for general testing.'
-        )
-
-        if self.fullrun:
-            self.log.info(
-                    Color.BOLD + '!! WARNING !! ' + Color.END + 'This is a full '
-                    'run! This will take a LONG TIME.'
-            )
-
-        for r in repos_to_sync:
-            for a in arches_to_sync:
-                repo_name = r
-                if r in self.repo_renames:
-                    repo_name = self.repo_renames[r]
-
-                os_sync_path = os.path.join(
-                        sync_root,
-                        repo_name,
-                        a,
-                        'os'
-                )
-
-                debug_sync_path = os.path.join(
-                        sync_root,
-                        repo_name,
-                        a,
-                        'debug/tree'
-                )
-
-                sync_cmd = "{} -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
-                        cmd,
-                        self.dnf_config,
-                        r,
-                        os_sync_path,
-                        a
-                )
-
-                debug_sync_cmd = "{} -c {} --download-metadata --repoid={}-debug -p {} --forcearch {} --norepopath".format(
-                        cmd,
-                        self.dnf_config,
-                        r,
-                        debug_sync_path,
-                        a
-                )
-
-                self.log.info('Syncing {} {}'.format(r, a))
-                #self.log.info(sync_cmd)
-                # Try to figure out where to send the actual output of this...
-                # Also consider on running a try/except here? Basically if
-                # something happens (like a repo doesn't exist for some arch,
-                # eg RT for aarch64), make a note of it somehow (but don't
-                # break the entire sync). As it stands with this
-                # implementation, if something fails, it just continues on.
-                process = subprocess.call(
-                        shlex.split(sync_cmd),
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
-                )
-
-                if not self.ignore_debug:
-                    self.log.info('Syncing {} {} (debug)'.format(r, a))
-                    process_debug = subprocess.call(
-                            shlex.split(debug_sync_cmd),
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL
-                    )
-
-                # This is an ugly hack. We don't want to list i686 as an
-                # available arch for an el because that would imply each repo
-                # gets an i686 repo. However, being able to set "arch" to i686
-                # should be possible, thus avoiding this block altogether.
-                # "available_arches" in the configuration isn't meant to be a
-                # restriction here, but mainly a restriction in the lorax
-                # process (which isn't done here)
-                if 'x86_64' in a and 'all' in r and self.multilib:
-                    i686_os_sync_path = os.path.join(
-                            sync_root,
-                            repo_name,
-                            a,
-                            'os'
-                    )
-
-                    i686_sync_cmd = "{} -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
-                            cmd,
-                            self.dnf_config,
-                            r,
-                            i686_os_sync_path,
-                            'i686'
-                    )
-
-                    self.log.info('Syncing {} {}'.format(r, 'i686'))
-                    process_i686 = subprocess.call(
-                            shlex.split(i686_sync_cmd),
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL
-                    )
-
-            if not self.ignore_source:
-                source_sync_path = os.path.join(
-                    sync_root,
-                    repo_name,
-                    'source/tree'
-                )
-
-                source_sync_cmd = "{} -c {} --download-metadata --repoid={}-source -p {} --norepopath".format(
-                    cmd,
-                    self.dnf_config,
-                    r,
-                    source_sync_path
-                )
-
-
-                self.log.info('Syncing {} source'.format(r))
-                process_source = subprocess.call(
-                        shlex.split(source_sync_cmd),
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
-                )
-
-        self.log.info('Syncing complete')
+        self.log.error('DNF syncing has been removed.')
+        self.log.error('Please install podman and enable parallel')
+        raise SystemExit()
 
     def podman_sync(self, repo, sync_root, work_root, log_root, arch):
         """
@@ -654,26 +513,32 @@ class RepoSync:
             raise SystemExit(Color.BOLD + "Local file syncs are not "
                 "supported." + Color.END)
 
+        prehashed = ''
+        if self.hashed:
+            prehashed = "hashed-"
         # create dest_path
         if not os.path.exists(dest_path):
             os.makedirs(dest_path, exist_ok=True)
         config_file = open(fname, "w+")
         for repo in self.repos:
-            constructed_url = '{}/{}/repo/{}/$basearch'.format(
+            constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
                     self.repo_base_url,
                     self.project_id,
+                    prehashed,
                     repo,
             )
 
-            constructed_url_debug = '{}/{}/repo/{}/$basearch-debug'.format(
+            constructed_url_debug = '{}/{}/repo/{}{}/$basearch-debug'.format(
                     self.repo_base_url,
                     self.project_id,
+                    prehashed,
                     repo,
             )
 
-            constructed_url_src = '{}/{}/repo/{}/src'.format(
+            constructed_url_src = '{}/{}/repo/{}{}/src'.format(
                     self.repo_base_url,
                     self.project_id,
+                    prehashed,
                     repo,
             )
 
@@ -910,3 +775,98 @@ class SigRepoSync:
     This helps us do reposync operations for SIG's. Do not use this for the
     base system. Use RepoSync for that.
     """
+    def __init__(
+            self,
+            rlvars,
+            config,
+            sigvars,
+            major,
+            repo=None,
+            arch=None,
+            ignore_source: bool = False,
+            repoclosure: bool = False,
+            skip_all: bool = False,
+            hashed: bool = False,
+            parallel: bool = False,
+            dryrun: bool = False,
+            fullrun: bool = False,
+            nofail: bool = False,
+            logger=None
+        ):
+        self.nofail = nofail
+        self.dryrun = dryrun
+        self.fullrun = fullrun
+        self.arch = arch
+        self.ignore_source = ignore_source
+        self.skip_all = skip_all
+        self.hashed = hashed
+        self.repoclosure = repoclosure
+        # Enables podman syncing, which should effectively speed up operations
+        self.parallel = parallel
+        # Relevant config items
+        self.major_version = major
+        self.date_stamp = config['date_stamp']
+        self.repo_base_url = config['repo_base_url']
+        self.compose_root = config['compose_root']
+        self.compose_base = config['compose_root'] + "/" + major
+
+        # Relevant major version items
+        self.sigvars = sigvars
+        self.sigrepos = sigvars.keys()
+        #self.arches = sigvars['allowed_arches']
+        #self.project_id = sigvars['project_id']
+        self.sigrepo = repo
+
+        # each el can have its own designated container to run stuff in,
+        # otherwise we'll just default to the default config.
+        self.container = config['container']
+        if 'container' in rlvars and len(rlvars['container']) > 0:
+            self.container = rlvars['container']
+
+        if 'repoclosure_map' in rlvars and len(rlvars['repoclosure_map']) > 0:
+            self.repoclosure_map = rlvars['repoclosure_map']
+
+        self.staging_dir = os.path.join(
+                    config['staging_root'],
+                    config['sig_category_stub'],
+                    major
+        )
+
+        self.compose_latest_dir = os.path.join(
+                config['compose_root'],
+                major,
+                "latest-Rocky-{}-SIG".format(major)
+        )
+
+        self.compose_latest_sync = os.path.join(
+                self.compose_latest_dir,
+                "compose"
+        )
+
+        self.compose_log_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/logs"
+        )
+
+        # This is temporary for now.
+        if logger is None:
+            self.log = logging.getLogger("sigreposync")
+            self.log.setLevel(logging.INFO)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.INFO)
+            formatter = logging.Formatter(
+                    '%(asctime)s :: %(name)s :: %(message)s',
+                    '%Y-%m-%d %H:%M:%S'
+            )
+            handler.setFormatter(formatter)
+            self.log.addHandler(handler)
+
+        self.log.info('sig reposync init')
+        self.log.info(major)
+        #self.dnf_config = self.generate_conf()
+
+    def run(self):
+        """
+        This runs the sig sync.
+        """
+        pass

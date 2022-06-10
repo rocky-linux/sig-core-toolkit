@@ -8,6 +8,7 @@ from .check import (
 
 from .dnf_utils import (
         RepoSync,
+        SigRepoSync
 )
 
 from .iso_utils import (
