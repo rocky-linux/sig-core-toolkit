@@ -14,10 +14,9 @@
     - 'genisoimage'
     - 'isomd5sum'
   repo_symlinks:
-    devel: 'Devel'
     NFV: 'nfv'
   renames:
-    all: 'nplb'
+    all: 'devel'
   all_repos:
     - 'all'
     - 'BaseOS'
@@ -30,12 +29,10 @@
     - 'SAP'
     - 'SAPHANA'
     - 'extras'
-    - 'devel'
     - 'plus'
   no_comps_or_groups:
     - 'all'
     - 'extras'
-    - 'devel'
     - 'plus'
   comps_or_groups:
     - 'BaseOS'
@@ -70,7 +67,7 @@
       ppc64le: '--forcearch=ppc64le --arch=ppc64le --arch=noarch'
       s390x: '--forcearch=s390x --arch=s390x --arch=noarch'
     repos:
-      nplb: []
+      devel: []
       BaseOS: []
       AppStream:
         - BaseOS
