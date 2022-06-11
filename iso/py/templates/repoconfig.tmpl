@@ -1,0 +1,20 @@
+{%- for repo in repos -%}
+[{{ repo.name }}]
+name={{repo.name}}
+baseurl={{ repo.baseurl }}
+enabled=1
+gpgcheck=0
+
+[{{ repo.name }}-debug]
+name={{repo.name}}
+baseurl={{ repo.baseurl }}-debug
+enabled=1
+gpgcheck=0
+
+[{{ repo.name }}-source]
+name={{repo.name}}
+baseurl={{ repo.srcbaseurl }}
+enabled=1
+gpgcheck=0
+
+{% endfor %}

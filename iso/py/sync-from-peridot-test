@@ -12,5 +12,5 @@ r = Checks(rlvars, config['arch'])
 r.check_valid_arch()
 
 #a = RepoSync(rlvars, config, major="9", repo="ResilientStorage", parallel=True, ignore_debug=False, ignore_source=False)
-a = RepoSync(rlvars, config, major="9", repo="ResilientStorage", parallel=True, ignore_debug=False, ignore_source=False)
-a.run()
+a = RepoSync(rlvars, config, major="9", repo="ResilientStorage", parallel=True, ignore_debug=False, ignore_source=False, hashed=True)
+#a.run()

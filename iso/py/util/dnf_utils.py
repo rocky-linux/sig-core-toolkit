@@ -14,6 +14,7 @@ import time
 import re
 #import pipes
 from common import Color
+from jinja2 import Environment, FileSystemLoader
 
 #HAS_LIBREPO = True
 #try:
@@ -72,6 +73,10 @@ class RepoSync:
         self.multilib = rlvars['provide_multilib']
         self.repo = repo
         self.extra_files = rlvars['extra_files']
+
+        # Templates
+        file_loader = FileSystemLoader('templates')
+        self.tmplenv = Environment(loader=file_loader)
 
         # each el can have its own designated container to run stuff in,
         # otherwise we'll just default to the default config.
@@ -300,18 +305,22 @@ class RepoSync:
                     a
                 ))
 
+                sync_log = ("{}/{}-{}-{}.log").format(
+                        log_root,
+                        repo_name,
+                        a,
+                        self.date_stamp
+                )
+
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                         "--repoid={} -p {} --forcearch {} --norepopath 2>&1 "
-                        "| tee -a {}/{}-{}-{}.log").format(
+                        "| tee -a {}").format(
                         self.dnf_config,
                         a,
                         r,
                         os_sync_path,
                         a,
-                        log_root,
-                        repo_name,
-                        a,
-                        self.date_stamp
+                        sync_log,
                 )
 
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
@@ -345,20 +354,25 @@ class RepoSync:
                         self.date_stamp
                 )
 
+                sync_template = self.tmplenv.get_template('reposync.tmpl')
+                sync_output = sync_template.render(
+                        arch_force_cp=arch_force_cp,
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=sync_cmd
+                )
+
+                debug_sync_template = self.tmplenv.get_template('reposync.tmpl')
+                debug_sync_output = debug_sync_template.render(
+                        arch_force_cp=arch_force_cp,
+                        dnf_plugin_cmd=debug_dnf_plugin_cmd,
+                        sync_cmd=debug_sync_cmd
+                )
+
                 entry_point_open = open(entry_point_sh, "w+")
                 debug_entry_point_open = open(debug_entry_point_sh, "w+")
 
-                entry_point_open.write('#!/bin/bash\n')
-                entry_point_open.write('set -o pipefail\n')
-                entry_point_open.write(arch_force_cp + '\n')
-                entry_point_open.write(dnf_plugin_cmd + '\n')
-                entry_point_open.write(sync_cmd + '\n')
-
-                debug_entry_point_open.write('#!/bin/bash\n')
-                debug_entry_point_open.write('set -o pipefail\n')
-                debug_entry_point_open.write(arch_force_cp + '\n')
-                debug_entry_point_open.write(debug_dnf_plugin_cmd + '\n')
-                debug_entry_point_open.write(debug_sync_cmd + '\n')
+                entry_point_open.write(sync_output)
+                debug_entry_point_open.write(debug_sync_output)
 
                 entry_point_open.close()
                 debug_entry_point_open.close()
@@ -400,11 +414,14 @@ class RepoSync:
                         self.date_stamp
                 )
 
+                source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
+                source_sync_output = source_sync_template.render(
+                        dnf_plugin_cmd=source_dnf_plugin_cmd,
+                        sync_cmd=source_sync_cmd
+                )
+
                 source_entry_point_open = open(source_entry_point_sh, "w+")
-                source_entry_point_open.write('#!/bin/bash\n')
-                source_entry_point_open.write('set -o pipefail\n')
-                source_entry_point_open.write(source_dnf_plugin_cmd + '\n')
-                source_entry_point_open.write(source_sync_cmd + '\n')
+                source_entry_point_open.write(source_sync_output)
                 source_entry_point_open.close()
                 os.chmod(source_entry_point_sh, 0o755)
 
@@ -545,19 +562,10 @@ class RepoSync:
         if not os.path.exists(dest_path):
             os.makedirs(dest_path, exist_ok=True)
         config_file = open(fname, "w+")
+        repolist = []
         for repo in self.repos:
 
-            #if 'all' in repo:
-            #    prehashed = ''
-
             constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
-                    self.repo_base_url,
-                    self.project_id,
-                    prehashed,
-                    repo,
-            )
-
-            constructed_url_debug = '{}/{}/repo/{}{}/$basearch-debug'.format(
                     self.repo_base_url,
                     self.project_id,
                     prehashed,
@@ -571,27 +579,16 @@ class RepoSync:
                     repo,
             )
 
-            # normal
-            config_file.write('[%s]\n' % repo)
-            config_file.write('name=%s\n' % repo)
-            config_file.write('baseurl=%s\n' % constructed_url)
-            config_file.write("enabled=1\n")
-            config_file.write("gpgcheck=0\n\n")
+            repodata = {
+                    'name': repo,
+                    'baseurl': constructed_url,
+                    'srcbaseurl': constructed_url_src
+            }
+            repolist.append(repodata)
 
-            # debug
-            config_file.write('[%s-debug]\n' % repo)
-            config_file.write('name=%s debug\n' % repo)
-            config_file.write('baseurl=%s\n' % constructed_url_debug)
-            config_file.write("enabled=1\n")
-            config_file.write("gpgcheck=0\n\n")
-
-            # src
-            config_file.write('[%s-source]\n' % repo)
-            config_file.write('name=%s source\n' % repo)
-            config_file.write('baseurl=%s\n' % constructed_url_src)
-            config_file.write("enabled=1\n")
-            config_file.write("gpgcheck=0\n\n")
-
+        template = self.tmplenv.get_template('repoconfig.tmpl')
+        output = template.render(repos=repolist)
+        config_file.write(output)
 
         config_file.close()
         return fname
