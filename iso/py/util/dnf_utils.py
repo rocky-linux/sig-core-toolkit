@@ -328,19 +328,36 @@ class RepoSync:
                         self.date_stamp
                 )
 
+                dnf_plugin_cmd = ("/usr/bin/dnf install dnf-plugins-core "
+                        "-y | tee -a {}/{}-{}-{}.log").format(
+                        log_root,
+                        repo_name,
+                        a,
+                        self.date_stamp
+                )
+
+
+                debug_dnf_plugin_cmd = ("/usr/bin/dnf install dnf-plugins-core "
+                        "-y | tee -a {}/{}-{}-debug-{}.log").format(
+                        log_root,
+                        repo_name,
+                        a,
+                        self.date_stamp
+                )
+
                 entry_point_open = open(entry_point_sh, "w+")
                 debug_entry_point_open = open(debug_entry_point_sh, "w+")
 
                 entry_point_open.write('#!/bin/bash\n')
                 entry_point_open.write('set -o pipefail\n')
                 entry_point_open.write(arch_force_cp + '\n')
-                entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                entry_point_open.write(dnf_plugin_cmd + '\n')
                 entry_point_open.write(sync_cmd + '\n')
 
                 debug_entry_point_open.write('#!/bin/bash\n')
                 debug_entry_point_open.write('set -o pipefail\n')
                 debug_entry_point_open.write(arch_force_cp + '\n')
-                debug_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                debug_entry_point_open.write(debug_dnf_plugin_cmd + '\n')
                 debug_entry_point_open.write(debug_sync_cmd + '\n')
 
                 entry_point_open.close()
@@ -375,10 +392,18 @@ class RepoSync:
                         repo_name,
                         self.date_stamp
                 )
+
+                source_dnf_plugin_cmd = ("/usr/bin/dnf install dnf-plugins-core "
+                        "-y | tee -a {}/{}-source-{}.log").format(
+                        log_root,
+                        repo_name,
+                        self.date_stamp
+                )
+
                 source_entry_point_open = open(source_entry_point_sh, "w+")
                 source_entry_point_open.write('#!/bin/bash\n')
                 source_entry_point_open.write('set -o pipefail\n')
-                source_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                source_entry_point_open.write(source_dnf_plugin_cmd + '\n')
                 source_entry_point_open.write(source_sync_cmd + '\n')
                 source_entry_point_open.close()
                 os.chmod(source_entry_point_sh, 0o755)
