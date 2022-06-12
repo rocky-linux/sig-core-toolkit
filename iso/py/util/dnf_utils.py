@@ -44,6 +44,7 @@ class RepoSync:
             dryrun: bool = False,
             fullrun: bool = False,
             nofail: bool = False,
+            gpgkey: str = 'stable',
             logger=None
         ):
         self.nofail = nofail
@@ -73,6 +74,7 @@ class RepoSync:
         self.multilib = rlvars['provide_multilib']
         self.repo = repo
         self.extra_files = rlvars['extra_files']
+        self.gpgkey = gpgkey
 
         # Templates
         file_loader = FileSystemLoader('templates')
@@ -298,6 +300,12 @@ class RepoSync:
                         'debug/tree'
                 )
 
+                import_gpg_cmd = ("/usr/bin/rpm --import "
+                        "| /usr/bin/curl {}{}").format(
+                        self.extra_files['git_raw_path'],
+                        self.extra_files['gpg'][self.gpgkey]
+                )
+
                 arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
                     a,
                     self.dnf_config,
@@ -312,60 +320,53 @@ class RepoSync:
                         self.date_stamp
                 )
 
+                debug_sync_log = ("{}/{}-{}-debug-{}.log").format(
+                        log_root,
+                        repo_name,
+                        a,
+                        self.date_stamp
+                )
+
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
-                        "--repoid={} -p {} --forcearch {} --norepopath 2>&1 "
-                        "| tee -a {}").format(
+                        "--repoid={} -p {} --forcearch {} --norepopath 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
                         os_sync_path,
-                        a,
-                        sync_log,
+                        a
                 )
 
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--norepopath 2>&1 | tee -a {}/{}-{}-debug-{}.log").format(
+                        "--norepopath 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
                         debug_sync_path,
-                        a,
-                        log_root,
-                        repo_name,
-                        a,
-                        self.date_stamp
+                        a
                 )
 
-                dnf_plugin_cmd = ("/usr/bin/dnf install dnf-plugins-core "
-                        "-y | tee -a {}/{}-{}-{}.log").format(
-                        log_root,
-                        repo_name,
-                        a,
-                        self.date_stamp
-                )
-
-
-                debug_dnf_plugin_cmd = ("/usr/bin/dnf install dnf-plugins-core "
-                        "-y | tee -a {}/{}-{}-debug-{}.log").format(
-                        log_root,
-                        repo_name,
-                        a,
-                        self.date_stamp
-                )
+                dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
+                check_cmd = ("/usr/bin/rpm -K $(find . -name '*.rpm') | grep -v 'signatures OK'")
 
                 sync_template = self.tmplenv.get_template('reposync.tmpl')
                 sync_output = sync_template.render(
+                        import_gpg_cmd=import_gpg_cmd,
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
-                        sync_cmd=sync_cmd
+                        sync_cmd=sync_cmd,
+                        check_cmd=check_cmd,
+                        sync_log=sync_log
                 )
 
                 debug_sync_template = self.tmplenv.get_template('reposync.tmpl')
                 debug_sync_output = debug_sync_template.render(
+                        import_gpg_cmd=import_gpg_cmd,
                         arch_force_cp=arch_force_cp,
-                        dnf_plugin_cmd=debug_dnf_plugin_cmd,
-                        sync_cmd=debug_sync_cmd
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=debug_sync_cmd,
+                        check_cmd=check_cmd,
+                        sync_log=debug_sync_log
                 )
 
                 entry_point_open = open(entry_point_sh, "w+")
@@ -396,28 +397,27 @@ class RepoSync:
                         'source/tree'
                 )
 
-                source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
-                        "--download-metadata --repoid={}-source -p {} "
-                        "--norepopath | tee -a {}/{}-source-{}.log").format(
-                        self.dnf_config,
-                        r,
-                        source_sync_path,
+                source_sync_log = ("{}/{}-source-{}.log").format(
                         log_root,
                         repo_name,
                         self.date_stamp
                 )
 
-                source_dnf_plugin_cmd = ("/usr/bin/dnf install dnf-plugins-core "
-                        "-y | tee -a {}/{}-source-{}.log").format(
-                        log_root,
-                        repo_name,
-                        self.date_stamp
+                source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
+                        "--download-metadata --repoid={}-source -p {} "
+                        "--norepopath 2>&1").format(
+                        self.dnf_config,
+                        r,
+                        source_sync_path
                 )
 
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
                 source_sync_output = source_sync_template.render(
-                        dnf_plugin_cmd=source_dnf_plugin_cmd,
-                        sync_cmd=source_sync_cmd
+                        import_gpg_cmd=import_gpg_cmd,
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=source_sync_cmd,
+                        check_cmd=check_cmd,
+                        sync_log=source_sync_log
                 )
 
                 source_entry_point_open = open(source_entry_point_sh, "w+")
@@ -481,10 +481,8 @@ class RepoSync:
                 )
 
                 output, errors = podcheck.communicate()
-                if 'Exited (0)' in output.decode():
-                    self.log.info('%s seems ok' % pod)
-                else:
-                    self.log.error('%s had issues syncing' % pod)
+                if 'Exited (0)' not in output.decode():
+                    self.log.error('[%s%sFAIL%s] %s' % Color.BOLD, Color.RED, pod, Color.END)
                     bad_exit_list.append(pod)
 
             rmcmd = '{} rm {}'.format(
@@ -761,10 +759,8 @@ class RepoSync:
                 )
 
                 output, errors = podcheck.communicate()
-                if 'Exited (0)' in output.decode():
-                    self.log.info('%s seems ok' % pod)
-                else:
-                    self.log.error('%s had issues closing' % pod)
+                if 'Exited (0)' not in output.decode():
+                    self.log.error('[%s%sFAIL%s] %s' % Color.BOLD, Color.RED, pod, Color.END)
                     bad_exit_list.append(pod)
 
             rmcmd = '{} rm {}'.format(

@@ -1,4 +1,13 @@
 #!/bin/bash
 set -o pipefail
-{{ dnf_plugin_cmd }}
-{{ sync_cmd }}
+{{ import_gpg_cmd }} | tee -a {{ sync_log }}
+{{ dnf_plugin_cmd }} | tee -a {{ sync_log }}
+{{ sync_cmd }} | tee -a {{ sync_log }}
+{{ check_cmd  }} | tee -a {{ sync_log }}
+
+ret_val=$?
+if [ "$ret_val" -eq 1  ]; then
+  exit 0
+else
+  exit 1
+fi

@@ -1,5 +1,14 @@
 #!/bin/bash
 set -o pipefail
-{{ arch_force_cp }}
-{{ dnf_plugin_cmd }}
-{{ sync_cmd }}
+{{ import_gpg_cmd }} | tee -a {{ sync_log }}
+{{ arch_force_cp }} | tee -a {{ sync_log }}
+{{ dnf_plugin_cmd }} | tee -a {{ sync_log }}
+{{ sync_cmd }} | tee -a {{ sync_log }}
+{{ check_cmd }} | tee -a {{ sync_log }}
+
+ket_val=$?
+if [ "$ret_val" -eq 1 ]; then
+  exit 0
+else
+  exit 1
+fi

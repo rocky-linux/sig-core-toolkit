@@ -96,7 +96,11 @@
         - HighAvailability
   extra_files:
     git_repo: 'https://git.rockylinux.org/staging/src/rocky-release.git'
+    git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/'
     branch: 'r9'
+    gpg:
+      stable: 'SOURCES/RPM-GPG-KEY-Rocky-9'
+      testing: 'SOURCES/RPM-GPG-KEY-Rocky-9-Testing'
     list:
       - 'SOURCES/COMMUNITY-CHARTER'
       - 'SOURCES/EULA'
