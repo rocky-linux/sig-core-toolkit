@@ -347,7 +347,10 @@ class RepoSync:
                 )
 
                 dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
-                check_cmd = ("/usr/bin/rpm -K $(find . -name '*.rpm') | grep -v 'signatures OK'")
+                check_cmd = ("/usr/bin/rpm -K $(find {} -name '*.rpm') "
+                        "| grep -v 'signatures OK'").format(os_sync_path)
+                debug_check_cmd = ("/usr/bin/rpm -K $(find {} -name '*.rpm') "
+                        "| grep -v 'signatures OK'").format(debug_sync_path)
 
                 sync_template = self.tmplenv.get_template('reposync.tmpl')
                 sync_output = sync_template.render(
@@ -365,7 +368,7 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=debug_sync_cmd,
-                        check_cmd=check_cmd,
+                        check_cmd=debug_check_cmd,
                         sync_log=debug_sync_log
                 )
 
@@ -411,12 +414,15 @@ class RepoSync:
                         source_sync_path
                 )
 
+                source_check_cmd = ("/usr/bin/rpm -K $(find {} -name '*.rpm') "
+                        "| grep -v 'signatures OK'").format(source_sync_path)
+
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
                 source_sync_output = source_sync_template.render(
                         import_gpg_cmd=import_gpg_cmd,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=source_sync_cmd,
-                        check_cmd=check_cmd,
+                        check_cmd=source_check_cmd,
                         sync_log=source_sync_log
                 )
 
