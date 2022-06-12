@@ -327,7 +327,8 @@ class RepoSync:
                 )
 
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
-                        "--repoid={} -p {} --forcearch {} --norepopath 2>&1").format(
+                        "--repoid={} -p {} --forcearch {} --norepopath "
+                        "--gpgcheck 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
@@ -337,7 +338,7 @@ class RepoSync:
 
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--norepopath 2>&1").format(
+                        "--gpgcheck --norepopath 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
@@ -346,10 +347,6 @@ class RepoSync:
                 )
 
                 dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
-                check_cmd = ("/usr/bin/rpm -K $(find {} -name '*.rpm') "
-                        "| grep -v 'signatures OK'").format(os_sync_path)
-                debug_check_cmd = ("/usr/bin/rpm -K $(find {} -name '*.rpm') "
-                        "| grep -v 'signatures OK'").format(debug_sync_path)
 
                 sync_template = self.tmplenv.get_template('reposync.tmpl')
                 sync_output = sync_template.render(
@@ -357,7 +354,6 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=sync_cmd,
-                        check_cmd=check_cmd,
                         sync_log=sync_log
                 )
 
@@ -367,7 +363,6 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=debug_sync_cmd,
-                        check_cmd=debug_check_cmd,
                         sync_log=debug_sync_log
                 )
 
@@ -407,21 +402,17 @@ class RepoSync:
 
                 source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
                         "--download-metadata --repoid={}-source -p {} "
-                        "--norepopath 2>&1").format(
+                        "--gpgcheck --norepopath 2>&1").format(
                         self.dnf_config,
                         r,
                         source_sync_path
                 )
-
-                source_check_cmd = ("/usr/bin/rpm -K $(find {} -name '*.rpm') "
-                        "| grep -v 'signatures OK'").format(source_sync_path)
 
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
                 source_sync_output = source_sync_template.render(
                         import_gpg_cmd=import_gpg_cmd,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=source_sync_cmd,
-                        check_cmd=source_check_cmd,
                         sync_log=source_sync_log
                 )
 
@@ -487,7 +478,9 @@ class RepoSync:
 
                 output, errors = podcheck.communicate()
                 if 'Exited (0)' not in output.decode():
-                    self.log.error('[%s%sFAIL%s] %s' % Color.BOLD, Color.RED, pod, Color.END)
+                    self.log.error(
+                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' + pod
+                    )
                     bad_exit_list.append(pod)
 
             rmcmd = '{} rm {}'.format(
@@ -765,7 +758,9 @@ class RepoSync:
 
                 output, errors = podcheck.communicate()
                 if 'Exited (0)' not in output.decode():
-                    self.log.error('[%s%sFAIL%s] %s' % Color.BOLD, Color.RED, pod, Color.END)
+                    self.log.error(
+                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' + pod
+                    )
                     bad_exit_list.append(pod)
 
             rmcmd = '{} rm {}'.format(

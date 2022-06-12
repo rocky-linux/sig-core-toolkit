@@ -3,18 +3,18 @@
 name={{repo.name}}
 baseurl={{ repo.baseurl }}
 enabled=1
-gpgcheck=0
+gpgcheck=1
 
 [{{ repo.name }}-debug]
 name={{repo.name}}
 baseurl={{ repo.baseurl }}-debug
 enabled=1
-gpgcheck=0
+gpgcheck=1
 
 [{{ repo.name }}-source]
 name={{repo.name}}
 baseurl={{ repo.srcbaseurl }}
 enabled=1
-gpgcheck=0
+gpgcheck=1
 
 {% endfor %}
