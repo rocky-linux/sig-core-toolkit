@@ -300,8 +300,7 @@ class RepoSync:
                         'debug/tree'
                 )
 
-                import_gpg_cmd = ("/usr/bin/rpm --import "
-                        "| /usr/bin/curl {}{}").format(
+                import_gpg_cmd = ("/usr/bin/rpm --import {}{}").format(
                         self.extra_files['git_raw_path'],
                         self.extra_files['gpg'][self.gpgkey]
                 )
