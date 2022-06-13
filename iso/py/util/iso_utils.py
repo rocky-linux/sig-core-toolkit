@@ -12,6 +12,7 @@ import subprocess
 import shlex
 import time
 import re
+from productmd.common import SortedConfigParser
 from common import Color
 
 class IsoBuild:
@@ -34,12 +35,15 @@ class IsoBuild:
         self.arch = arch
         self.image = image
         self.host = host
+        self.fullname = rlvars['fullname']
         # Relevant config items
         self.major_version = major
+        self.disttag = config['dist']
         self.date_stamp = config['date_stamp']
+        self.timestamp = time.time()
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
-        self.iso_base = config['compose_root'] + "/" + major + "/isos"
+        self.iso_drop = config['compose_root'] + "/" + major + "/isos"
         self.current_arch = config['arch']
         self.extra_files = rlvars['extra_files']
 
@@ -142,6 +146,51 @@ class IsoBuild:
     def iso_build_remote(self, sync_root, work_root, log_root, arch):
         """
         Remote ISO builds. Architecture is all or single.
+        """
+        print()
+
+    def generate_iso_scripts(self):
+        """
+        Generates the scripts needed to be ran in the mock roots
+        """
+        print()
+
+    def treeinfo_write(self):
+        """
+        Ensure treeinfo is written correctly
+        """
+        print()
+
+    def discinfo_write(self):
+        """
+        Ensure discinfo is written correctly
+        """
+        #with open(file_path, "w") as f:
+        #    f.write("%s\n" % self.timestamp)
+        #    f.write("%s\n" % self.fullname)
+        #    f.write("%s\n" % self.arch)
+        #    if disc_numbers:
+        #        f.write("%s\n" % ",".join([str(i) for i in disc_numbers]))
+        print()
+
+    def write_media_repo(self):
+        """
+        Ensure media.repo exists
+        """
+        data = [
+            "[InstallMedia]",
+            "name=%s" % self.fullname,
+            "mediaid=%s" % self.timestamp,
+            "metadata_expire=-1",
+            "gpgcheck=0",
+            "cost=500",
+            "",
+        ]
+
+
+    def generate_graft_points(self):
+        """
+        Get a list of packages for an ISO
         """
         print()
 

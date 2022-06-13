@@ -25,6 +25,7 @@ rldict = {}
 sigdict = {}
 config = {
     "rlmacro": rpm.expandMacro('%rhel'),
+    "dist": 'el' + rpm.expandMacro('%rhel'),
     "arch": platform.machine(),
     "date_stamp": time.strftime("%Y%m%d.%H%M%S", time.localtime()),
     "compose_root": "/mnt/compose",

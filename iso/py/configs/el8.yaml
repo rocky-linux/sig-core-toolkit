@@ -1,5 +1,6 @@
 ---
 '8':
+  fullname: 'Rocky Linux 8'
   revision: '8.6'
   rclvl: 'RC2'
   allowed_arches:

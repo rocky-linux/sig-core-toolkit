@@ -505,6 +505,11 @@ class RepoSync:
             )
             for issue in bad_exit_list:
                 self.log.error(issue)
+        else:
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + ' OK ' + Color.END + '] '
+                    'No issues detected.'
+            )
 
     def generate_compose_dirs(self) -> str:
         """

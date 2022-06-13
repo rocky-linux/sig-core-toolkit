@@ -1,5 +1,6 @@
 ---
 '9':
+  fullname: 'Rocky Linux 9'
   revision: '9.0'
   rclvl: 'RC1'
   allowed_arches:
@@ -60,6 +61,7 @@
     repos:
       - 'BaseOS'
       - 'AppStream'
+    variant: 'BaseOS'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
