@@ -3,6 +3,7 @@
   fullname: 'Rocky Linux 9'
   revision: '9.0'
   rclvl: 'RC1'
+  bugurl: 'https://bugs.rockylinux.org'
   allowed_arches:
     - x86_64
     - aarch64
@@ -10,10 +11,6 @@
     - s390x
   provide_multilib: True
   project_id: '55b17281-bc54-4929-8aca-a8a11d628738'
-  required_packages:
-    - 'lorax'
-    - 'genisoimage'
-    - 'isomd5sum'
   repo_symlinks:
     NFV: 'nfv'
   renames:
@@ -62,6 +59,14 @@
       - 'BaseOS'
       - 'AppStream'
     variant: 'BaseOS'
+    lorax_removes:
+      - 'libreport-rhel-anaconda-bugzilla'
+    required_pkgs:
+      - 'lorax'
+      - 'genisoimage'
+      - 'isomd5sum'
+      - 'lorax-templates-rhel'
+      - 'lorax-templates-generic'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'

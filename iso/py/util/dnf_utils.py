@@ -12,6 +12,7 @@ import subprocess
 import shlex
 import time
 import re
+import json
 #import pipes
 from common import Color
 from jinja2 import Environment, FileSystemLoader
@@ -793,7 +794,11 @@ class RepoSync:
 
     def deploy_extra_files(self):
         """
-        deploys extra files based on info of rlvars
+        deploys extra files based on info of rlvars including a
+        extra_files.json
+
+        also deploys COMPOSE_ID and maybe in the future a metadata dir with a
+        bunch of compose-esque stuff.
         """
         pass
 

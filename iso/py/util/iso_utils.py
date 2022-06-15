@@ -14,30 +14,34 @@ import time
 import re
 from productmd.common import SortedConfigParser
 from common import Color
+from jinja2 import Environment, FileSystemLoader
 
 class IsoBuild:
     """
     This helps us build the generic ISO's for a Rocky Linux release. In
-    particular, this is for the boot and dvd images.
+    particular, this is for the boot images.
 
-    Live images are built in another class.
+    While there is a function for building the DVD and live images, this not
+    the main design of this class. The other functions can be called on their
+    own to facilitate those particular builds.
     """
     def __init__(
             self,
             rlvars,
             config,
             major,
-            host=None,
+            isolation: str = 'auto',
+            compose_dir_is_here: bool = False,
             image=None,
-            arch=None,
             logger=None
     ):
-        self.arch = arch
         self.image = image
-        self.host = host
         self.fullname = rlvars['fullname']
+        self.distname = config['distname']
+        self.shortname = config['shortname']
         # Relevant config items
         self.major_version = major
+        self.compose_dir_is_here = compose_dir_is_here
         self.disttag = config['dist']
         self.date_stamp = config['date_stamp']
         self.timestamp = time.time()
@@ -45,17 +49,31 @@ class IsoBuild:
         self.compose_base = config['compose_root'] + "/" + major
         self.iso_drop = config['compose_root'] + "/" + major + "/isos"
         self.current_arch = config['arch']
-        self.extra_files = rlvars['extra_files']
+        self.required_pkgs = rlvars['iso_map']['required_pkgs']
+        self.mock_work_root = config['mock_work_root']
+        self.lorax_result_root = config['mock_work_root'] + "/" + "lorax"
+        self.mock_isolation = isolation
+        self.iso_map = rlvars['iso_map']
 
         # Relevant major version items
+        self.release = rlvars['revision']
+        self.minor_version = rlvars['revision'].split('.')[1]
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
-        self.arches = rlvars['allowed_arches']
+        self.repos = rlvars['iso_map']['repos']
+        self.repo_base_url = config['repo_base_url']
+        self.project_id = rlvars['project_id']
+
+        self.extra_files = rlvars['extra_files']
 
         self.staging_dir = os.path.join(
                     config['staging_root'],
                     config['category_stub'],
                     self.revision
         )
+
+        # Templates
+        file_loader = FileSystemLoader('templates')
+        self.tmplenv = Environment(loader=file_loader)
 
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
@@ -73,6 +91,12 @@ class IsoBuild:
                 "work/logs"
         )
 
+        self.iso_work_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/iso",
+                config['arch']
+        )
+
         # This is temporary for now.
         if logger is None:
             self.log = logging.getLogger("iso")
@@ -87,6 +111,7 @@ class IsoBuild:
             self.log.addHandler(handler)
 
         self.log.info('iso build init')
+        self.repolist = self.build_repo_list()
         self.log.info(self.revision)
 
     def run(self):
@@ -101,66 +126,121 @@ class IsoBuild:
                 "logs"
         )
 
-        self.iso_build(
-                sync_root,
-                work_root,
-                log_root,
-                self.arch,
-                self.host
-        )
+        self.iso_build()
 
         self.log.info('Compose repo directory: %s' % sync_root)
         self.log.info('ISO Build Logs: %s' % log_root)
         self.log.info('ISO Build completed.')
 
-    def iso_build(self, sync_root, work_root, log_root, arch, host):
+    def build_repo_list(self):
         """
-        Calls out the ISO builds to the individual hosts listed in the map.
-        Each architecture is expected to build their own ISOs, similar to
-        runroot operations of koji and pungi.
+        Builds the repo dictionary
+        """
+        repolist = []
+        for name in self.repos:
+            if not self.compose_dir_is_here:
+                constructed_url = '{}/{}/repo/hashed-{}/{}'.format(
+                        self.repo_base_url,
+                        self.project_id,
+                        name,
+                        self.current_arch
+                )
+            else:
+                constructed_url = 'file://{}/{}/{}/os'.format(
+                        self.compose_latest_sync,
+                        name,
+                        self.current_arch
+                )
 
-        It IS possible to run locally, but that would mean this only builds
-        ISOs for the architecture of the running machine. Please keep this in
-        mind when stating host=local.
+
+            repodata = {
+                'name': name,
+                'url': constructed_url
+            }
+
+            repolist.append(repodata)
+
+        return repolist
+
+    def iso_build(self):
+        """
+        This does the general ISO building for the current running
+        architecture. This generates the mock config and the general script
+        needed to get this part running.
         """
         # Check for local build, build accordingly
         # Check for arch specific build, build accordingly
         # local AND arch cannot be used together, local supersedes. print
         # warning.
-        local_only = False
-        if 'local' in self.host:
-            local_only = True
-
-        arch = self.arch.copy()
-        if local_only and self.arch:
-            self.log.warn('You cannot set local build AND an architecture.')
-            self.log.warn('The architecture %s will be set' % self.current_arch)
-            arch = self.current_arch
-
-    def iso_build_local(self, sync_root, work_root, log_root):
-        """
-        Local iso builds only. Architecture is locked.
-        """
-        print()
-
-    def iso_build_remote(self, sync_root, work_root, log_root, arch):
-        """
-        Remote ISO builds. Architecture is all or single.
-        """
+        self.log.info('Generating ISO configuration and scripts')
+        self.generate_iso_scripts()
         print()
 
     def generate_iso_scripts(self):
         """
         Generates the scripts needed to be ran in the mock roots
         """
+        mock_iso_template = self.tmplenv.get_template('isomock.tmpl.cfg')
+        mock_sh_template = self.tmplenv.get_template('isobuild.tmpl.sh')
+        iso_template = self.tmplenv.get_template('buildImage.tmpl.sh')
+
+        mock_iso_path = '/var/tmp/lorax-' + self.major_version + '.cfg'
+        mock_sh_path = '/var/tmp/isobuild.sh'
+        iso_template_path = '/var/tmp/buildImage.sh'
+
+        mock_iso_template_output = mock_iso_template.render(
+                arch=self.current_arch,
+                major=self.major_version,
+                fullname=self.fullname,
+                required_pkgs=self.required_pkgs,
+                dist=self.disttag,
+                repos=self.repolist,
+                user_agent='{{ user_agent }}',
+        )
+
+        mock_sh_template_output = mock_sh_template.render(
+                arch=self.current_arch,
+                major=self.major_version,
+                isolation=self.mock_isolation,
+                builddir=self.mock_work_root,
+                shortname=self.shortname,
+        )
+
+        iso_template_output = iso_template.render(
+                arch=self.current_arch,
+                major=self.major_version,
+                minor=self.minor_version,
+                shortname=self.shortname,
+                repos=self.repolist,
+                variant=self.iso_map['variant'],
+                lorax=self.iso_map['lorax_removes'],
+                distname=self.distname,
+                revision=self.release,
+        )
+
+        mock_iso_entry = open(mock_iso_path, "w+")
+        mock_iso_entry.write(mock_iso_template_output)
+        mock_iso_entry.close()
+
+        mock_sh_entry = open(mock_sh_path, "w+")
+        mock_sh_entry.write(mock_sh_template_output)
+        mock_sh_entry.close()
+
+        iso_template_entry = open(iso_template_path, "w+")
+        iso_template_entry.write(iso_template_output)
+        iso_template_entry.close()
         print()
 
+    # !!! Send help, we would prefer to do this using the productmd python
+    # !!! library. If you are reading this and you can help us, please do so!
     def treeinfo_write(self):
         """
         Ensure treeinfo is written correctly
         """
         print()
 
+    # !!! Send help, we would prefer to do this using the productmd python
+    # !!! library. If you are reading this and you can help us, please do so!
     def discinfo_write(self):
         """
         Ensure discinfo is written correctly
@@ -187,13 +267,19 @@ class IsoBuild:
             "",
         ]
 
-
-    def generate_graft_points(self):
+    def build_extra_iso(self):
         """
-        Get a list of packages for an ISO
+        Builds DVD images based on the data created from the initial lorax on
+        each arch. This should NOT be called during the usual run() section.
         """
         print()
 
+    def generate_graft_points(self):
+        """
+        Get a list of packages for an extras ISO. This should NOT be called
+        during the usual run() section.
+        """
+        print()
 
 class LiveBuild:
     """

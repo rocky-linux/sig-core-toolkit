@@ -169,6 +169,6 @@ EOF
   /bin/cp "${TREEINFO_VAR}" "${PRISTINE_TREE}"
 }
 
-export -f treeinfoFixer
-export -f treeinfoModder
-export -f treeinfoModderKickstart
+#export -f treeinfoFixer
+#export -f treeinfoModder
+#export -f treeinfoModderKickstart

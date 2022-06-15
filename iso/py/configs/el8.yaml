@@ -8,10 +8,6 @@
     - aarch64
   provide_multilib: False
   project_id: ''
-  required_packages:
-    - 'lorax'
-    - 'genisoimage'
-    - 'isomd5sum'
   repo_symlinks:
     devel: 'Devel'
     NFV: 'nfv'
@@ -54,6 +50,18 @@
       - dvd1
       - minimal
       - boot
+    repos:
+      - 'BaseOS'
+      - 'AppStream'
+    variant: 'BaseOS'
+    lorax_removes:
+      - 'libreport-rhel-anaconda-bugzilla'
+    required_packages:
+      - 'lorax'
+      - 'genisoimage'
+      - 'isomd5sum'
+      - 'lorax-templates-rhel'
+      - 'lorax-templates-generic'
   repoclosure_map:
     arches:
       x86_64: '--arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'

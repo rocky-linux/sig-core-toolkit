@@ -34,7 +34,10 @@ config = {
     "category_stub": "mirror/pub/rocky",
     "sig_category_stub": "mirror/pub/sig",
     "repo_base_url": "https://yumrepofs.build.resf.org/v1/projects",
-    "container": "centos:stream9"
+    "mock_work_root": "/builddir",
+    "container": "centos:stream9",
+    "distname": "Rocky Linux",
+    "shortname": "Rocky"
 }
 
 # Importing the config from yaml

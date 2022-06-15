@@ -4,12 +4,29 @@
 
 # Init the container
 mock \
-  -r /mnt/compose/9/latest-Rocky-9/work/entries/lorax-{{ major }}-{{ arch }}.cfg \
+  -r /var/tmp/lorax-{{ major }}.cfg \
+  --isolation={{ isolation }} \
+  --enable-network \
   --init
 
+cp /var/tmp/buildImage.sh \
+  /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/root/var/tmp
+
 mock \
-  -r /mnt/compose/9/latest-Rocky-9/work/entries/lorax-{{ major }}-{{ arch }}.cfg \
+  -r /var/tmp/lorax-{{ major }}.cfg \
   --shell \
-  --enable-network -- /bin/bash /mnt/compose/9/latest-Rocky-9/work/entries/runLorax-{{ arch }}.sh
+  --isolation={{ isolation }} \
+  --enable-network -- /bin/bash /var/tmp/buildImage.sh
+
+ret_val=$?
+if [ $ret_val -eq 0 ]; then
+  # Copy resulting data to /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/result
+  mkdir /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/result
+  cp /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/root/{{ builddir }}/lorax-{{ major }}-{{ arch }}.tar.gz \
+    /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/result
+else
+  echo "!! LORAX RUN FAILED !!"
+  exit 1
+fi
 
 # Clean up?
