@@ -68,6 +68,7 @@ class RepoSync:
 
         # Relevant major version items
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.fullversion = rlvars['revision']
         self.arches = rlvars['allowed_arches']
         self.project_id = rlvars['project_id']
         self.repo_renames = rlvars['renames']
@@ -516,7 +517,7 @@ class RepoSync:
         """
         compose_base_dir = os.path.join(
                 self.compose_base,
-                "Rocky-{}-{}".format(self.major_version, self.date_stamp)
+                "Rocky-{}-{}".format(self.fullversion, self.date_stamp)
         )
         self.log.info('Creating compose directory %s' % compose_base_dir)
         if not os.path.exists(compose_base_dir):
