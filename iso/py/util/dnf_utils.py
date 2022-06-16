@@ -67,6 +67,7 @@ class RepoSync:
         self.compose_base = config['compose_root'] + "/" + major
 
         # Relevant major version items
+        self.shortname = config['shortname']
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
         self.fullversion = rlvars['revision']
         self.arches = rlvars['allowed_arches']
@@ -190,7 +191,7 @@ class RepoSync:
 
         if self.fullrun:
             self.deploy_extra_files()
-            self.symlink_to_latest()
+            self.symlink_to_latest(generated_dir)
 
         if self.repoclosure:
             self.repoclosure_work(sync_root, work_root, log_root)
@@ -525,7 +526,7 @@ class RepoSync:
 
         return compose_base_dir
 
-    def symlink_to_latest(self):
+    def symlink_to_latest(self, generated_dir):
         """
         Emulates pungi and symlinks latest-Rocky-X
 
@@ -533,7 +534,13 @@ class RepoSync:
         'latest' directory is what is rsynced on to staging after completion.
         This link should not change often.
         """
-        pass
+        try:
+            os.remove(self.compose_latest_dir)
+        except:
+            pass
+
+        self.log.info('Symlinking to latest-{}-{}...'.format(self.shortname, self.major_version))
+        os.symlink(generated_dir, self.compose_latest_dir)
 
     def generate_conf(self, dest_path='/var/tmp') -> str:
         """
@@ -798,7 +805,7 @@ class RepoSync:
         also deploys COMPOSE_ID and maybe in the future a metadata dir with a
         bunch of compose-esque stuff.
         """
-        pass
+        self.log.info('Deploying extra files...')
 
 class SigRepoSync:
     """
