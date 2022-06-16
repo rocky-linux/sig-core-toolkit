@@ -30,6 +30,7 @@ class IsoBuild:
             rlvars,
             config,
             major,
+            rc: bool = False,
             isolation: str = 'auto',
             compose_dir_is_here: bool = False,
             image=None,
@@ -54,11 +55,13 @@ class IsoBuild:
         self.lorax_result_root = config['mock_work_root'] + "/" + "lorax"
         self.mock_isolation = isolation
         self.iso_map = rlvars['iso_map']
+        self.release_candidate = rc
 
         # Relevant major version items
         self.release = rlvars['revision']
         self.minor_version = rlvars['revision'].split('.')[1]
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.rclvl = rlvars['rclvl']
         self.repos = rlvars['iso_map']['repos']
         self.repo_base_url = config['repo_base_url']
         self.project_id = rlvars['project_id']
@@ -172,7 +175,6 @@ class IsoBuild:
         # Check for arch specific build, build accordingly
         # local AND arch cannot be used together, local supersedes. print
         # warning.
-        self.log.info('Generating ISO configuration and scripts')
         self.generate_iso_scripts()
         print()
 
@@ -180,6 +182,7 @@ class IsoBuild:
         """
         Generates the scripts needed to be ran in the mock roots
         """
+        self.log.info('Generating ISO configuration and scripts')
         mock_iso_template = self.tmplenv.get_template('isomock.tmpl.cfg')
         mock_sh_template = self.tmplenv.get_template('isobuild.tmpl.sh')
         iso_template = self.tmplenv.get_template('buildImage.tmpl.sh')
@@ -187,6 +190,10 @@ class IsoBuild:
         mock_iso_path = '/var/tmp/lorax-' + self.major_version + '.cfg'
         mock_sh_path = '/var/tmp/isobuild.sh'
         iso_template_path = '/var/tmp/buildImage.sh'
+
+        rclevel = ''
+        if self.release_candidate:
+            rclevel = '-' + self.rclvl
 
         mock_iso_template_output = mock_iso_template.render(
                 arch=self.current_arch,
@@ -216,6 +223,7 @@ class IsoBuild:
                 lorax=self.iso_map['lorax_removes'],
                 distname=self.distname,
                 revision=self.release,
+                rc=rclevel,
         )
 
         mock_iso_entry = open(mock_iso_path, "w+")
@@ -229,7 +237,6 @@ class IsoBuild:
         iso_template_entry = open(iso_template_path, "w+")
         iso_template_entry.write(iso_template_output)
         iso_template_entry.close()
-        print()
 
     # !!! Send help, we would prefer to do this using the productmd python
     # !!! library. If you are reading this and you can help us, please do so!

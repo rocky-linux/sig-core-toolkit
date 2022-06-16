@@ -177,7 +177,8 @@ class RepoSync:
 
         log_root = os.path.join(
                 work_root,
-                "logs"
+                "logs",
+                self.date_stamp
         )
 
         if self.dryrun:
@@ -313,18 +314,16 @@ class RepoSync:
                     a
                 ))
 
-                sync_log = ("{}/{}-{}-{}.log").format(
+                sync_log = ("{}/{}-{}.log").format(
                         log_root,
                         repo_name,
-                        a,
-                        self.date_stamp
+                        a
                 )
 
-                debug_sync_log = ("{}/{}-{}-debug-{}.log").format(
+                debug_sync_log = ("{}/{}-{}-debug.log").format(
                         log_root,
                         repo_name,
-                        a,
-                        self.date_stamp
+                        a
                 )
 
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
@@ -395,10 +394,9 @@ class RepoSync:
                         'source/tree'
                 )
 
-                source_sync_log = ("{}/{}-source-{}.log").format(
+                source_sync_log = ("{}/{}-source.log").format(
                         log_root,
-                        repo_name,
-                        self.date_stamp
+                        repo_name
                 )
 
                 source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
@@ -690,7 +688,7 @@ class RepoSync:
                 )
                 repoclosure_cmd = ('/usr/bin/dnf repoclosure {} '
                         '--repofrompath={},file://{}/{}/{}/os --repo={} --check={} {} '
-                        '| tee -a {}/{}-repoclosure-{}-{}.log').format(
+                        '| tee -a {}/{}-repoclosure-{}.log').format(
                         repoclosure_arch_list,
                         repo,
                         sync_root,
@@ -701,8 +699,7 @@ class RepoSync:
                         join_repo_comb,
                         log_root,
                         repo,
-                        arch,
-                        self.date_stamp
+                        arch
                 )
                 repoclosure_entry_point_open = open(repoclosure_entry_point_sh, "w+")
                 repoclosure_entry_point_open.write('#!/bin/bash\n')

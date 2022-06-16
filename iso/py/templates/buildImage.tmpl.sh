@@ -13,7 +13,7 @@ lorax --product='{{ distname }}' \
   --variant={{ variant }} \
   --nomacboot \
   --buildarch={{ arch }} \
-  --volid={{ shortname }}-{{ major }}-{{ minor }}-{{ arch }}-dvd1 \
+  --volid={{ shortname }}-{{ major }}-{{ minor }}{{ rc }}-{{ arch }}-boot1 \
   --logfile={{ mock_work_root }}/lorax.log \
   --rootfs-size=3 \
   {{ lorax_work_root }}
