@@ -46,6 +46,7 @@ class RepoSync:
             fullrun: bool = False,
             nofail: bool = False,
             gpgkey: str = 'stable',
+            rlmode: str = 'stable',
             logger=None
         ):
         self.nofail = nofail

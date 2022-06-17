@@ -1,7 +1,7 @@
 ---
-'9':
+'9-lookahead':
   fullname: 'Rocky Linux 9'
-  revision: '9.0'
+  revision: '9.1'
   rclvl: 'RC1'
   bugurl: 'https://bugs.rockylinux.org'
   allowed_arches:
@@ -10,7 +10,7 @@
     - ppc64le
     - s390x
   provide_multilib: True
-  project_id: '55b17281-bc54-4929-8aca-a8a11d628738'
+  project_id: ''
   repo_symlinks:
     NFV: 'nfv'
   renames:
@@ -104,7 +104,7 @@
   extra_files:
     git_repo: 'https://git.rockylinux.org/staging/src/rocky-release.git'
     git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/r9/'
-    branch: 'r9'
+    branch: 'r9lh'
     gpg:
       stable: 'SOURCES/RPM-GPG-KEY-Rocky-9'
       testing: 'SOURCES/RPM-GPG-KEY-Rocky-9-Testing'

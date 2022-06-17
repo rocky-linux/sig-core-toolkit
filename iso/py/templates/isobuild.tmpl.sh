@@ -2,28 +2,44 @@
 # This is a template that is used to build ISO's for Rocky Linux. Only under
 # extreme circumstances should you be filling this out and running manually.
 
+# Vars
+MOCK_CFG="/var/tmp/lorax-{{ major }}.cfg"
+MOCK_ROOT="/var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}"
+MOCK_RESL="${MOCK_ROOT}/result"
+MOCK_CHRO="${MOCK_ROOT}/root"
+MOCK_LOG="${MOCK_RESL}/mock-output.log"
+LORAX_SCR="/var/tmp/buildImage.sh"
+LORAX_TAR="lorax-{{ major }}-{{ arch }}.tar.gz"
+ISOLATION="{{ isolation }}"
+BUILDDIR="{{ builddir }}"
+
 # Init the container
 mock \
-  -r /var/tmp/lorax-{{ major }}.cfg \
-  --isolation={{ isolation }} \
+  -r "${MOCK_CFG}" \
+  --isolation="${ISOLATION}" \
   --enable-network \
   --init
 
-cp /var/tmp/buildImage.sh \
-  /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/root/var/tmp
+init_ret_val=$?
+if [ $init_ret_val -ne 0 ]; then
+  echo "!! MOCK INIT FAILED !!"
+  exit 1
+fi
+
+mkdir -p "${MOCK_RESL}"
+cp "${LORAX_SCR}" "${MOCK_CHRO}${LORAX_SCR}"
 
 mock \
-  -r /var/tmp/lorax-{{ major }}.cfg \
+  -r "${MOCK_CFG}" \
   --shell \
-  --isolation={{ isolation }} \
-  --enable-network -- /bin/bash /var/tmp/buildImage.sh
+  --isolation="${ISOLATION}" \
+  --enable-network -- /bin/bash /var/tmp/buildImage.sh | tee -a "${MOCK_LOG}"
 
-ret_val=$?
-if [ $ret_val -eq 0 ]; then
+mock_ret_val=$?
+if [ $mock_ret_val -eq 0 ]; then
   # Copy resulting data to /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/result
-  mkdir /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/result
-  cp /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/root/{{ builddir }}/lorax-{{ major }}-{{ arch }}.tar.gz \
-    /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/result
+  mkdir -p "${MOCK_RESL}"
+  cp "${MOCK_CHRO}${BUILDDIR}/${LORAX_TAR}" "${MOCK_RESL}"
 else
   echo "!! LORAX RUN FAILED !!"
   exit 1

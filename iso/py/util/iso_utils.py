@@ -176,11 +176,12 @@ class IsoBuild:
         # local AND arch cannot be used together, local supersedes. print
         # warning.
         self.generate_iso_scripts()
-        print()
+        self.run_lorax()
 
     def generate_iso_scripts(self):
         """
-        Generates the scripts needed to be ran in the mock roots
+        Generates the scripts needed to be ran to run lorax in mock as well as
+        package up the results.
         """
         self.log.info('Generating ISO configuration and scripts')
         mock_iso_template = self.tmplenv.get_template('isomock.tmpl.cfg')
@@ -199,6 +200,7 @@ class IsoBuild:
                 arch=self.current_arch,
                 major=self.major_version,
                 fullname=self.fullname,
+                shortname=self.shortname,
                 required_pkgs=self.required_pkgs,
                 dist=self.disttag,
                 repos=self.repolist,
@@ -224,6 +226,8 @@ class IsoBuild:
                 distname=self.distname,
                 revision=self.release,
                 rc=rclevel,
+                builddir=self.mock_work_root,
+                lorax_work_root=self.lorax_result_root,
         )
 
         mock_iso_entry = open(mock_iso_path, "w+")
@@ -237,6 +241,25 @@ class IsoBuild:
         iso_template_entry = open(iso_template_path, "w+")
         iso_template_entry.write(iso_template_output)
         iso_template_entry.close()
+
+        os.chmod(mock_sh_path, 0o755)
+        os.chmod(iso_template_path, 0o755)
+
+    def run_lorax(self):
+        """
+        This actually runs lorax on this system. It will call the right scripts
+        to do so.
+        """
+        lorax_cmd = '/bin/bash /var/tmp/isobuild.sh'
+        self.log.info('Starting lorax...')
+
+        try:
+            subprocess.call(shlex.split(lorax_cmd))
+        except:
+            self.log.error('An error occured during execution.')
+            self.log.error('See the logs for more information.')
+            raise SystemExit()
+
 
     # !!! Send help, we would prefer to do this using the productmd python
     # !!! library. If you are reading this and you can help us, please do so!
