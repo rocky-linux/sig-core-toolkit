@@ -59,7 +59,7 @@ class IsoBuild:
 
         # Relevant major version items
         self.release = rlvars['revision']
-        self.minor_version = rlvars['revision'].split('.')[1]
+        self.minor_version = rlvars['minor']
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
         self.rclvl = rlvars['rclvl']
         self.repos = rlvars['iso_map']['repos']
