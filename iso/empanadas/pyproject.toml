@@ -5,20 +5,21 @@ description = "hand crafted ISOs with love and spice"
 authors = ["Louis Abel <louis@rockylinux.org>", "Neil Hanlon <neil@rockylinux.org>"]
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.7"
 rpm-py-installer = "~1.1.0"
 PyYAML = "~6.0"
 Jinja2 = "~2"
 productmd = "~1.33"
+importlib-resources = "^5.8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~5"
 
 [tool.poetry.scripts]
-sync-from-peridot = "empanadas.scripts.sync-from-peridot:run"
-sync-from-peridot-test = "empanadas.scripts.sync-from-peridot-test:run"
-sync-sig = "empanadas.scripts.sync-sig:run"
-build-iso = "empanadas.scripts.build-iso:run"
+sync_from_peridot = "empanadas.scripts.sync_from_peridot:run"
+sync_from_peridot_test = "empanadas.scripts.sync_from_peridot_test:run"
+sync_sig = "empanadas.scripts.sync_sig:run"
+build-iso = "empanadas.scripts.build_iso:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -17,7 +17,7 @@ import json
 
 from jinja2 import Environment, FileSystemLoader
 
-from empanadas.common import Color
+from empanadas.common import Color, _rootdir
 
 #HAS_LIBREPO = True
 #try:
@@ -83,7 +83,7 @@ class RepoSync:
         self.gpgkey = gpgkey
 
         # Templates
-        file_loader = FileSystemLoader('templates')
+        file_loader = FileSystemLoader(f"{_rootdir}/templates")
         self.tmplenv = Environment(loader=file_loader)
 
         # each el can have its own designated container to run stuff in,

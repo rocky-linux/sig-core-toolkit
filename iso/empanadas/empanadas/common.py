@@ -41,12 +41,15 @@ config = {
 }
 
 # Importing the config from yaml
-for conf in glob.iglob('configs/*.yaml'):
+import importlib_resources
+_rootdir = importlib_resources.files("empanadas")
+
+for conf in glob.iglob(f"{_rootdir}/configs/*.yaml"):
     with open(conf, 'r', encoding="utf-8") as file:
         rldict.update(yaml.safe_load(file))
 
 # Import all SIG configs from yaml
-for conf in glob.iglob('sig/*.yaml'):
+for conf in glob.iglob(f"{_rootdir}/sig/*.yaml"):
     with open(conf, 'r', encoding="utf-8") as file:
         sigdict.update(yaml.safe_load(file))
 

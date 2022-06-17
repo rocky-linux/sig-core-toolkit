@@ -23,7 +23,7 @@ import productmd.treeinfo
 
 from jinja2 import Environment, FileSystemLoader
 
-from empanadas.common import Color
+from empanadas.common import Color, _rootdir
 
 class IsoBuild:
     """
@@ -86,7 +86,7 @@ class IsoBuild:
         )
 
         # Templates
-        file_loader = FileSystemLoader('templates')
+        file_loader = FileSystemLoader(f"{_rootdir}/templates")
         self.tmplenv = Environment(loader=file_loader)
 
         self.compose_latest_dir = os.path.join(
