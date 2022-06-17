@@ -5,14 +5,14 @@ description = "hand crafted ISOs with love and spice"
 authors = ["Louis Abel <louis@rockylinux.org>", "Neil Hanlon <neil@rockylinux.org>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-rpm-py-installer = "^1.1.0"
-PyYAML = "^6.0"
-Jinja2 = "^3.1.2"
-productmd = "^1.33"
+python = ">=3.6"
+rpm-py-installer = "~1.1.0"
+PyYAML = "~6.0"
+Jinja2 = "~2"
+productmd = "~1.33"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "~5"
 
 [tool.poetry.scripts]
 sync-from-peridot = "empanadas.scripts.sync-from-peridot:run"
