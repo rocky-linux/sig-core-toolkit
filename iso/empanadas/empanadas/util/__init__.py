@@ -2,16 +2,16 @@
 Imports all of our classes for this local module
 """
 
-from .check import (
+from empanadas.util.check import (
         Checks,
 )
 
-from .dnf_utils import (
+from empanadas.util.dnf_utils import (
         RepoSync,
         SigRepoSync
 )
 
-from .iso_utils import (
+from empanadas.util.iso_utils import (
         IsoBuild,
         LiveBuild
 )

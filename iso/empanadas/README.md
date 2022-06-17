@@ -1,5 +1,19 @@
 # iso
 
+
+## Setup / Install
+
+1. Install [Poetry](https://python-poetry.org/docs/)
+2. Setup: `poetry install`
+3. Have fun
+
+
+## Updating dependencies
+
+Dependencies can be manipulated via the pyproject.toml file or with the poetry add/remove commands.
+
+Changes to the poetry.lock should be commited if dependencies are added or updated.
+
 ## TODO
 
 Verbose mode should exist to output everything that's being called or ran.
@@ -52,5 +66,6 @@ r.check_valid_arch()
 
 ### script names and permissions
 
-* Callable scripts should *not* end in `.py`
-* They should have at least `775` or `+x` permissions
+* Callable scripts should always end in `.py` and live in the empanadas/scripts folder
+* Poetry will handle the installation of these executables with setuptools for distribution, and they can be invoked by name using `poetry run script-name`, too.
+  * Configure the script and function to be executed in pyproject.toml (TODO: dynamically load scripts from this directory as well as standardize on the script input/outputs)

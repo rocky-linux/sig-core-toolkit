@@ -14,8 +14,10 @@ import time
 import re
 import json
 #import pipes
-from common import Color
+
 from jinja2 import Environment, FileSystemLoader
+
+from empanadas.common import Color
 
 #HAS_LIBREPO = True
 #try:

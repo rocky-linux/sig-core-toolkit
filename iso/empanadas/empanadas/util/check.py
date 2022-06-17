@@ -1,6 +1,7 @@
 # Is our arch allowed for this particular release? Some previous releases do
 # not support ppc or s390x
-from common import Color
+from empanadas.common import Color
+
 class Checks:
     """This class helps check some things"""
     def __init__(self, rlvars, arch):

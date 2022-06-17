@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 # builds ISO's
 
 import argparse
-from common import *
-from util import Checks
-from util import IsoBuild
+
+from empanadas.common import *
+from empanadas.util import Checks
+from empanadas.util import IsoBuild
 
 parser = argparse.ArgumentParser(description="ISO Compose")
 
@@ -27,4 +27,5 @@ a = IsoBuild(
         logger=results.logger,
 )
 
-a.run()
+def run():
+    a.run()
