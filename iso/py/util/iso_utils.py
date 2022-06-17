@@ -12,7 +12,13 @@ import subprocess
 import shlex
 import time
 import re
+# This is for treeinfo
+from configparser import ConfigParser
 from productmd.common import SortedConfigParser
+from productmd.images import Image
+from productmd.extra_files import ExtraFiles
+import productmd.treeinfo
+# End treeinfo
 from common import Color
 from jinja2 import Environment, FileSystemLoader
 
@@ -31,6 +37,7 @@ class IsoBuild:
             config,
             major,
             rc: bool = False,
+            force_unpack: bool = False,
             isolation: str = 'auto',
             compose_dir_is_here: bool = False,
             image=None,
@@ -56,6 +63,7 @@ class IsoBuild:
         self.mock_isolation = isolation
         self.iso_map = rlvars['iso_map']
         self.release_candidate = rc
+        self.force_unpack = force_unpack
 
         # Relevant major version items
         self.release = rlvars['revision']
@@ -260,17 +268,39 @@ class IsoBuild:
             self.log.error('See the logs for more information.')
             raise SystemExit()
 
+    def run_image_build(self, arch):
+        """
+        Builds the other images
+        """
+        print()
 
-    # !!! Send help, we would prefer to do this using the productmd python
-    # !!! library. If you are reading this and you can help us, please do so!
+    def run_boot_sync(self, arch, force_sync):
+        """
+        This unpacks into BaseOS/$arch/os, assuming there's no data actually
+        there. There should be checks.
+
+        1. Sync from work/$arch/lorax to work/$arch/dvd
+        2. Sync from work/$arch/lorax to work/$arch/minimal
+        3. Sync from work/$arch/lorax to BaseOS/$arch/os
+        4. Modify (3) .treeinfo
+        5. Modify (1) .treeinfo, keep out boot.iso checksum
+        6. Create a .treeinfo for AppStream
+        """
+        self.sync_boot(arch, force_sync)
+
+    def sync_boot(self, arch, force_sync):
+        """
+        Syncs whatever is in work/$arch/lorax to BaseOS/$arch/os
+        """
+        self.log.info('Syncing lorax to dvd directory...')
+        self.log.info('Syncing lorax to %s directory...' % self.iso_map['variant'])
+
     def treeinfo_write(self):
         """
         Ensure treeinfo is written correctly
         """
         print()
 
-    # !!! Send help, we would prefer to do this using the productmd python
-    # !!! library. If you are reading this and you can help us, please do so!
     def discinfo_write(self):
         """
         Ensure discinfo is written correctly

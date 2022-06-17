@@ -1,7 +1,6 @@
 #!/bin/bash
 
 VOLID="{{ shortname }}-{{ major }}-{{ minor }}{{ rc }}-{{ arch }}-boot1"
-LOGFILE="{{ builddir }}/lorax-{{ arch }}.log"
 VARIANT="{{ variant }}"
 ARCH="{{ arch }}"
 VERSION="{{ revision }}"
@@ -9,6 +8,7 @@ PRODUCT="{{ distname }}"
 MOCKBLD="{{ builddir }}"
 LORAXRES="{{ lorax_work_root }}"
 LORAX_TAR="lorax-{{ major }}-{{ arch }}.tar.gz"
+LOGFILE="lorax-{{ arch }}.log"
 
 {% for pkg in lorax %}
 sed -i '/{{ pkg }}/ s/^/#/' /usr/share/lorax/templates.d/80-rhel/runtime-install.tmpl
@@ -27,7 +27,7 @@ lorax --product="${PRODUCT}" \
   --nomacboot \
   --buildarch="${ARCH}" \
   --volid="${VOLID}" \
-  --logfile="${LOGFILE}" \
+  --logfile="${MOCKBLD}/${LOGFILE}" \
   --rootfs-size=3 \
   "${LORAXRES}"
 
