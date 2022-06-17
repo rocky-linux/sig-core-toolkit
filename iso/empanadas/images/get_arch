@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+case "$(uname -m)" in
+    x86_64 | amd64)
+        echo -n "amd64"
+        ;;
+    arm64 | aarch64)
+        echo -n "arm64"
+        ;;
+    *)
+        echo -n "$(uname -m)"
+        ;;
+esac
