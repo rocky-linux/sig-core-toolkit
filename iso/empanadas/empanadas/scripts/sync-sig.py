@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
-
 # This script can be called to do single syncs or full on syncs.
 
 import argparse
-from common import *
-from util import Checks
-from util import RepoSync
+from empanadas.common import *
+from empanadas.util import Checks
+from empanadas.util import SigRepoSync
 
 #rlvars = rldict['9']
 #r = Checks(rlvars, config['arch'])
@@ -17,6 +15,7 @@ parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 # All of our options
 parser.add_argument('--release', type=str, help="Major Release Version", required=True)
 parser.add_argument('--repo', type=str, help="Repository name")
+parser.add_argument('--sig', type=str, help="SIG name")
 parser.add_argument('--arch', type=str, help="Architecture")
 parser.add_argument('--ignore-debug', action='store_true')
 parser.add_argument('--ignore-source', action='store_true')
@@ -34,17 +33,18 @@ parser.add_argument('--logger', type=str)
 results = parser.parse_args()
 
 rlvars = rldict[results.release]
+sigvars = sigdict[results.sig][results.release]
 r = Checks(rlvars, config['arch'])
 r.check_valid_arch()
 
 # Send them and do whatever I guess
-a = RepoSync(
+a = SigRepoSync(
         rlvars,
         config,
+        sigvars,
         major=results.release,
         repo=results.repo,
         arch=results.arch,
-        ignore_debug=results.ignore_debug,
         ignore_source=results.ignore_source,
         repoclosure=results.repoclosure,
         skip_all=results.skip_all,
@@ -56,4 +56,6 @@ a = RepoSync(
         logger=results.logger
 )
 
-a.run()
+
+def run():
+    a.run()

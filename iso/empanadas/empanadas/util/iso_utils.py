@@ -12,6 +12,7 @@ import subprocess
 import shlex
 import time
 import re
+
 # This is for treeinfo
 from configparser import ConfigParser
 from productmd.common import SortedConfigParser
@@ -19,8 +20,10 @@ from productmd.images import Image
 from productmd.extra_files import ExtraFiles
 import productmd.treeinfo
 # End treeinfo
-from common import Color
+
 from jinja2 import Environment, FileSystemLoader
+
+from empanadas.common import Color
 
 class IsoBuild:
     """
