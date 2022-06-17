@@ -143,7 +143,9 @@ class IsoBuild:
         self.iso_build()
 
         self.log.info('Compose repo directory: %s' % sync_root)
-        self.log.info('ISO Build Logs: %s' % log_root)
+        self.log.info('ISO Build Logs: /var/lib/mock/{}-{}-{}/result'.format(
+            self.shortname, self.major_version, self.current_arch)
+        )
         self.log.info('ISO Build completed.')
 
     def build_repo_list(self):
@@ -264,9 +266,8 @@ class IsoBuild:
         lorax_cmd = '/bin/bash /var/tmp/isobuild.sh'
         self.log.info('Starting lorax...')
 
-        try:
-            subprocess.call(shlex.split(lorax_cmd))
-        except:
+        p = subprocess.call(shlex.split(lorax_cmd))
+        if p != 0:
             self.log.error('An error occured during execution.')
             self.log.error('See the logs for more information.')
             raise SystemExit()
