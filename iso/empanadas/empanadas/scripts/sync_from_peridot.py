@@ -55,5 +55,5 @@ a = RepoSync(
         logger=results.logger
 )
 
-def run()
+def run():
     a.run()
