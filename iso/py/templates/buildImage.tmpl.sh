@@ -17,6 +17,9 @@ sed -i '/{{ pkg }}/ s/^/#/' /usr/share/lorax/templates.d/80-rhel/runtime-install
 lorax --product="${PRODUCT}" \
   --version="${VERSION}" \
   --release="${VERSION}" \
+{%- if rc == '' %}
+  --isfinal \
+{%- endif %}
 {%- for repo in repos %}
   --source={{ repo.url }} \
 {%- endfor %}
