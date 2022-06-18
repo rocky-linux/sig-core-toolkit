@@ -35,10 +35,11 @@ def run():
             architecture=arch,
             backoffLimit=4,
             command=["build-iso", "--release", "9", "--rc", "--isolation", "simple"],
-            containerName="buildiso",
+            containerName=f"buildiso-{major}-{arch}",
             imageName="ghcr.io/neilhanlon/sig-core-toolkit:latest",
             jobName=f"build-iso-{arch}",
             namespace="empanadas",
+            major=major,
             restartPolicy="Never",
         )
 
