@@ -5,12 +5,15 @@ description = "hand crafted ISOs with love and spice"
 authors = ["Louis Abel <louis@rockylinux.org>", "Neil Hanlon <neil@rockylinux.org>"]
 
 [tool.poetry.dependencies]
-python = ">=3.7"
+python = ">=3.7,<4"
 rpm-py-installer = "~1.1.0"
+MarkupSafe = "<=2.0.1"
 PyYAML = "~6.0"
 Jinja2 = "~2"
 productmd = "~1.33"
 importlib-resources = "^5.8.0"
+boto3 = "^1.24.12"
+xmltodict = "^0.13.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~5"

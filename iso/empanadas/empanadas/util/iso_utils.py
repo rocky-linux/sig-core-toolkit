@@ -22,9 +22,11 @@ import productmd.treeinfo
 # End treeinfo
 
 # lazy person's s3 parser
-import xmltodict
-import json
 import urllib
+import json
+import xmltodict
+# if we can access s3
+import boto3
 
 from jinja2 import Environment, FileSystemLoader
 
