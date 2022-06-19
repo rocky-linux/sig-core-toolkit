@@ -1,10 +1,6 @@
-FROM ghcr.io/neilhanlon/skbn:latest as skbn
-
 FROM quay.io/centos/centos:stream9
 
 ADD images/get_arch /get_arch
-
-COPY --from=skbn  /usr/src/app/skbn.git/skbn /usr/local/bin/skbn
 
 ENV TINI_VERSION v0.19.0
 RUN curl -o /tini -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-$(/get_arch)"
@@ -62,7 +58,7 @@ RUN chown peridotbuilder:mock /etc/yum.conf && chown -R peridotbuilder:mock /etc
 
 RUN pip install 'git+https://git.rockylinux.org/release-engineering/public/toolkit.git@feature/iso-kube#egg=empanadas&subdirectory=iso/empanadas'
 
-RUN echo "nameserver 1.1.1.1" > /etc/resolv.conf
+RUN pip install awscli
 
 ENV USER=1002
 USER 1002

@@ -1,6 +1,7 @@
 # Launches the builds of ISOs
 
 import argparse
+import datetime
 
 from empanadas.common import *
 from empanadas.common import _rootdir
@@ -29,15 +30,16 @@ def run():
     elif results.env == "all":
         arches = EKSARCH+EXTARCH
 
+    command = ["build-iso", "--release", f"{results.release}", "--rc", "--isolation", "simple"]
+
     out = ""
     for arch in arches:
         out += job_template.render(
             architecture=arch,
             backoffLimit=4,
-            command=["build-iso", "--release", "9", "--rc", "--isolation", "simple"],
-            containerName=f"buildiso-{major}-{arch}",
+            buildTime=datetime.datetime.utcnow().strftime("%s"),
+            command=command,
             imageName="ghcr.io/neilhanlon/sig-core-toolkit:latest",
-            jobName=f"build-iso-{arch}",
             namespace="empanadas",
             major=major,
             restartPolicy="Never",

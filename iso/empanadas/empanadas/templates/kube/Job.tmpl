@@ -2,34 +2,35 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ jobName }}
+  name: build-iso-{{ major }}-{{ architecture }}
   namespace: {{ namespace }}
 spec:
   template:
+    metadata:
+      labels:
+        peridot.rockylinux.org/workflow-tolerates-arch: {{ architecture }}
     spec:
       containers:
-      - name: {{ containerName }}
-        image: {{ imageName }} 
-        command: {{ command }}
-        lifecycle:
-          preStop:
-            exec:
-              command: [
-                "skbn",
-                "cp",
-                "--src",
-                "/var/lib/mock/rocky-{{ major }}-{{ architecture }}/root/builddir/lorax-*`",
-                "--dst",
-                "s3://resf-empanadas/{{ containerName }}/$(date +%s)/",
-                "--parallel",
-                "2"
-              ]
+      - name: buildiso-{{ major }}-{{ architecture }}
+        image: {{ imageName }}
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            {{ command | join(' ') }}
+            aws s3 cp --recursive --exclude=* --include=lorax* \
+            /var/lib/mock/rocky-{{ major }}-$(uname -m)/root/builddir/ \
+            "s3://resf-empanadas/buildiso-{{ major }}-{{ architecture }}/{{ buildTime }}/"
         securityContext:
           runAsUser: 0
           runAsGroup: 0
           privileged: true
           runAsNonRoot: false
           allowPrivilegeEscalation: true
+        volumeMounts:
+          - mountPath: /etc/resolv.conf
+            name: resolv-conf
+          - mountPath: /var/lib/mock/
+            name: mock
         env:
         - name: AWS_REGION
           value: us-east-2
@@ -49,5 +50,12 @@ spec:
         operator: Equal
         value: {{ architecture }}
       restartPolicy: {{ restartPolicy }}
+      volumes:
+      - name: resolv-conf
+        hostPath:
+          path: /etc/resolv.conf
+          type: File
+      - name: mock
+        emptyDir: {}
   backoffLimit: {{ backoffLimit }}
 
