@@ -37,7 +37,16 @@ config = {
     "mock_work_root": "/builddir",
     "container": "centos:stream9",
     "distname": "Rocky Linux",
-    "shortname": "Rocky"
+    "shortname": "Rocky",
+    "translators": {
+        "x86_64": "amd64",
+        "aarch64": "arm64",
+        "ppc64le": "ppc64le",
+        "s390x": "s390x"
+    },
+    "aws_region": "us-east-2",
+    "bucket": "resf-empanadas",
+    "bucket_url": "https://resf-empanadas.s3.us-east-2.amazonaws.com"
 }
 
 # Importing the config from yaml

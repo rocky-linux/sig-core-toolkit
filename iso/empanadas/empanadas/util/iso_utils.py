@@ -21,6 +21,11 @@ from productmd.extra_files import ExtraFiles
 import productmd.treeinfo
 # End treeinfo
 
+# lazy person's s3 parser
+import xmltodict
+import json
+import urllib
+
 from jinja2 import Environment, FileSystemLoader
 
 from empanadas.common import Color, _rootdir
@@ -39,7 +44,9 @@ class IsoBuild:
             rlvars,
             config,
             major,
+            arch=None,
             rc: bool = False,
+            s3: bool = False,
             force_unpack: bool = False,
             isolation: str = 'auto',
             compose_dir_is_here: bool = False,
@@ -66,9 +73,12 @@ class IsoBuild:
         self.mock_isolation = isolation
         self.iso_map = rlvars['iso_map']
         self.release_candidate = rc
+        self.s3 = s3
         self.force_unpack = force_unpack
 
         # Relevant major version items
+        self.arch = arch
+        self.arches = rlvars['allowed_arches']
         self.release = rlvars['revision']
         self.minor_version = rlvars['minor']
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
@@ -84,6 +94,11 @@ class IsoBuild:
                     config['category_stub'],
                     self.revision
         )
+
+        # all bucket related info
+        self.s3_region = config['aws_region']
+        self.s3_bucket = config['bucket']
+        self.s3_bucket_url = config['bucket_url']
 
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
@@ -109,6 +124,11 @@ class IsoBuild:
                 self.compose_latest_dir,
                 "work/iso",
                 config['arch']
+        )
+
+        self.lorax_work_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/lorax"
         )
 
         # This is temporary for now.
@@ -278,32 +298,66 @@ class IsoBuild:
         """
         print()
 
-    def run_boot_sync(self, arch, force_sync):
+    def run_pull_lorax_artifacts(self):
+        """
+        Pulls the required artifacts and unacps it to work/lorax/$arch
+        """
+        self.log.info('Determining the latest pull...')
+        print()
+
+    def _download_artifacts(self, force_unpack, arch=None):
+        """
+        Download the requested artifact(s)
+        """
+        print()
+
+    def _unpack_artifacts(self, force_unpack, arch=None):
+        """
+        Unpack the requested artifacts(s)
+        """
+        print()
+
+    def run_boot_sync(self):
         """
         This unpacks into BaseOS/$arch/os, assuming there's no data actually
         there. There should be checks.
 
-        1. Sync from work/$arch/lorax to work/$arch/dvd
-        2. Sync from work/$arch/lorax to work/$arch/minimal
-        3. Sync from work/$arch/lorax to BaseOS/$arch/os
+        1. Sync from work/lorax/$arch to work/lorax/$arch/dvd
+        2. Sync from work/lorax/$arch to work/lorax/$arch/minimal
+        3. Sync from work/lorax/$arch to BaseOS/$arch/os
         4. Modify (3) .treeinfo
         5. Modify (1) .treeinfo, keep out boot.iso checksum
         6. Create a .treeinfo for AppStream
         """
-        self.sync_boot(arch, force_sync)
+        unpack_single_arch = False
+        arches_to_unpack = self.arches
+        if self.arch:
+            unpack_single_arch = True
+            arches_to_unpack = [self.arch]
 
-    def sync_boot(self, arch, force_sync):
+        self.sync_boot(force_unpack=self.force_unpack, arch=self.arch)
+        self.treeinfo_write(arch=self.arch)
+
+    def sync_boot(self, force_unpack, arch):
         """
-        Syncs whatever is in work/$arch/lorax to BaseOS/$arch/os
+        Syncs whatever
         """
         self.log.info('Syncing lorax to dvd directory...')
+        # checks here, report that it already exists
         self.log.info('Syncing lorax to %s directory...' % self.iso_map['variant'])
+        # checks here, report that it already exists
 
-    def treeinfo_write(self):
+    def treeinfo_write(self, arch):
         """
         Ensure treeinfo is written correctly
         """
-        print()
+        self.log.info('Starting treeinfo work...')
+
+    def _treeinfo_from_lorax(self, arch, force_unpack):
+        """
+        Fixes lorax treeinfo
+        """
+        self.log.info('Fixing up lorax treeinfo...')
 
     def discinfo_write(self):
         """
