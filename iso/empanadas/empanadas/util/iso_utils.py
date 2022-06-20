@@ -11,7 +11,14 @@ import os.path
 import subprocess
 import shlex
 import time
-import re
+import tarfile
+
+# lazy person's s3 parser
+import requests
+import json
+import xmltodict
+# if we can access s3
+import boto3
 
 # This is for treeinfo
 from configparser import ConfigParser
@@ -20,13 +27,6 @@ from productmd.images import Image
 from productmd.extra_files import ExtraFiles
 import productmd.treeinfo
 # End treeinfo
-
-# lazy person's s3 parser
-import urllib
-import json
-import xmltodict
-# if we can access s3
-import boto3
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -49,6 +49,7 @@ class IsoBuild:
             arch=None,
             rc: bool = False,
             s3: bool = False,
+            force_download: bool = False,
             force_unpack: bool = False,
             isolation: str = 'auto',
             compose_dir_is_here: bool = False,
@@ -77,6 +78,7 @@ class IsoBuild:
         self.release_candidate = rc
         self.s3 = s3
         self.force_unpack = force_unpack
+        self.force_download = force_download
 
         # Relevant major version items
         self.arch = arch
@@ -101,6 +103,9 @@ class IsoBuild:
         self.s3_region = config['aws_region']
         self.s3_bucket = config['bucket']
         self.s3_bucket_url = config['bucket_url']
+
+        if s3:
+            self.s3 = boto3.client('s3')
 
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
@@ -302,20 +307,222 @@ class IsoBuild:
 
     def run_pull_lorax_artifacts(self):
         """
-        Pulls the required artifacts and unacps it to work/lorax/$arch
+        Pulls the required artifacts and unpacks it to work/lorax/$arch
         """
-        self.log.info('Determining the latest pull...')
-        print()
+        # Determine if we're only managing one architecture out of all of them.
+        # It does not hurt to do everything at once. But the option is there.
+        unpack_single_arch = False
+        arches_to_unpack = self.arches
+        if self.arch:
+            unpack_single_arch = True
+            arches_to_unpack = [self.arch]
 
-    def _download_artifacts(self, force_unpack, arch=None):
-        """
-        Download the requested artifact(s)
-        """
-        print()
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Determining the latest pulls...'
+        )
+        if self.s3:
+            latest_artifacts = self._s3_determine_latest()
+        else:
+            latest_artifacts = self._reqs_determine_latest()
 
-    def _unpack_artifacts(self, force_unpack, arch=None):
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Downloading requested artifact(s)'
+        )
+        for arch in arches_to_unpack:
+            lorax_arch_dir = os.path.join(
+                self.lorax_work_dir,
+                arch
+            )
+
+            source_path = latest_artifacts[arch]
+
+            full_drop = '{}/lorax-{}-{}.tar.gz'.format(
+                    lorax_arch_dir,
+                    self.major_version,
+                    arch
+            )
+
+            if not os.path.exists(lorax_arch_dir):
+                os.makedirs(lorax_arch_dir, exist_ok=True)
+
+            self.log.info(
+                    'Downloading artifact for ' + Color.BOLD + arch + Color.END
+            )
+            if self.s3:
+                self._s3_download_artifacts(
+                        self.force_download,
+                        source_path,
+                        full_drop
+                )
+            else:
+                self._reqs_download_artifacts(
+                        self.force_download,
+                        source_path,
+                        full_drop
+                )
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Download phase completed'
+        )
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Beginning unpack phase...'
+        )
+
+        for arch in arches_to_unpack:
+            tarname = 'lorax-{}-{}.tar.gz'.format(
+                    self.major_version,
+                    arch
+            )
+
+            tarball = os.path.join(
+                    self.lorax_work_dir,
+                    arch,
+                    tarname
+            )
+
+            if not os.path.exists(tarball):
+                self.log.error(
+                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                        'Artifact does not exist: ' + tarball
+                )
+                continue
+
+            self._unpack_artifacts(self.force_unpack, arch, tarball)
+
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Unpack phase completed'
+        )
+
+    def _s3_determine_latest(self):
+        """
+        Using native s3, determine the latest artifacts and return a list
+        """
+        temp = []
+        data = {}
+        try:
+            self.s3.list_objects(Bucket=self.s3_bucket)['Contents']
+        except:
+            self.log.error(
+                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                        'Cannot access s3 bucket.'
+            )
+            raise SystemExit()
+
+        for y in self.s3.list_objects(Bucket=self.s3_bucket)['Contents']:
+            if 'tar.gz' in y['Key']:
+                temp.append(y['Key'])
+
+        for arch in self.arches:
+            temps = []
+            for y in temp:
+                if arch in y:
+                    temps.append(y)
+            temps.sort(reverse=True)
+            data[arch] = temps[0]
+
+        return data
+
+    def _s3_download_artifacts(self, force_download, source, dest):
+        """
+        Download the requested artifact(s) via s3
+        """
+        if os.path.exists(dest):
+            if not force_download:
+                self.log.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Artifact at ' + dest + ' already exists'
+                )
+                return
+
+        self.log.info('Downloading to: %s' % dest)
+        try:
+            self.s3.download_file(
+                    Bucket=self.s3_bucket,
+                    Key=source,
+                    Filename=dest
+            )
+        except:
+            self.log.error('There was an issue downloading from %s' % self.s3_bucket)
+
+    def _reqs_determine_latest(self):
+        """
+        Using requests, determine the latest artifacts and return a list
+        """
+        temp = []
+        data = {}
+
+        try:
+            bucket_data = requests.get(self.s3_bucket_url)
+        except requests.exceptions.RequestException as e:
+            self.log.error('The s3 bucket http endpoint is inaccessible')
+            raise SystemExit(e)
+
+        resp = xmltodict.parse(bucket_data.content)
+
+        for y in resp['ListBucketResult']['Contents']:
+            if 'tar.gz' in y['Key']:
+                temp.append(y['Key'])
+
+        for arch in self.arches:
+            temps = []
+            for y in temp:
+                if arch in y:
+                    temps.append(y)
+            temps.sort(reverse=True)
+            data[arch] = temps[0]
+
+        return data
+
+    def _reqs_download_artifacts(self, force_download, source, dest):
+        """
+        Download the requested artifact(s) via requests only
+        """
+        if os.path.exists(dest):
+            if not force_download:
+                self.log.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Artifact at ' + dest + ' already exists'
+                )
+                return
+        unurl = self.s3_bucket_url + '/' + source
+
+        self.log.info('Downloading to: %s' % dest)
+        try:
+            with requests.get(unurl, allow_redirects=True) as r:
+                with open(dest, 'wb') as f:
+                    f.write(r.content)
+                    f.close()
+                r.close()
+        except requests.exceptions.RequestException as e:
+            self.log.error('There was a problem downloading the artifact')
+            raise SystemExit(e)
+
+    def _unpack_artifacts(self, force_unpack, arch, tarball):
         """
         Unpack the requested artifacts(s)
+        """
+        unpack_dir = os.path.join(self.lorax_work_dir, arch)
+        if not force_unpack:
+            file_check = os.path.join(unpack_dir, 'lorax/.treeinfo')
+            if os.path.exists(file_check):
+                self.log.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Artifact (' + arch + ') already unpacked'
+                )
+                return
+
+        self.log.info('Unpacking %s' % tarball)
+        with tarfile.open(tarball) as t:
+            t.extractall(unpack_dir)
+            t.close()
+
+    def _copy_lorax_to_variant(self, force_unpack, arch):
+        """
+        Copy to variants for easy access of mkiso and copying to compose dirs
         """
         print()
 

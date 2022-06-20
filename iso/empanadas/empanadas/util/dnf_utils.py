@@ -452,7 +452,10 @@ class RepoSync:
 
             join_all_pods = ' '.join(entry_name_list)
             time.sleep(3)
-            self.log.info('Syncing %s ...' % r)
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                    'Syncing ' + r + ' ...'
+            )
             pod_watcher = '{} wait {}'.format(
                     cmd,
                     join_all_pods
@@ -500,7 +503,10 @@ class RepoSync:
             )
 
             entry_name_list.clear()
-            self.log.info('Syncing %s completed' % r)
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                    'Syncing ' + r + ' completed'
+            )
 
         if len(bad_exit_list) > 0:
             self.log.error(
