@@ -12,6 +12,7 @@ import subprocess
 import shlex
 import time
 import tarfile
+import shutil
 
 # lazy person's s3 parser
 import requests
@@ -396,10 +397,32 @@ class IsoBuild:
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                 'Unpack phase completed'
         )
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Beginning image variant phase'
+        )
+
+        for arch in arches_to_unpack:
+            self.log.info(
+                    'Copying base lorax for ' + Color.BOLD + arch + Color.END
+            )
+            for variant in self.iso_map['images']:
+                self._copy_lorax_to_variant(self.force_unpack, arch, variant)
+
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Image variant phase completed'
+        )
+
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Beginning treeinfo phase'
+        )
+
 
     def _s3_determine_latest(self):
         """
-        Using native s3, determine the latest artifacts and return a list
+        Using native s3, determine the latest artifacts and return a dict
         """
         temp = []
         data = {}
@@ -520,11 +543,40 @@ class IsoBuild:
             t.extractall(unpack_dir)
             t.close()
 
-    def _copy_lorax_to_variant(self, force_unpack, arch):
+    def _copy_lorax_to_variant(self, force_unpack, arch, image):
         """
         Copy to variants for easy access of mkiso and copying to compose dirs
         """
-        print()
+        src_to_image = os.path.join(
+                self.lorax_work_dir,
+                arch,
+                'lorax'
+        )
+
+        if not os.path.exists(os.path.join(src_to_image, '.treeinfo')):
+            self.log.error(
+                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    'Lorax base image does not exist'
+            )
+            return
+
+        path_to_image = os.path.join(
+                self.lorax_work_dir,
+                arch,
+                image
+        )
+
+        if not force_unpack:
+            file_check = os.path.join(path_to_image, '.treeinfo')
+            if os.path.exists(file_check):
+                self.log.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Lorax image for ' + image + ' already exists'
+                )
+                return
+
+        self.log.info('Copying base lorax to %s directory...' % image)
+        shutil.copytree(src_to_image, path_to_image)
 
     def run_boot_sync(self):
         """
@@ -547,13 +599,11 @@ class IsoBuild:
         self.sync_boot(force_unpack=self.force_unpack, arch=self.arch)
         self.treeinfo_write(arch=self.arch)
 
-    def sync_boot(self, force_unpack, arch):
+    def _sync_boot(self, force_unpack, arch, variant):
         """
         Syncs whatever
         """
-        self.log.info('Syncing lorax to dvd directory...')
-        # checks here, report that it already exists
-        self.log.info('Syncing lorax to %s directory...' % self.iso_map['variant'])
+        self.log.info('Copying lorax to %s directory...' % variant)
         # checks here, report that it already exists
 
     def treeinfo_write(self, arch):

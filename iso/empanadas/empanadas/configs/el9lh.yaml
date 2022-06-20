@@ -54,9 +54,8 @@
       ppc64le: ''
       s390x: ''
     images:
-      - dvd1
+      - dvd
       - minimal
-      - boot
     repos:
       - 'BaseOS'
       - 'AppStream'

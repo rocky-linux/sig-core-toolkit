@@ -24,7 +24,7 @@ sync_from_peridot = "empanadas.scripts.sync_from_peridot:run"
 sync_from_peridot_test = "empanadas.scripts.sync_from_peridot_test:run"
 sync_sig = "empanadas.scripts.sync_sig:run"
 build-iso = "empanadas.scripts.build_iso:run"
-pull-unpack-artifact = "empanadas.scripts.pull_unpack_artifact:run"
+pull-unpack-tree = "empanadas.scripts.pull_unpack_tree:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

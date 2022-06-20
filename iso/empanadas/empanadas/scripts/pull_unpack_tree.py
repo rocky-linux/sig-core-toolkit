@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser(description="ISO Artifact Builder")
 
 parser.add_argument('--release', type=str, help="Major Release Version", required=True)
 parser.add_argument('--s3', action='store_true', help="Release Candidate")
+parser.add_argument('--rc', action='store_true', help="Release Candidate")
 parser.add_argument('--arch', type=str, help="Architecture")
 parser.add_argument('--local-compose', action='store_true', help="Compose Directory is Here")
 parser.add_argument('--force-unpack', action='store_true', help="Force an unpack")
@@ -23,6 +24,7 @@ a = IsoBuild(
         rlvars,
         config,
         major=major,
+        rc=results.rc,
         s3=results.s3,
         arch=results.arch,
         force_unpack=results.force_unpack,
