@@ -1,0 +1,66 @@
+FROM quay.io/centos/centos:stream9
+
+ADD images/get_arch /get_arch
+
+ENV TINI_VERSION v0.19.0
+RUN curl -o /tini -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-$(/get_arch)"
+RUN chmod +x /tini
+
+RUN rm -rf /etc/yum.repos.d/*.repo
+ADD images/epelkey.gpg /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-9
+ADD images/rhel.repo /etc/yum.repos.d/rhel.repo
+
+RUN dnf update -y && dnf install -y \
+    bash \
+    bzip2 \
+    cpio \
+    diffutils \
+    findutils \
+    gawk \
+    gcc \
+    gcc-c++ \
+    git \
+    grep \
+    gzip \
+    info \
+    make \
+    patch \
+    python3 \
+    redhat-rpm-config \
+    rpm-build \
+    scl-utils-build \
+    sed \
+    shadow-utils \
+    tar \
+    unzip \
+    util-linux \
+    which \
+    xz \
+    dnf-plugins-core \
+    createrepo_c \
+    rpm-sign \
+    sudo \
+    mock \
+    python-pip \
+    genisoimage \
+    isomd5sum \
+    lorax \
+    lorax-templates-rhel \
+    lorax-templates-generic
+
+RUN sed -i '/libreport-rhel-anaconda-bugzilla/ s/^/#/' /usr/share/lorax/templates.d/80-rhel/runtime-install.tmpl
+
+RUN ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
+RUN dnf clean all
+RUN rm -rf /etc/yum.repos.d/*.repo
+RUN useradd -o -d /var/peridot -u 1002 peridotbuilder && usermod -a -G mock peridotbuilder
+RUN chown peridotbuilder:mock /etc/yum.conf && chown -R peridotbuilder:mock /etc/dnf && chown -R peridotbuilder:mock /etc/rpm && chown -R peridotbuilder:mock /etc/yum.repos.d
+
+RUN pip install 'git+https://git.rockylinux.org/release-engineering/public/toolkit.git@feature/iso-kube#egg=empanadas&subdirectory=iso/empanadas'
+
+RUN pip install awscli
+
+ENV USER=1002
+USER 1002
+
+ENTRYPOINT ["/tini", "--"]
