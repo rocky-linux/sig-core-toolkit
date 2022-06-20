@@ -9,7 +9,7 @@ fi
 
 COUNTS="$(grep -c rockylinux.org $FIREPATH)"
 
-if [ "$COUNTS" -eq 2 ]; then
+if [ "$COUNTS" -ge 2 ]; then
   r_checkExitStatus 0
 else
   r_checkExitStatus 1

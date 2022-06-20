@@ -1,6 +1,6 @@
 #!/bin/bash
 if m_getArch aarch64 | grep -qE 'aarch64'; then
-  r_log "ipa -bash" "Skipping for aarch64"
+  r_log "ipa" "Skipping for aarch64"
   exit 0
 fi
 

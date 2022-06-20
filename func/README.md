@@ -28,9 +28,11 @@ How to Run
 There are two ways to run through the tests:
 
 * By running `/bin/bash runtests.sh`
-  * Runs all tests
+  * Runs all core tests
+* By running `/bin/bash stacktests.sh`
+  * Runs all stack tests (eg, lamp, ipa)
 * By running `/bin/bash monotests.sh`
-  * Runs all tests one by one to help identify failures as they happen
+  * Supposed to runs all tests one by one to help identify failures as they happen (not functional)
 
 Adding Tests
 ------------
@@ -316,6 +318,9 @@ Current Tree
 │   │   ├── 00-install-lsof.sh
 │   │   ├── 10-test-lsof.sh
 │   │   └── README.md
+│   ├── pkg_mdadm
+│   │   ├── 00-install-mdadm.sh
+│   │   └── 01-test-mdadm.sh
 │   ├── pkg_network
 │   │   ├── 00-install-packages.sh
 │   │   ├── 10-tracepath.sh
@@ -348,6 +353,13 @@ Current Tree
 │   │   ├── 30-postfix-sasl.sh
 │   │   ├── 40-postfix-tls.sh
 │   │   └── README.md
+│   ├── pkg_postgresql
+│   │   ├── 00-install-postgresql.sh
+│   │   ├── 01-configure-postgresql.sh
+│   │   ├── 10-create-db.sh
+│   │   ├── 11-create-user.sh
+│   │   ├── 20-drop-db.sh
+│   │   └── 21-drop-user.sh
 │   ├── pkg_python
 │   │   ├── 00-install-python.sh
 │   │   ├── 10-test-python3.sh
@@ -423,6 +435,11 @@ Current Tree
 │   ├── pkg_telnet
 │   │   ├── 00-install-telnet.sh
 │   │   └── 10-test-telnet.sh
+│   ├── pkg_tftp-server
+│   │   ├── 00-install-tftp.sh
+│   │   ├── 01-configure-tftp.sh
+│   │   ├── 10-get-test.sh
+│   │   └── 11-put-test.sh
 │   ├── pkg_vsftpd
 │   │   ├── 00-install-vsftpd.sh
 │   │   ├── 10-anonymous-vsftpd.sh
@@ -447,20 +464,21 @@ Current Tree
 ├── README.md
 ├── runtests.sh
 ├── skip.list
-└── stacks
-    ├── ipa
-    │   ├── 00-ipa-pregame.sh
-    │   ├── 10-install-ipa.sh
-    │   ├── 11-configure-ipa.sh
-    │   ├── 12-verify-ipa.sh
-    │   ├── 20-ipa-user.sh
-    │   ├── 21-ipa-service.sh
-    │   ├── 22-ipa-dns.sh
-    │   ├── 23-ipa-sudo.sh
-    │   ├── 50-cleanup-ipa.sh
-    │   └── README.md
-    └── lamp
-        ├── 00-install-lamp.sh
-        ├── 01-verification.sh
-        └── 10-test-lamp.sh
+├── stacks
+│   ├── ipa
+│   │   ├── 00-ipa-pregame.sh
+│   │   ├── 10-install-ipa.sh
+│   │   ├── 11-configure-ipa.sh
+│   │   ├── 12-verify-ipa.sh
+│   │   ├── 20-ipa-user.sh
+│   │   ├── 21-ipa-service.sh
+│   │   ├── 22-ipa-dns.sh
+│   │   ├── 23-ipa-sudo.sh
+│   │   ├── 50-cleanup-ipa.sh
+│   │   └── README.md
+│   └── lamp
+│       ├── 00-install-lamp.sh
+│       ├── 01-verification.sh
+│       └── 10-test-lamp.sh
+└── stacks.sh
 ```

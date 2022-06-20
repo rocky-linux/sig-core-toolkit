@@ -406,7 +406,7 @@ class IsoBuild:
             self.log.info(
                     'Copying base lorax for ' + Color.BOLD + arch + Color.END
             )
-            for variant in self.iso_map['images']:
+            for variant in self.iso_map['lorax_variants']:
                 self._copy_lorax_to_variant(self.force_unpack, arch, variant)
 
         self.log.info(
@@ -576,7 +576,10 @@ class IsoBuild:
                 return
 
         self.log.info('Copying base lorax to %s directory...' % image)
-        shutil.copytree(src_to_image, path_to_image)
+        try:
+            shutil.copytree(src_to_image, path_to_image, copy_function=shutil.copy2)
+        except:
+            self.log.error('%s already exists??' % image)
 
     def run_boot_sync(self):
         """
@@ -596,14 +599,14 @@ class IsoBuild:
             unpack_single_arch = True
             arches_to_unpack = [self.arch]
 
-        self.sync_boot(force_unpack=self.force_unpack, arch=self.arch)
+        self._sync_boot(force_unpack=self.force_unpack, arch=self.arch)
         self.treeinfo_write(arch=self.arch)
 
-    def _sync_boot(self, force_unpack, arch, variant):
+    def _sync_boot(self, force_unpack, arch, image):
         """
         Syncs whatever
         """
-        self.log.info('Copying lorax to %s directory...' % variant)
+        self.log.info('Copying lorax to %s directory...' % image)
         # checks here, report that it already exists
 
     def treeinfo_write(self, arch):
@@ -616,7 +619,7 @@ class IsoBuild:
         """
         Fixes lorax treeinfo
         """
-        self.log.info('Fixing up lorax treeinfo...')
+        self.log.info('Fixing up lorax treeinfo for %s ...' % )
 
     def discinfo_write(self):
         """
@@ -651,7 +654,7 @@ class IsoBuild:
         """
         print()
 
-    def generate_graft_points(self):
+    def _generate_graft_points(self):
         """
         Get a list of packages for an extras ISO. This should NOT be called
         during the usual run() section.

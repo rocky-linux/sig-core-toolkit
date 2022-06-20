@@ -56,6 +56,10 @@
     images:
       - dvd
       - minimal
+    lorax_variants:
+      - dvd
+      - minimal
+      - BaseOS
     repos:
       - 'BaseOS'
       - 'AppStream'

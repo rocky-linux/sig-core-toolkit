@@ -9,5 +9,6 @@ fi
 # going to be the same thing or not so this check is there just in case.
 if [ "$RL_VER" -eq 8 ]; then
   p_enableModule idm:DL1/{client,common,dns,server}
-  p_installPackageNormal ipa-server ipa-server-dns
 fi
+
+p_installPackageNormal ipa-server ipa-server-dns
