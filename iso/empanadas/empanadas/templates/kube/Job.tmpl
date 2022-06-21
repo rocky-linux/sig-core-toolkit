@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: build-iso-{{ major }}-{{ architecture }}
+  name: {{ jobname }}-{{ major }}-{{ architecture }}
   namespace: {{ namespace }}
 spec:
   template:
@@ -11,15 +11,18 @@ spec:
         peridot.rockylinux.org/workflow-tolerates-arch: {{ architecture }}
     spec:
       containers:
-      - name: buildiso-{{ major }}-{{ architecture }}
+      - name: {{ jobname }}-{{ major }}-{{ architecture }}
         image: {{ imageName }}
         command: ["/bin/bash", "-c"]
         args:
           - |
-            {{ command | join(' ') }}
-            aws s3 cp --recursive --exclude=* --include=lorax* \
-            /var/lib/mock/rocky-{{ major }}-$(uname -m)/root/builddir/ \
-            "s3://resf-empanadas/buildiso-{{ major }}-{{ architecture }}/{{ buildTime }}/"
+{%- for c in command -%}
+{%- if c is string %}
+            {{ c }}
+{%- else %}
+            {{ ' '.join(c) }}
+{%- endif %}
+{%- endfor %}
         securityContext:
           runAsUser: 0
           runAsGroup: 0

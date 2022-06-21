@@ -5,6 +5,7 @@
   rclvl: 'RC1'
   major: '9'
   minor: '0'
+  fedora_release: 34
   bugurl: 'https://bugs.rockylinux.org'
   allowed_arches:
     - x86_64

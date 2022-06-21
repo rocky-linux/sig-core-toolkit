@@ -18,6 +18,7 @@ requests = "^2.28.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~5"
+types-Jinja2 = "^2.11.9" # Remove when upgrading past Jinja 2.x as type annotations are in-tree
 
 [tool.poetry.scripts]
 sync_from_peridot = "empanadas.scripts.sync_from_peridot:run"
@@ -26,6 +27,7 @@ sync_sig = "empanadas.scripts.sync_sig:run"
 build-iso = "empanadas.scripts.build_iso:run"
 pull-unpack-tree = "empanadas.scripts.pull_unpack_tree:run"
 launch-builds = "empanadas.scripts.launch_builds:run"
+build-image = "empanadas.scripts.build_image:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

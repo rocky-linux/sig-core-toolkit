@@ -5,6 +5,7 @@
   rclvl: 'RC2'
   major: '8'
   minor: '6'
+  fedora_release: 28
   allowed_arches:
     - x86_64
     - aarch64
