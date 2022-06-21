@@ -55,7 +55,6 @@
       s390x: ''
     images:
       - dvd
-      - minimal
     lorax_variants:
       - dvd
       - minimal

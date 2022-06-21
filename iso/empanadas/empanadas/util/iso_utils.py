@@ -461,7 +461,7 @@ class IsoBuild:
                 )
                 return
 
-        self.log.info('Downloading to: %s' % dest)
+        self.log.info('Downloading ({}) to: {}'.format(source, dest))
         try:
             self.s3.download_file(
                     Bucket=self.s3_bucket,
@@ -513,7 +513,7 @@ class IsoBuild:
                 return
         unurl = self.s3_bucket_url + '/' + source
 
-        self.log.info('Downloading to: %s' % dest)
+        self.log.info('Downloading ({}) to: {}'.format(source, dest))
         try:
             with requests.get(unurl, allow_redirects=True) as r:
                 with open(dest, 'wb') as f:
@@ -581,6 +581,15 @@ class IsoBuild:
         except:
             self.log.error('%s already exists??' % image)
 
+        self.log.info('Removing boot.iso from copy')
+        try:
+            os.remove(path_to_image + '/images/boot.iso')
+        except:
+            self.log.error(
+                        '[' + Color.BOLD + Color.YELLOW + 'FAIL' + Color.END + '] ' +
+                        'Cannot remove boot.iso'
+            )
+
     def run_boot_sync(self):
         """
         This unpacks into BaseOS/$arch/os, assuming there's no data actually
@@ -615,11 +624,11 @@ class IsoBuild:
         """
         self.log.info('Starting treeinfo work...')
 
-    def _treeinfo_from_lorax(self, arch, force_unpack):
+    def _treeinfo_from_lorax(self, arch, force_unpack, variant):
         """
         Fixes lorax treeinfo
         """
-        self.log.info('Fixing up lorax treeinfo for %s ...' % )
+        self.log.info('Fixing up lorax treeinfo for %s ...' % variant)
 
     def discinfo_write(self):
         """
