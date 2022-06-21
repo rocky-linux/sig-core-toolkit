@@ -103,15 +103,14 @@ def generate_imagefactory_commands(tdl_template: Template, architecture: Archite
 
     out_type = get_image_format(results.type)
     package_command = ["imagefactory", "target_image", *args, template_path,
-                        "--id", "$(awk '$1==\"UUID\":{print $NF}'"+f" /tmp/{outname}/base.meta)",
+                        "--id", "$(awk '$1==\"UUID:\"{print $NF}'"+f" /tmp/{outname}/base.meta)",
                         *package_args, 
                         "--parameter", "repository", outname, out_type,
                         "|", "tee", "-a", f"{outdir}/base_image-{outname}.out",
                         "|", "tail", "-n4", ">", f"{outdir}/target.meta", "||", "exit", "3" 
             ]
 
-    copy_command = (f"aws s3 cp --recursive {outdir}/ s3://resf-empanadas/buildimage-{ outname }/{ BUILDTIME.strftime('%s') }/"
-        )
+    copy_command = (f"aws s3 cp --recursive {outdir}/* s3://resf-empanadas/buildimage-{ outname }/{ BUILDTIME.strftime('%s') }/")
     commands = [build_command, package_command, copy_command]
     return commands
     
