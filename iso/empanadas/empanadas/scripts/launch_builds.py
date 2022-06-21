@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description="ISO Compose")
 
 parser.add_argument('--release', type=str, help="Major Release Version", required=True)
 parser.add_argument('--env', type=str, help="environment", required=True)
+parser.add_argument('--rc', action='store_true', help="Release Candidate")
 results = parser.parse_args()
 rlvars = rldict[results.release]
 major = rlvars['major']
@@ -30,7 +31,9 @@ def run():
     elif results.env == "all":
         arches = EKSARCH+EXTARCH
 
-    command = ["build-iso", "--release", f"{results.release}", "--rc", "--isolation", "simple"]
+    command = ["build-iso", "--release", f"{results.release}", "--isolation", "simple"]
+    if results.rc:
+        command += ["--rc"]
 
     out = ""
     for arch in arches:
