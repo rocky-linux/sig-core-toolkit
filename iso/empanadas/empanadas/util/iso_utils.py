@@ -13,6 +13,7 @@ import shlex
 import time
 import tarfile
 import shutil
+import hashlib
 
 # lazy person's s3 parser
 import requests
@@ -20,6 +21,7 @@ import json
 import xmltodict
 # if we can access s3
 import boto3
+import kobo.shortcuts
 
 # This is for treeinfo
 from configparser import ConfigParser
@@ -48,6 +50,7 @@ class IsoBuild:
             config,
             major,
             arch=None,
+            hfs_compat: bool = False,
             rc: bool = False,
             s3: bool = False,
             force_download: bool = False,
@@ -107,6 +110,9 @@ class IsoBuild:
 
         if s3:
             self.s3 = boto3.client('s3')
+
+        # arch specific
+        self.hfs_compat = hfs_compat
 
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
@@ -608,7 +614,7 @@ class IsoBuild:
             unpack_single_arch = True
             arches_to_unpack = [self.arch]
 
-        self._sync_boot(force_unpack=self.force_unpack, arch=self.arch)
+        self._sync_boot(force_unpack=self.force_unpack, arch=self.arch, image=None)
         self.treeinfo_write(arch=self.arch)
 
     def _sync_boot(self, force_unpack, arch, image):
@@ -656,19 +662,266 @@ class IsoBuild:
             "",
         ]
 
+    # Next set of functions are loosely borrowed (in concept) from pungi. Some
+    # stuff may be combined/mixed together, other things may be simplified or
+    # reduced in nature.
     def build_extra_iso(self):
         """
         Builds DVD images based on the data created from the initial lorax on
         each arch. This should NOT be called during the usual run() section.
         """
-        print()
 
     def _generate_graft_points(self):
         """
         Get a list of packages for an extras ISO. This should NOT be called
         during the usual run() section.
         """
-        print()
+
+    def _get_grafts(self):
+        """
+        Actually get some grafts (get_iso_contents), called by generate grafts
+        """
+
+    def _write_grafts(self):
+        """
+        Write out the graft points, called by get_grafts
+        """
+
+    def _scanning(self):
+        """
+        Scan tree
+        """
+
+    def _merging(self):
+        """
+        Merge tree
+        """
+
+    def _sorting(self):
+        """
+        Sorting using the is_rpm and is_image funcs
+        """
+
+    def _is_rpm(self):
+        """
+        Is this an RPM? :o
+        """
+
+    def _is_image(self):
+        """
+        Is this an image? :o
+        """
+
+    def _get_vol_id(self):
+        """
+        Gets a volume ID
+        """
+
+    def _get_boot_options(self, arch, createfrom, efi=True, hfs_compat=False):
+        """
+        Gets boot options based on architecture, the iso commands are not
+        universal.
+        """
+        if arch in ("armhfp",):
+            result = []
+            return result
+
+        if arch in ("aarch64",):
+            result = [
+                    "-eltorito-alt-boot",
+                    "-e",
+                    "images/efiboot.img",
+                    "-no-emul-boot",
+            ]
+            return result
+
+        if arch in ("i386", "i686", "x86_64"):
+            result = [
+                    "-b",
+                    "isolinux/isolinux.bin",
+                    "-c",
+                    "isolinux/boot.cat",
+                    "-no-emul-boot",
+                    "-boot-load-size",
+                    "4",
+                    "-boot-info-table",
+            ]
+
+            # EFI args
+            if arch == "x86_64":
+                result.extend(
+                    [
+                        "-eltorito-alt-boot",
+                        "-e",
+                        "images/efiboot.img",
+                        "-no-emul-boot"
+                    ]
+                )
+            return result
+
+        # need to go double check if this is needed with stream 9
+        if arch == "ppc64le" and hfs_compat:
+            result = [
+                    "-part",
+                    "-hfs",
+                    "-r",
+                    "-l",
+                    "-sysid",
+                    "PPC",
+                    "-no-desktop",
+                    "-allow-multidot",
+                    "-chrp-boot",
+                    "-map",
+                    os.path.join(createfrom, "mapping"),
+                    "-hfs-bless",
+                    "/ppc/mac"
+            ]
+            return result
+
+        if arch == "ppc64le" and not hfs_compat:
+            result = [
+                    "-r",
+                    "-l",
+                    "-sysid",
+                    "PPC",
+                    "-chrp-boot",
+            ]
+            return result
+
+        if arch in ("s390x",):
+            result = [
+                    "-eltorito-boot",
+                    "images/cdboot.img",
+                    "-no-emul-boot",
+            ]
+            return result
+
+        raise ValueError("Architecture %s%s%s is NOT known" % (Color.BOLD, arch, Color.END))
+
+    # ALL COMMANDS #
+    def _get_mkisofs_cmd(
+            self,
+            iso,
+            paths,
+            appid=None,
+            volid=None,
+            volset=None,
+            exclude=None,
+            boot_args=None,
+            input_charset="utf-8",
+            grafts=None,
+            use_xorrisofs=False,
+            iso_level=None
+    ):
+        # I should hardcode this I think
+        #untranslated_filenames = True
+        #translation_table = True
+        #joliet = True
+        #joliet_long = True
+        #rock = True
+
+        cmd = ["/usr/bin/xorrisofs" if use_xorrisofs else "/usr/bin/genisoimage"]
+
+        if iso_level:
+            cmd.extend(["-iso-level", str(iso_level)])
+
+        if appid:
+            cmd.extend(["-appid", appid])
+
+        #if untranslated_filenames:
+        cmd.append("-untranslated-filenames")
+
+        if volid:
+            cmd.extend(["-volid", volid])
+
+        #if joliet:
+        cmd.append("-J")
+
+        #if joliet_long:
+        cmd.append("-joliet-long")
+
+        if volset:
+            cmd.extend(["-volset", volset])
+
+        #if rock:
+        cmd.append("-rational-rock")
+
+        #if not use_xorrisofs and translation_table:
+        if not use_xorrisofs:
+            cmd.append("-translation-table")
+
+        if input_charset:
+            cmd.extend(["-input-charset", input_charset])
+
+        if exclude:
+            for i in kobo.shortcuts.force_list(exclude):
+                cmd.extend(["-x", i])
+
+        if boot_args:
+            cmd.extend(boot_args)
+
+        cmd.extend(["-o", iso])
+
+        if grafts:
+            cmd.append("-graft-points")
+            cmd.extend(["-path-list", grafts])
+
+        return cmd
+
+    def _get_implantisomd5_cmd(self, opts):
+        """
+        Implants md5 into iso
+        """
+        cmd = ["/usr/bin/implantisomd5", "--supported-iso", opts['iso_path']]
+        return cmd
+
+    def _get_manifest_cmd(self, opts):
+        """
+        Gets an ISO manifest
+        """
+        return "/usr/bin/isoinfo -R -f -i %s | grep -v '/TRANS.TBL$' | sort >> %s.manifest" % (
+            shlex.quote(opts['iso_name']),
+            shlex.quote(opts['iso_name']),
+        )
+
+    def _get_isohybrid_cmd(self, opts):
+        cmd = []
+        if opts['arch'] == "x86_64":
+            cmd = ["/usr/bin/isohybrid"]
+            cmd.append("--uefi")
+            cmd.append(opts['iso_path'])
+        return cmd
+
+    def _get_make_image_cmd(self, opts):
+        """
+        Generates the command to actually make the image in the first place
+        """
+        isokwargs = {}
+        isokwargs["boot_args"] = self._get_boot_options(
+                opts['arch'],
+                os.path.join("$TEMPLATE", "config_files/ppc"),
+                hfs_compat=self.hfs_compat,
+        )
+
+        if opts['arch'] in ("ppc64", "ppc64le"):
+            isokwargs["input_charset"] = None
+
+        cmd = self._get_mkisofs_cmd(
+                opts['iso_name'],
+                volid=opts['volid'],
+                exclude=["./lost+found"],
+                grafts=opts['graft_points'],
+                use_xorrisofs=opts['use_xorrisofs'],
+                iso_level=opts['iso_level'],
+                **isokwargs
+        )
+        return cmd
+
+
+    def _write_script(self, opts):
+        """
+        Writes out the script to make the DVD
+        """
 
 class LiveBuild:
     """
