@@ -120,7 +120,7 @@ class RepoSync:
                 "work/logs"
         )
 
-        self.compose_global_work_dir = os.path.join(
+        self.compose_global_work_root = os.path.join(
                 self.compose_latest_dir,
                 "work/global"
         )
@@ -203,7 +203,7 @@ class RepoSync:
             self.log.error('Dry Runs are not supported just yet. Sorry!')
             raise SystemExit()
 
-        self.sync(self.repo, sync_root, work_root, log_root, self.arch)
+        self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
 
         if self.fullrun:
             self.deploy_extra_files(global_work_root)
@@ -219,7 +219,7 @@ class RepoSync:
         self.log.info('Compose logs: %s' % log_root)
         self.log.info('Compose completed.')
 
-    def sync(self, repo, sync_root, work_root, log_root, arch=None):
+    def sync(self, repo, sync_root, work_root, log_root, global_work_root, arch=None):
         """
         Calls out syncing of the repos. We generally sync each component of a
         repo:
@@ -230,7 +230,7 @@ class RepoSync:
         If parallel is true, we will run in podman.
         """
         if self.parallel:
-            self.podman_sync(repo, sync_root, work_root, log_root, arch)
+            self.podman_sync(repo, sync_root, work_root, log_root, global_work_root, arch)
         else:
             self.dnf_sync(repo, sync_root, work_root, arch)
 
@@ -242,7 +242,15 @@ class RepoSync:
         self.log.error('Please install podman and enable parallel')
         raise SystemExit()
 
-    def podman_sync(self, repo, sync_root, work_root, log_root, arch):
+    def podman_sync(
+            self,
+            repo,
+            sync_root,
+            work_root,
+            log_root,
+            global_work_root,
+            arch
+        ):
         """
         This is for podman syncs
 
@@ -256,7 +264,6 @@ class RepoSync:
         bad_exit_list = []
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
-        global_work_root = os.path.join(work_root, "global")
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
 
@@ -842,7 +849,7 @@ class RepoSync:
             for issue in bad_exit_list:
                 self.log.error(issue)
 
-    def deploy_extra_files(self, global_work_dir):
+    def deploy_extra_files(self, global_work_root):
         """
         deploys extra files based on info of rlvars including a
         extra_files.json
@@ -853,7 +860,7 @@ class RepoSync:
         cmd = self.git_cmd()
         tmpclone = '/tmp/clone'
         extra_files_dir = os.path.join(
-                global_work_dir,
+                global_work_root,
                 'extra-files'
         )
         self.log.info(
@@ -861,8 +868,8 @@ class RepoSync:
                 'Deploying extra files to work directory ...'
         )
 
-        if not os.path.exists(global_work_dir):
-            os.makedirs(global_work_dir, exist_ok=True)
+        if not os.path.exists(extra_files_dir):
+            os.makedirs(extra_files_dir, exist_ok=True)
 
         clonecmd = '{} clone {} -b {} -q {}'.format(
                 cmd,
@@ -984,7 +991,7 @@ class SigRepoSync:
                 "work/logs"
         )
 
-        self.compose_global_work_dir = os.path.join(
+        self.compose_global_work_root = os.path.join(
                 self.compose_latest_dir,
                 "work/global"
         )
