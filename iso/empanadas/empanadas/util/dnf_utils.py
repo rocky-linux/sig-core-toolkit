@@ -871,11 +871,10 @@ class RepoSync:
                 tmpclone
         )
 
-        git_clone = subprocess.Popen(
-                clonecmd,
+        git_clone = subprocess.call(
+                shlex.split(clonecmd),
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                shell=True
+                stderr=subprocess.DEVNULL
         )
 
         # Copy files
