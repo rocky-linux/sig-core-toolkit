@@ -11,5 +11,5 @@ export readonly RELEASE_NAME=rocky
 # A 0 means it was successful. It can be changed to 1 on failure.
 export IPAINSTALLED=0
 
-LOGFILE="./log/$(date +'%m-%d-%Y')-tests.log"
+LOGFILE="$(pwd)/log/$(date +'%m-%d-%Y')-tests.log"
 export LOGFILE
