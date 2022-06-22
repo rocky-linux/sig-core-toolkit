@@ -110,6 +110,6 @@ r_log "shadow" "Test sg"
 sg onyxuser "touch /var/tmp/onyxsg"
 r_checkExitStatus $?
 r_log "shadow" "Verify sg worked"
-stat --format="%U" /var/tmp/onyxsg | grep -q onyxuser
+stat --format="%G" /var/tmp/onyxsg | grep -q onyxuser
 r_checkExitStatus $?
 rm /var/tmp/onyxsg
