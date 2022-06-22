@@ -10,6 +10,7 @@ import os
 import os.path
 import subprocess
 import shlex
+import shutil
 import time
 import re
 import json
@@ -41,6 +42,7 @@ class RepoSync:
             ignore_debug: bool = False,
             ignore_source: bool = False,
             repoclosure: bool = False,
+            refresh_extra_files: bool = False,
             skip_all: bool = False,
             hashed: bool = False,
             parallel: bool = False,
@@ -60,6 +62,7 @@ class RepoSync:
         self.skip_all = skip_all
         self.hashed = hashed
         self.repoclosure = repoclosure
+        self.refresh_extra_files = refresh_extra_files
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
         # Relevant config items
@@ -115,6 +118,11 @@ class RepoSync:
         self.compose_log_dir = os.path.join(
                 self.compose_latest_dir,
                 "work/logs"
+        )
+
+        self.compose_global_work_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/global"
         )
 
         # This is temporary for now.
@@ -186,6 +194,11 @@ class RepoSync:
                 self.date_stamp
         )
 
+        global_work_root = os.path.join(
+                work_root,
+                "global",
+        )
+
         if self.dryrun:
             self.log.error('Dry Runs are not supported just yet. Sorry!')
             raise SystemExit()
@@ -193,11 +206,14 @@ class RepoSync:
         self.sync(self.repo, sync_root, work_root, log_root, self.arch)
 
         if self.fullrun:
-            self.deploy_extra_files()
+            self.deploy_extra_files(global_work_root)
             self.symlink_to_latest(generated_dir)
 
         if self.repoclosure:
             self.repoclosure_work(sync_root, work_root, log_root)
+
+        if self.refresh_extra_files:
+            self.deploy_extra_files(global_work_root)
 
         self.log.info('Compose repo directory: %s' % sync_root)
         self.log.info('Compose logs: %s' % log_root)
@@ -240,10 +256,14 @@ class RepoSync:
         bad_exit_list = []
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
+        global_work_root = os.path.join(work_root, "global")
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
 
         # yeah, I know.
+        if not os.path.exists(global_work_root):
+            os.makedirs(global_work_root, exist_ok=True)
+
         if not os.path.exists(log_root):
             os.makedirs(log_root, exist_ok=True)
 
@@ -648,6 +668,22 @@ class RepoSync:
             )
         return cmd
 
+    def git_cmd(self) -> str:
+        """
+        This generates the git command. This is when we need to pull down extra
+        files or do work from a git repository.
+        """
+        cmd = None
+        if os.path.exists("/usr/bin/git"):
+            cmd = "/usr/bin/git"
+        else:
+            self.log.error('/usr/bin/git was not found. Good bye.')
+            raise SystemExit("\n\n/usr/bin/git was not found.\n\nPlease "
+                    " ensure that you have installed the necessary packages on "
+                    " this system. "
+            )
+        return cmd
+
     def repoclosure_work(self, sync_root, work_root, log_root):
         """
         This is where we run repoclosures, based on the configuration of each
@@ -806,7 +842,7 @@ class RepoSync:
             for issue in bad_exit_list:
                 self.log.error(issue)
 
-    def deploy_extra_files(self):
+    def deploy_extra_files(self, global_work_dir):
         """
         deploys extra files based on info of rlvars including a
         extra_files.json
@@ -814,7 +850,60 @@ class RepoSync:
         also deploys COMPOSE_ID and maybe in the future a metadata dir with a
         bunch of compose-esque stuff.
         """
-        self.log.info('Deploying extra files...')
+        cmd = self.git_cmd()
+        tmpclone = '/tmp/clone'
+        extra_files_dir = os.path.join(
+                global_work_dir,
+                'extra-files'
+        )
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Deploying extra files to work directory ...'
+        )
+
+        if not os.path.exists(global_work_dir):
+            os.makedirs(global_work_dir, exist_ok=True)
+
+        clonecmd = '{} clone {} -b {} -q {}'.format(
+                cmd,
+                self.extra_files['git_repo'],
+                self.extra_files['branch'],
+                tmpclone
+        )
+
+        git_clone = subprocess.Popen(
+                clonecmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                shell=True
+        )
+
+        # Copy files
+        for extra in self.extra_files['list']:
+            src = '/tmp/clone/' + extra
+            try:
+                shutil.copy2(src, extra_files_dir)
+            except:
+                self.log.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Extra file not copied: ' + src
+                )
+
+        try:
+            shutil.rmtree(tmpclone)
+        except OSError as e:
+            self.log.error(
+                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    'Directory ' + tmpclone + ' could not be removed: ' +
+                    e.strerror
+            )
+
+        # Create metadata here?
+
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Extra files phase completed.'
+        )
 
 class SigRepoSync:
     """
@@ -831,6 +920,7 @@ class SigRepoSync:
             arch=None,
             ignore_source: bool = False,
             repoclosure: bool = False,
+            refresh_extra_files: bool = False,
             skip_all: bool = False,
             hashed: bool = False,
             parallel: bool = False,
@@ -847,6 +937,7 @@ class SigRepoSync:
         self.skip_all = skip_all
         self.hashed = hashed
         self.repoclosure = repoclosure
+        self.refresh_extra_files = refresh_extra_files
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
         # Relevant config items
@@ -892,6 +983,11 @@ class SigRepoSync:
         self.compose_log_dir = os.path.join(
                 self.compose_latest_dir,
                 "work/logs"
+        )
+
+        self.compose_global_work_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/global"
         )
 
         # This is temporary for now.
