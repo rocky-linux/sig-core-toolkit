@@ -15,7 +15,7 @@ parser.add_argument('--isolation', type=str, help="Mock Isolation")
 parser.add_argument('--local-compose', action='store_true', help="Compose Directory is Here")
 parser.add_argument('--logger', type=str)
 parser.add_argument('--extra-iso', type=str, help="Granular choice in which iso is built")
-parser.add_argument('--extra-iso-mode', type=str)
+parser.add_argument('--extra-iso-mode', type=str, default='local')
 results = parser.parse_args()
 rlvars = rldict[results.release]
 major = rlvars['major']

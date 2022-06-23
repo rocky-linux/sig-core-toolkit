@@ -51,6 +51,8 @@
     packages: 'os/Packages'
     repodata: 'os/repodata'
   iso_map:
+    xorrisofs: False
+    iso_level: False
     hosts:
       x86_64: ''
       aarch64: ''
@@ -58,6 +60,7 @@
       s390x: ''
     images:
       dvd:
+        discnum: '1'
         repos:
           - 'BaseOS'
           - 'AppStream'

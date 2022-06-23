@@ -10,7 +10,7 @@ MOCK_RESL="${MOCK_ROOT}/result"
 MOCK_CHRO="${MOCK_ROOT}/root"
 MOCK_LOG="${MOCK_RESL}/mock-output.log"
 IMAGE_SCR="/var/tmp/buildExtraImage.sh"
-IMAGE_ISO="{{ shortname }}-{{ major }}.{{ minor }}{{ rc }}-{{ arch }}-dvd{{ discnum|default('1') }}.iso"
+IMAGE_ISO="{{ isoname }}"
 ISOLATION="{{ isolation }}"
 BUILDDIR="{{ builddir }}"
 

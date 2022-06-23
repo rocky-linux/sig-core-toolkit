@@ -23,4 +23,5 @@ fi
 mkdir -p {{ compose_work_iso_dir }}/{{ arch }}
 cp /builddir/*.iso {{ compose_work_iso_dir }}/{{ arch }}
 cp /builddir/*.iso.manifest {{ compose_work_iso_dir }}/{{ arch }}
+cp /builddir/*.log {{ compose_work_iso_dir }}/{{ arch }}
 {% endif %}

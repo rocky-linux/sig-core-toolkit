@@ -140,11 +140,10 @@ class IsoBuild:
                 "work/logs"
         )
 
-        #self.iso_work_dir = os.path.join(
-        #        self.compose_latest_dir,
-        #        "work/iso",
-        #        config['arch']
-        #)
+        self.iso_work_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/iso"
+        )
 
         self.lorax_work_dir = os.path.join(
                 self.compose_latest_dir,
@@ -708,7 +707,7 @@ class IsoBuild:
 
                 if self.extra_iso_mode == 'local':
                     self._extra_iso_local_config(a, y, grafts)
-                    self._extra_iso_local_run()
+                    #self._extra_iso_local_run()
                 elif self.extra_iso_mode == 'podman':
                     continue
                 else:
@@ -738,6 +737,27 @@ class IsoBuild:
         if self.release_candidate:
             rclevel = '-' + self.rclvl
 
+        discnum = ''
+        if self.iso_map['images'][image]['discnum']:
+            discnum = self.iso_map['images'][image]['discnum']
+
+        volid = '{}-{}-{}-{}-{}'.format(
+                self.shortname,
+                self.major_version,
+                self.minor_version,
+                arch,
+                image
+        )
+
+        isoname = '{}-{}.{}-{}-{}{}.iso'.format(
+                self.shortname,
+                self.major_version,
+                self.minor_version,
+                arch,
+                image,
+                discnum
+        )
+
         mock_iso_template_output = mock_iso_template.render(
                 arch=self.current_arch,
                 major=self.major_version,
@@ -755,7 +775,47 @@ class IsoBuild:
                 isolation=self.mock_isolation,
                 builddir=self.mock_work_root,
                 shortname=self.shortname,
+                isoname=isoname,
         )
+
+        opts = {
+                'arch': arch,
+                'iso_name': isoname,
+                'volid': volid,
+                'graft_points': grafts,
+                'use_xorrisofs': self.iso_map['xorrisofs'],
+                'iso_level': self.iso_map['iso_level'],
+        }
+
+        make_image = self._get_make_image_cmd(opts)
+        isohybrid = self._get_isohybrid_cmd(opts)
+        implantmd5 = self._get_implantisomd5_cmd(opts)
+        make_manifest = self._get_manifest_cmd(opts)
+
+        iso_template_output = iso_template.render(
+                inside_podman=False,
+                arch=arch,
+                compose_work_iso_dir=self.iso_work_dir,
+                make_image=make_image,
+                isohybrid=isohybrid,
+                implantmd5=implantmd5,
+                make_manifest=make_manifest,
+        )
+
+        mock_iso_entry = open(mock_iso_path, "w+")
+        mock_iso_entry.write(mock_iso_template_output)
+        mock_iso_entry.close()
+
+        mock_sh_entry = open(mock_sh_path, "w+")
+        mock_sh_entry.write(mock_sh_template_output)
+        mock_sh_entry.close()
+
+        iso_template_entry = open(iso_template_path, "w+")
+        iso_template_entry.write(iso_template_output)
+        iso_template_entry.close()
+
+        os.chmod(mock_sh_path, 0o755)
+        os.chmod(iso_template_path, 0o755)
 
 
     def _extra_iso_local_run(self):
@@ -1072,7 +1132,6 @@ class IsoBuild:
     def _get_mkisofs_cmd(
             self,
             iso,
-            paths,
             appid=None,
             volid=None,
             volset=None,
@@ -1147,8 +1206,9 @@ class IsoBuild:
         """
         Implants md5 into iso
         """
-        cmd = ["/usr/bin/implantisomd5", "--supported-iso", opts['iso_path']]
-        return cmd
+        cmd = ["/usr/bin/implantisomd5", "--supported-iso", opts['iso_name']]
+        returned_cmd = ' '.join(cmd)
+        return returned_cmd
 
     def _get_manifest_cmd(self, opts):
         """
@@ -1164,8 +1224,9 @@ class IsoBuild:
         if opts['arch'] == "x86_64":
             cmd = ["/usr/bin/isohybrid"]
             cmd.append("--uefi")
-            cmd.append(opts['iso_path'])
-        return cmd
+            cmd.append(opts['iso_name'])
+        returned_cmd = ' '.join(cmd)
+        return returned_cmd
 
     def _get_make_image_cmd(self, opts):
         """
@@ -1190,13 +1251,9 @@ class IsoBuild:
                 iso_level=opts['iso_level'],
                 **isokwargs
         )
-        return cmd
+        returned_cmd = ' '.join(cmd)
+        return returned_cmd
 
-
-    def _write_script(self, opts):
-        """
-        Writes out the script to make the DVD
-        """
 
 class LiveBuild:
     """
