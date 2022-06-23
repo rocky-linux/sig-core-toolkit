@@ -47,6 +47,9 @@
   has_modules:
     - 'AppStream'
     - 'CRB'
+  structure:
+    packages: 'os/Packages'
+    repodata: 'os/repodata'
   iso_map:
     hosts:
       x86_64: ''
@@ -54,7 +57,10 @@
       ppc64le: ''
       s390x: ''
     images:
-      - dvd
+      dvd:
+        repos:
+          - 'BaseOS'
+          - 'AppStream'
     lorax_variants:
       - dvd
       - minimal

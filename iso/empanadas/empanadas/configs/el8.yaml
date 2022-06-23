@@ -5,6 +5,7 @@
   rclvl: 'RC2'
   major: '8'
   minor: '6'
+  bugurl: 'https://bugs.rockylinux.org'
   allowed_arches:
     - x86_64
     - aarch64
@@ -64,6 +65,34 @@
       - 'isomd5sum'
       - 'lorax-templates-rhel'
       - 'lorax-templates-generic'
+  structure:
+    packages: 'os/Packages'
+    repodata: 'os/repodata'
+  iso_map:
+    hosts:
+      x86_64: ''
+      aarch64: ''
+    images:
+      dvd:
+        repos:
+          - 'BaseOS'
+          - 'AppStream'
+    lorax_variants:
+      - dvd
+      - minimal
+      - BaseOS
+    repos:
+      - 'BaseOS'
+      - 'AppStream'
+    variant: 'BaseOS'
+    lorax_removes:
+      - 'libreport-rhel-anaconda-bugzilla'
+    required_pkgs:
+      - 'lorax'
+      - 'genisoimage'
+      - 'isomd5sum'
+      - 'lorax-templates-rhel'
+      - 'lorax-templates-generic'
   repoclosure_map:
     arches:
       x86_64: '--arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
@@ -91,10 +120,15 @@
         - AppStream
   extra_files:
     git_repo: 'https://git.rockylinux.org/staging/src/rocky-release.git'
+    git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/r8/'
     branch: 'r8'
+    gpg:
+      stable: 'SOURCES/RPM-GPG-KEY-rockyofficial'
+      testing: 'SOURCES/RPM-GPG-KEY-rockytesting'
     list:
       - 'SOURCES/COMMUNITY-CHARTER'
       - 'SOURCES/EULA'
       - 'SOURCES/LICENSE'
       - 'SOURCES/RPM-GPG-KEY-rockyofficial'
+      - 'SOURCES/RPM-GPG-KEY-rockytesting'
 ...

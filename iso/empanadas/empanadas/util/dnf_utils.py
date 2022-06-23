@@ -360,7 +360,7 @@ class RepoSync:
 
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                         "--repoid={} -p {} --forcearch {} --norepopath "
-                        "--gpgcheck 2>&1").format(
+                        "--gpgcheck --assumeyes 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
@@ -370,7 +370,7 @@ class RepoSync:
 
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--gpgcheck --norepopath 2>&1").format(
+                        "--gpgcheck --norepopath --assumeyes 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
@@ -433,7 +433,7 @@ class RepoSync:
 
                 source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
                         "--download-metadata --repoid={}-source -p {} "
-                        "--gpgcheck --norepopath 2>&1").format(
+                        "--gpgcheck --norepopath --assumeyes 2>&1").format(
                         self.dnf_config,
                         r,
                         source_sync_path
@@ -626,7 +626,8 @@ class RepoSync:
             repodata = {
                     'name': repo,
                     'baseurl': constructed_url,
-                    'srcbaseurl': constructed_url_src
+                    'srcbaseurl': constructed_url_src,
+                    'gpgkey': self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
             }
             repolist.append(repodata)
 

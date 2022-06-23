@@ -22,6 +22,7 @@ import xmltodict
 # if we can access s3
 import boto3
 import kobo.shortcuts
+from fnmatch import fnmatch
 
 # This is for treeinfo
 from configparser import ConfigParser
@@ -56,6 +57,8 @@ class IsoBuild:
             force_download: bool = False,
             force_unpack: bool = False,
             isolation: str = 'auto',
+            extra_iso=None,
+            extra_iso_mode: str = 'local',
             compose_dir_is_here: bool = False,
             image=None,
             logger=None
@@ -83,6 +86,8 @@ class IsoBuild:
         self.s3 = s3
         self.force_unpack = force_unpack
         self.force_download = force_download
+        self.extra_iso = extra_iso
+        self.extra_iso_mode = extra_iso_mode
 
         # Relevant major version items
         self.arch = arch
@@ -94,6 +99,7 @@ class IsoBuild:
         self.repos = rlvars['iso_map']['repos']
         self.repo_base_url = config['repo_base_url']
         self.project_id = rlvars['project_id']
+        self.structure = rlvars['structure']
 
         self.extra_files = rlvars['extra_files']
 
@@ -134,11 +140,11 @@ class IsoBuild:
                 "work/logs"
         )
 
-        self.iso_work_dir = os.path.join(
-                self.compose_latest_dir,
-                "work/iso",
-                config['arch']
-        )
+        #self.iso_work_dir = os.path.join(
+        #        self.compose_latest_dir,
+        #        "work/iso",
+        #        config['arch']
+        #)
 
         self.lorax_work_dir = os.path.join(
                 self.compose_latest_dir,
@@ -305,12 +311,6 @@ class IsoBuild:
             self.log.error('An error occured during execution.')
             self.log.error('See the logs for more information.')
             raise SystemExit()
-
-    def run_image_build(self, arch):
-        """
-        Builds the other images
-        """
-        print()
 
     def run_pull_lorax_artifacts(self):
         """
@@ -665,52 +665,322 @@ class IsoBuild:
     # Next set of functions are loosely borrowed (in concept) from pungi. Some
     # stuff may be combined/mixed together, other things may be simplified or
     # reduced in nature.
-    def build_extra_iso(self):
+    def run_build_extra_iso(self):
         """
         Builds DVD images based on the data created from the initial lorax on
         each arch. This should NOT be called during the usual run() section.
         """
+        sync_root = self.compose_latest_sync
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Starting Extra ISOs phase'
+        )
 
-    def _generate_graft_points(self):
+        self._extra_iso_build_wrap()
+
+        self.log.info('Compose repo directory: %s' % sync_root)
+        self.log.info('ISO result directory: %s/$arch' % self.lorax_work_dir)
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Extra ISO phase completed.'
+        )
+
+    def _extra_iso_build_wrap(self):
+        """
+        Try to figure out where the build is going, we only support mock for
+        now.
+        """
+        arches_to_build = self.arches
+        if self.arch:
+            arches_to_build = [self.arch]
+
+        images_to_build = self.iso_map['images']
+        if self.extra_iso:
+            images_to_build = [self.extra_iso]
+
+        for y in images_to_build:
+            for a in arches_to_build:
+                grafts = self._generate_graft_points(
+                        a,
+                        y,
+                        self.iso_map['images'][y]['repos'],
+                )
+
+                if self.extra_iso_mode == 'local':
+                    self._extra_iso_local_config(a, y, grafts)
+                    self._extra_iso_local_run()
+                elif self.extra_iso_mode == 'podman':
+                    continue
+                else:
+                    self.log.info(
+                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                            'Mode specified is not valid.'
+                    )
+                    raise SystemExit()
+
+        if self.extra_iso_mode == 'podman':
+            print()
+
+    def _extra_iso_local_config(self, arch, image, grafts):
+        """
+        Local ISO build mode - this should build in mock
+        """
+        self.log.info('Generating Extra ISO configuration and script')
+        mock_iso_template = self.tmplenv.get_template('isomock.tmpl.cfg')
+        mock_sh_template = self.tmplenv.get_template('extraisobuild.tmpl.sh')
+        iso_template = self.tmplenv.get_template('buildExtraImage.tmpl.sh')
+
+        mock_iso_path = '/var/tmp/lorax-' + self.major_version + '.cfg'
+        mock_sh_path = '/var/tmp/extraisobuild.sh'
+        iso_template_path = '/var/tmp/buildExtraImage.sh'
+
+        rclevel = ''
+        if self.release_candidate:
+            rclevel = '-' + self.rclvl
+
+        mock_iso_template_output = mock_iso_template.render(
+                arch=self.current_arch,
+                major=self.major_version,
+                fullname=self.fullname,
+                shortname=self.shortname,
+                required_pkgs=self.required_pkgs,
+                dist=self.disttag,
+                repos=self.repolist,
+                user_agent='{{ user_agent }}',
+        )
+
+        mock_sh_template_output = mock_sh_template.render(
+                arch=self.current_arch,
+                major=self.major_version,
+                isolation=self.mock_isolation,
+                builddir=self.mock_work_root,
+                shortname=self.shortname,
+        )
+
+
+    def _extra_iso_local_run(self):
+        """
+        Runs the actual local process
+        """
+
+    def _generate_graft_points(
+            self,
+            arch,
+            iso,
+            variants,
+        ):
         """
         Get a list of packages for an extras ISO. This should NOT be called
         during the usual run() section.
         """
+        lorax_base_dir = os.path.join(self.lorax_work_dir, arch)
+        global_work_dir = os.path.join(self.compose_latest_dir, "work/global")
 
-    def _get_grafts(self):
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Generating graft points for extra iso: (' + arch + ') ' + iso
+        )
+        files = {}
+        # This is the data we need to actually boot
+        lorax_for_var = os.path.join(lorax_base_dir, iso)
+
+        if not os.path.exists(lorax_for_var + '/.treeinfo'):
+            self.log.info(
+                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    '!! .treeinfo is missing, does this variant actually exist? !!'
+            )
+            return
+
+        # extra files
+        extra_files_for_var = os.path.join(
+            global_work_dir,
+            "extra-files"
+        )
+
+        # actually get the boot data
+        files = self._get_grafts([lorax_for_var, extra_files_for_var])
+
+        # This is to get all the packages for each repo
+        for repo in variants:
+            pkg_for_var = os.path.join(
+                    self.compose_latest_sync,
+                    repo,
+                    arch,
+                    self.structure['packages']
+            )
+            rd_for_var = os.path.join(
+                    self.compose_latest_sync,
+                    repo,
+                    arch,
+                    self.structure['repodata']
+            )
+
+            for k, v in self._get_grafts([pkg_for_var]).items():
+                files[os.path.join(repo, "Packages", k)] = v
+
+            for k, v in self._get_grafts([rd_for_var]).items():
+                files[os.path.join(repo, "repodata", k)] = v
+
+        grafts = '{}/{}-{}-grafts'.format(
+                lorax_base_dir,
+                iso,
+                arch
+        )
+        self._write_grafts(
+                grafts,
+                files,
+                exclude=["*/lost+found", "*/boot.iso"]
+        )
+        return grafts
+
+    def _get_grafts(self, paths, exclusive_paths=None, exclude=None):
         """
         Actually get some grafts (get_iso_contents), called by generate grafts
         """
+        result = {}
+        exclude = exclude or []
+        exclusive_paths = exclusive_paths or []
 
-    def _write_grafts(self):
-        """
-        Write out the graft points, called by get_grafts
-        """
+        for p in paths:
+            if isinstance(p, dict):
+                tree = p
+            else:
+                tree = self._scanning(p)
+            result = self._merging(result, tree)
 
-    def _scanning(self):
+        for p in exclusive_paths:
+            tree = self._scanning(p)
+            result = self._merging(result, tree, exclusive=True)
+
+        # Resolves possible symlinks
+        for key in result.keys():
+            path = result[key]
+            if os.path.islink(path):
+                real_path = os.readlink(path)
+                abspath = os.path.normpath(os.path.join(os.path.dirname(path), real_path))
+                if not abspath.startswith(self.compose_base):
+                    result[key] = abspath
+
+        return result
+
+    def _write_grafts(self, filepath, u, exclude=None):
+        """
+        Write out the graft points
+        """
+        seen = set()
+        exclude = exclude or []
+        result = {}
+        for zl in sorted(u, reverse=True):
+            dirn = os.path.dirname(zl)
+
+            if not zl.endswith("/"):
+                result[zl] = u[zl]
+                seen.add(dirn)
+                continue
+
+            found = False
+            for j in seen:
+                if j.startswith(dirn):
+                    found = True
+                    break
+            if not found:
+                result[zl] = u[zl]
+            seen.add(dirn)
+
+        fh = open(filepath, "w")
+        for zl in sorted(result, key=self._sorting):
+            found = False
+            for excl in exclude:
+                if fnmatch(zl, excl):
+                    found = True
+                    break
+            if found:
+                continue
+            fh.write("%s=%s\n" % (zl, u[zl]))
+        fh.close()
+
+    def _scanning(self, p):
         """
         Scan tree
         """
+        path = os.path.abspath(p)
+        result = {}
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                abspath = os.path.join(root, file)
+                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
+                result[relpath] = abspath
 
-    def _merging(self):
+            # Include empty directories too
+            if root != path:
+                abspath = os.path.join(root, "")
+                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
+                result[relpath] = abspath
+
+        return result
+
+
+    def _merging(self, tree_a, tree_b, exclusive=False):
         """
         Merge tree
         """
+        result = tree_b.copy()
+        all_dirs = set(
+            [os.path.dirname(dirn).rstrip("/") for dirn in result if os.path.dirname(dirn) != ""]
+        )
 
-    def _sorting(self):
-        """
-        Sorting using the is_rpm and is_image funcs
-        """
+        for dirn in tree_a:
+            dn = os.path.dirname(dirn)
+            if exclusive:
+                match = False
+                for x in all_dirs:
+                    if dn == x or dn.startswith("%s/" % x):
+                        match = True
+                        break
+                if match:
+                    continue
 
-    def _is_rpm(self):
+            if dirn in result:
+                continue
+
+            result[dirn] = tree_a[dirn]
+        return result
+
+    def _sorting(self, k):
+        """
+        Sorting using the is_rpm and is_image funcs. Images are first, extras
+        next, rpm's last.
+        """
+        rolling = (0 if self._is_image(k) else 2 if self._is_rpm(k) else 1, k)
+        return rolling
+
+    def _is_rpm(self, k):
         """
         Is this an RPM? :o
         """
+        result = k.endswith(".rpm")
+        return result
 
-    def _is_image(self):
+    def _is_image(self, k):
         """
         Is this an image? :o
         """
+        if (
+                k.startswith("images/") or
+                k.startswith("isolinux/") or
+                k.startswith("EFI/") or
+                k.startswith("etc/") or
+                k.startswith("ppc/")
+           ):
+            return True
+
+        if (
+                k.endswith(".img") or
+                k.endswith(".ins")
+           ):
+            return True
+
+        return False
 
     def _get_vol_id(self):
         """
@@ -819,8 +1089,13 @@ class IsoBuild:
         #joliet = True
         #joliet_long = True
         #rock = True
-
         cmd = ["/usr/bin/xorrisofs" if use_xorrisofs else "/usr/bin/genisoimage"]
+        if not os.path.exists(cmd[0]):
+            self.log.error('%s was not found. Good bye.' % cmd[0])
+            raise SystemExit("\n\n" + cmd[0] + " was not found.\n\nPlease "
+                    " ensure that you have installed the necessary packages on "
+                    " this system. "
+            )
 
         if iso_level:
             cmd.extend(["-iso-level", str(iso_level)])
