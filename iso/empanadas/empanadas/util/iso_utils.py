@@ -77,7 +77,7 @@ class IsoBuild:
         self.compose_base = config['compose_root'] + "/" + major
         self.iso_drop = config['compose_root'] + "/" + major + "/isos"
         self.current_arch = config['arch']
-        self.required_pkgs = rlvars['iso_map']['required_pkgs']
+        self.required_pkgs = rlvars['iso_map']['lorax']['required_pkgs']
         self.mock_work_root = config['mock_work_root']
         self.lorax_result_root = config['mock_work_root'] + "/" + "lorax"
         self.mock_isolation = isolation
@@ -96,7 +96,7 @@ class IsoBuild:
         self.minor_version = rlvars['minor']
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
         self.rclvl = rlvars['rclvl']
-        self.repos = rlvars['iso_map']['repos']
+        self.repos = rlvars['iso_map']['lorax']['repos']
         self.repo_base_url = config['repo_base_url']
         self.project_id = rlvars['project_id']
         self.structure = rlvars['structure']
@@ -273,8 +273,8 @@ class IsoBuild:
                 minor=self.minor_version,
                 shortname=self.shortname,
                 repos=self.repolist,
-                variant=self.iso_map['variant'],
-                lorax=self.iso_map['lorax_removes'],
+                variant=self.iso_map['lorax']['variant'],
+                lorax=self.iso_map['lorax']['lorax_removes'],
                 distname=self.distname,
                 revision=self.release,
                 rc=rclevel,
@@ -411,7 +411,7 @@ class IsoBuild:
             self.log.info(
                     'Copying base lorax for ' + Color.BOLD + arch + Color.END
             )
-            for variant in self.iso_map['lorax_variants']:
+            for variant in self.iso_map['images']:
                 self._copy_lorax_to_variant(self.force_unpack, arch, variant)
 
         self.log.info(
@@ -423,6 +423,14 @@ class IsoBuild:
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                 'Beginning treeinfo phase'
         )
+
+        for arch in arches_to_unpack:
+            for variant in self.iso_map['images']:
+                self.log.info(
+                        'Configuring treeinfo for %s%s %s%s' % (Color.BOLD, arch, variant, Color.END)
+                )
+
+                self._treeinfo_wrapper(arch, variant)
 
 
     def _s3_determine_latest(self):
@@ -614,7 +622,7 @@ class IsoBuild:
             arches_to_unpack = [self.arch]
 
         self._sync_boot(force_unpack=self.force_unpack, arch=self.arch, image=None)
-        self.treeinfo_write(arch=self.arch)
+        #self._treeinfo_write(arch=self.arch)
 
     def _sync_boot(self, force_unpack, arch, image):
         """
@@ -623,17 +631,18 @@ class IsoBuild:
         self.log.info('Copying lorax to %s directory...' % image)
         # checks here, report that it already exists
 
-    def treeinfo_write(self, arch):
+    def _treeinfo_wrapper(self, arch, variant):
         """
-        Ensure treeinfo is written correctly
+        Ensure treeinfo is written correctly based on the variant passed. Each
+        .treeinfo file should be configured similarly but also differently from
+        the next.
         """
-        self.log.info('Starting treeinfo work...')
+        image = os.path.join(self.lorax_work_dir, arch, variant)
+        treeinfo = os.path.join(image, '.treeinfo')
+        repos = self.iso_map['images'][variant]['repos']
 
-    def _treeinfo_from_lorax(self, arch, force_unpack, variant):
-        """
-        Fixes lorax treeinfo
-        """
-        self.log.info('Fixing up lorax treeinfo for %s ...' % variant)
+        #ti = productmd.treeinfo.TreeInfo()
+        #ti.load(treeinfo)
 
     def discinfo_write(self):
         """
@@ -698,6 +707,13 @@ class IsoBuild:
             images_to_build = [self.extra_iso]
 
         for y in images_to_build:
+            if 'isoskip' in self.iso_map['images'][y] and self.iso_map['images'][y]['isoskip']:
+                self.log.info(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Skipping ' + y + ' image'
+                )
+                continue
+
             for a in arches_to_build:
                 grafts = self._generate_graft_points(
                         a,

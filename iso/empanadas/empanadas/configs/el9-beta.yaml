@@ -30,56 +30,41 @@
     - 'SAPHANA'
     - 'extras'
     - 'plus'
-  no_comps_or_groups:
-    - 'all'
-    - 'extras'
-    - 'plus'
-  comps_or_groups:
-    - 'BaseOS'
-    - 'AppStream'
-    - 'CRB'
-    - 'HighAvailability'
-    - 'ResilientStorage'
-    - 'RT'
-    - 'NFV'
-    - 'SAP'
-    - 'SAPHANA'
-  has_modules:
-    - 'AppStream'
-    - 'CRB'
   structure:
     packages: 'os/Packages'
     repodata: 'os/repodata'
   iso_map:
     xorrisofs: False
     iso_level: False
-    hosts:
-      x86_64: ''
-      aarch64: ''
-      ppc64le: ''
-      s390x: ''
     images:
       dvd:
         discnum: '1'
+        variant: 'AppStream'
         repos:
           - 'BaseOS'
           - 'AppStream'
-    lorax_variants:
-      - dvd
-      - minimal
-      - BaseOS
-    repos:
-      - 'BaseOS'
-      - 'AppStream'
-    variant: 'BaseOS'
-    lorax_removes:
-      - 'libreport-rhel-anaconda-bugzilla'
-    required_pkgs:
-      - 'lorax'
-      - 'genisoimage'
-      - 'isomd5sum'
-      - 'lorax-templates-rhel'
-      - 'lorax-templates-generic'
+      minimal:
+        isoskip: True
+        repos: []
+      BaseOS:
+        isoskip: True
+        variant: 'BaseOS'
+        repos:
+          - 'BaseOS'
+          - 'AppStream'
+    lorax:
+      repos:
+        - 'BaseOS'
+        - 'AppStream'
+      variant: 'BaseOS'
+      lorax_removes:
+        - 'libreport-rhel-anaconda-bugzilla'
+      required_pkgs:
+        - 'lorax'
+        - 'genisoimage'
+        - 'isomd5sum'
+        - 'lorax-templates-rhel'
+        - 'lorax-templates-generic'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'

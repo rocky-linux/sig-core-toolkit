@@ -855,8 +855,8 @@ class RepoSync:
         deploys extra files based on info of rlvars including a
         extra_files.json
 
-        also deploys COMPOSE_ID and maybe in the future a metadata dir with a
-        bunch of compose-esque stuff.
+        might also deploy COMPOSE_ID and maybe in the future a metadata dir with
+        a bunch of compose-esque stuff.
         """
         cmd = self.git_cmd()
         tmpclone = '/tmp/clone'
