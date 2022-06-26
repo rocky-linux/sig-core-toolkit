@@ -21,6 +21,7 @@ import json
 import xmltodict
 # if we can access s3
 import boto3
+# relative_path, compute_file_checksums
 import kobo.shortcuts
 from fnmatch import fnmatch
 
@@ -88,6 +89,7 @@ class IsoBuild:
         self.force_download = force_download
         self.extra_iso = extra_iso
         self.extra_iso_mode = extra_iso_mode
+        self.checksum = rlvars['checksum']
 
         # Relevant major version items
         self.arch = arch
@@ -142,7 +144,7 @@ class IsoBuild:
 
         self.iso_work_dir = os.path.join(
                 self.compose_latest_dir,
-                "work/iso"
+                "work/isos"
         )
 
         self.lorax_work_dir = os.path.join(
@@ -566,6 +568,11 @@ class IsoBuild:
                 'lorax'
         )
 
+        iso_to_go = os.path.join(
+                self.iso_work_dir,
+                arch
+        )
+
         if not os.path.exists(os.path.join(src_to_image, '.treeinfo')):
             self.log.error(
                     '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
@@ -588,20 +595,40 @@ class IsoBuild:
                 )
                 return
 
+        self.log.info('Copying %s boot iso to work directory...' % arch)
+        os.makedirs(iso_to_go, exist_ok=True)
+
+        rclevel = ''
+        if self.release_candidate:
+            rclevel = '-' + self.rclvl
+
+        isobootpath = '{}/{}-{}.{}{}-{}-{}.iso'.format(
+                iso_to_go,
+                self.shortname,
+                self.major_version,
+                self.minor_version,
+                rclevel,
+                arch,
+                image
+        )
+
+        shutil.copy2(src_to_image + '/images/boot.iso', isobootpath)
+
         self.log.info('Copying base lorax to %s directory...' % image)
         try:
-            shutil.copytree(src_to_image, path_to_image, copy_function=shutil.copy2)
+            shutil.copytree(src_to_image, path_to_image, copy_function=shutil.copy2, dirs_exist_ok=True)
         except:
             self.log.error('%s already exists??' % image)
 
-        self.log.info('Removing boot.iso from copy')
-        try:
-            os.remove(path_to_image + '/images/boot.iso')
-        except:
-            self.log.error(
-                        '[' + Color.BOLD + Color.YELLOW + 'FAIL' + Color.END + '] ' +
-                        'Cannot remove boot.iso'
-            )
+        if self.iso_map['images'][image]['disc']:
+            self.log.info('Removing boot.iso from %s' % image)
+            try:
+                os.remove(path_to_image + '/images/boot.iso')
+            except:
+                self.log.error(
+                            '[' + Color.BOLD + Color.YELLOW + 'FAIL' + Color.END + '] ' +
+                            'Cannot remove boot.iso'
+                )
 
     def run_boot_sync(self):
         """
@@ -639,10 +666,86 @@ class IsoBuild:
         """
         image = os.path.join(self.lorax_work_dir, arch, variant)
         treeinfo = os.path.join(image, '.treeinfo')
-        repos = self.iso_map['images'][variant]['repos']
+        imagemap = self.iso_map['images'][variant]
+        primary = imagemap['variant']
+        repos = imagemap['repos']
+        is_disc = False
 
-        #ti = productmd.treeinfo.TreeInfo()
-        #ti.load(treeinfo)
+        if imagemap['disc']:
+            is_disc = True
+            discnum = 1
+
+        # load up productmd
+        ti = productmd.treeinfo.TreeInfo()
+        ti.load(treeinfo)
+
+        # Set the name
+        ti.release.name = self.distname
+        ti.release.short = self.shortname
+        # Set the version (the initial lorax run does this, but we are setting
+        # it just in case)
+        ti.release.version = self.release
+        # Assign the present images into a var as a copy. For each platform,
+        # clear out the present dictionary. For each item and path in the
+        # assigned var, assign it back to the platform dictionary. If the path
+        # is empty, continue. Do checksums afterwards.
+        plats = ti.images.images.copy()
+        for platform in ti.images.images:
+            ti.images.images[platform] = {}
+            for i, p in plats[platform].items():
+                if not p:
+                    continue
+                if 'boot.iso' in i and is_disc:
+                    continue
+                ti.images.images[platform][i] = p
+                ti.checksums.add(p, self.checksum, root_dir=image)
+
+        # stage2 checksums
+        if ti.stage2.mainimage:
+            ti.checksums.add(ti.stage2.mainimage, self.checksum, root_dir=image)
+
+        if ti.stage2.instimage:
+            ti.checksums.add(ti.stage2.instimage, self.checksum, root_dir=image)
+
+        # If we are a disc, set the media section appropriately.
+        if is_disc:
+            ti.media.discnum = discnum
+            ti.media.totaldiscs = discnum
+
+        # Create variants
+        # Note to self: There's a lot of legacy stuff running around for
+        # Fedora, ELN, and RHEL in general. This is the general structure,
+        # apparently. But there could be a chance it'll change. We may need to
+        # put in a configuration to deal with it at some point.
+        #ti.variants.variants.clear()
+        for y in repos:
+            if y in ti.variants.variants.keys():
+                vari = ti.variants.variants[y]
+            else:
+                vari = productmd.treeinfo.Variant(ti)
+
+            vari.id = y
+            vari.uid = y
+            vari.name = y
+            vari.type = "variant"
+            if is_disc:
+                vari.paths.repository = y
+                vari.paths.packages = y + "/Packages"
+            else:
+                if y == primary:
+                    vari.paths.repository = "."
+                    vari.paths.packages = "Packages"
+                else:
+                    vari.paths.repository = "../../../" + y + "/" + arch + "/os"
+                    vari.paths.packages = "../../../" + y + "/" + arch + "/os/Packages"
+
+            if y not in ti.variants.variants.keys():
+                ti.variants.add(vari)
+
+            del vari
+
+        # Set default variant
+        ti.dump(treeinfo, main_variant=primary)
 
     def discinfo_write(self):
         """
@@ -679,10 +782,18 @@ class IsoBuild:
         each arch. This should NOT be called during the usual run() section.
         """
         sync_root = self.compose_latest_sync
+
         self.log.info(
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                 'Starting Extra ISOs phase'
         )
+
+        if not os.path.exists(self.compose_base):
+            self.log.info(
+                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    'The compose directory MUST be here. Cannot continue.'
+            )
+            raise SystemExit()
 
         self._extra_iso_build_wrap()
 
@@ -698,6 +809,11 @@ class IsoBuild:
         Try to figure out where the build is going, we only support mock for
         now.
         """
+        work_root = os.path.join(
+                self.compose_latest_dir,
+                'work'
+        )
+
         arches_to_build = self.arches
         if self.arch:
             arches_to_build = [self.arch]
@@ -715,15 +831,32 @@ class IsoBuild:
                 continue
 
             for a in arches_to_build:
+                lorax_path = os.path.join(self.lorax_work_dir, a, 'lorax', '.treeinfo')
+                image_path = os.path.join(self.lorax_work_dir, a, y, '.treeinfo')
+                if not os.path.exists(image_path):
+                    self.log.error(
+                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                            'Lorax data not found for ' + y + '. Skipping.'
+                    )
+
+                    if not os.path.exists(lorax_path):
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                'Lorax not found at all. This is considered fatal.'
+                        )
+
+                    raise SystemExit()
+
                 grafts = self._generate_graft_points(
                         a,
                         y,
                         self.iso_map['images'][y]['repos'],
                 )
+                self._extra_iso_local_config(a, y, grafts, work_root)
 
                 if self.extra_iso_mode == 'local':
-                    self._extra_iso_local_config(a, y, grafts)
-                    #self._extra_iso_local_run()
+                    self._extra_iso_local_run(a, y, work_root)
+                    print()
                 elif self.extra_iso_mode == 'podman':
                     continue
                 else:
@@ -733,45 +866,48 @@ class IsoBuild:
                     )
                     raise SystemExit()
 
-        if self.extra_iso_mode == 'podman':
-            print()
-
-    def _extra_iso_local_config(self, arch, image, grafts):
+    def _extra_iso_local_config(self, arch, image, grafts, work_root):
         """
         Local ISO build mode - this should build in mock
         """
         self.log.info('Generating Extra ISO configuration and script')
+
+        entries_dir = os.path.join(work_root, "entries")
+        boot_iso = os.path.join(work_root, "lorax", arch, "lorax/images/boot.iso")
         mock_iso_template = self.tmplenv.get_template('isomock.tmpl.cfg')
         mock_sh_template = self.tmplenv.get_template('extraisobuild.tmpl.sh')
         iso_template = self.tmplenv.get_template('buildExtraImage.tmpl.sh')
+        xorriso_template = self.tmplenv.get_template('xorriso.tmpl.txt')
 
-        mock_iso_path = '/var/tmp/lorax-' + self.major_version + '.cfg'
-        mock_sh_path = '/var/tmp/extraisobuild.sh'
-        iso_template_path = '/var/tmp/buildExtraImage.sh'
+        mock_iso_path = '/var/tmp/lorax-{}.cfg'.format(self.major_version)
+        mock_sh_path = '{}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
+        iso_template_path = '{}/buildExtraImage-{}-{}.sh'.format(entries_dir, arch, image)
+        xorriso_template_path = '{}/xorriso-{}-{}.txt'.format(entries_dir, arch, image)
 
         rclevel = ''
         if self.release_candidate:
             rclevel = '-' + self.rclvl
 
-        discnum = ''
-        if self.iso_map['images'][image]['discnum']:
-            discnum = self.iso_map['images'][image]['discnum']
-
-        volid = '{}-{}-{}-{}-{}'.format(
+        volid = '{}-{}-{}{}-{}-{}'.format(
                 self.shortname,
                 self.major_version,
                 self.minor_version,
+                rclevel,
                 arch,
                 image
         )
 
-        isoname = '{}-{}.{}-{}-{}{}.iso'.format(
+        isoname = '{}-{}.{}{}-{}-{}.iso'.format(
                 self.shortname,
                 self.major_version,
                 self.minor_version,
+                rclevel,
                 arch,
-                image,
-                discnum
+                image
+        )
+
+        lorax_pkg_cmd = '/usr/bin/dnf install {} -y'.format(
+                ' '.join(self.iso_map['lorax']['required_pkgs'])
         )
 
         mock_iso_template_output = mock_iso_template.render(
@@ -783,6 +919,8 @@ class IsoBuild:
                 dist=self.disttag,
                 repos=self.repolist,
                 user_agent='{{ user_agent }}',
+                compose_dir_is_here=True,
+                compose_dir=self.compose_root,
         )
 
         mock_sh_template_output = mock_sh_template.render(
@@ -792,6 +930,7 @@ class IsoBuild:
                 builddir=self.mock_work_root,
                 shortname=self.shortname,
                 isoname=isoname,
+                entries_dir=entries_dir,
         )
 
         opts = {
@@ -809,14 +948,34 @@ class IsoBuild:
         make_manifest = self._get_manifest_cmd(opts)
 
         iso_template_output = iso_template.render(
-                inside_podman=False,
+                extra_iso_mode=self.extra_iso_mode,
                 arch=arch,
                 compose_work_iso_dir=self.iso_work_dir,
                 make_image=make_image,
                 isohybrid=isohybrid,
                 implantmd5=implantmd5,
                 make_manifest=make_manifest,
+                lorax_pkg_cmd=lorax_pkg_cmd,
         )
+
+        if opts['use_xorrisofs']:
+            # Here we generate another template instead for xorrisofs. We'll do
+            # manual writes for now instead of a template. I'm too tired, it's
+            # 1am, and I can't rationally think of how to do this in jinja (I
+            # know it's easy, it's just too late)
+            xp = open(grafts)
+            xorpoint = xp.read()
+            xp.close()
+            xorriso_template_output = xorriso_template.render(
+                    boot_iso=boot_iso,
+                    isoname=isoname,
+                    volid=volid,
+                    grafts=xorpoint,
+            )
+            xorriso_template_entry = open(xorriso_template_path, "w+")
+            xorriso_template_entry.write(xorriso_template_output)
+            xorriso_template_entry.close()
+
 
         mock_iso_entry = open(mock_iso_path, "w+")
         mock_iso_entry.write(mock_iso_template_output)
@@ -834,9 +993,9 @@ class IsoBuild:
         os.chmod(iso_template_path, 0o755)
 
 
-    def _extra_iso_local_run(self):
+    def _extra_iso_local_run(self, arch, image, work_root):
         """
-        Runs the actual local process
+        Runs the actual local process using mock
         """
 
     def _generate_graft_points(
@@ -902,12 +1061,25 @@ class IsoBuild:
                 iso,
                 arch
         )
+
+        xorrs = '{}/xorriso-{}.txt'.format(
+                lorax_base_dir,
+                arch
+        )
+
         self._write_grafts(
                 grafts,
+                xorrs,
                 files,
                 exclude=["*/lost+found", "*/boot.iso"]
         )
-        return grafts
+
+        if self.iso_map['xorrisofs']:
+            grafters = xorrs
+        else:
+            grafters = grafts
+
+        return grafters
 
     def _get_grafts(self, paths, exclusive_paths=None, exclude=None):
         """
@@ -939,7 +1111,7 @@ class IsoBuild:
 
         return result
 
-    def _write_grafts(self, filepath, u, exclude=None):
+    def _write_grafts(self, filepath, xorrspath, u, exclude=None):
         """
         Write out the graft points
         """
@@ -963,17 +1135,30 @@ class IsoBuild:
                 result[zl] = u[zl]
             seen.add(dirn)
 
-        fh = open(filepath, "w")
-        for zl in sorted(result, key=self._sorting):
-            found = False
-            for excl in exclude:
-                if fnmatch(zl, excl):
-                    found = True
-                    break
-            if found:
-                continue
-            fh.write("%s=%s\n" % (zl, u[zl]))
-        fh.close()
+        if self.iso_map['xorrisofs']:
+            fx = open(xorrspath, "w")
+            for zm in sorted(result, key=self._sorting):
+                found = False
+                for excl in exclude:
+                    if fnmatch(zm, excl):
+                        found = True
+                        break
+                if found:
+                    continue
+                fx.write("-map %s %s\n" % (u[zm], zm))
+            fx.close()
+        else:
+            fh = open(filepath, "w")
+            for zl in sorted(result, key=self._sorting):
+                found = False
+                for excl in exclude:
+                    if fnmatch(zl, excl):
+                        found = True
+                        break
+                if found:
+                    continue
+                fh.write("%s=%s\n" % (zl, u[zl]))
+            fh.close()
 
     def _scanning(self, p):
         """
@@ -1160,7 +1345,7 @@ class IsoBuild:
     ):
         # I should hardcode this I think
         #untranslated_filenames = True
-        #translation_table = True
+        translation_table = True
         #joliet = True
         #joliet_long = True
         #rock = True
@@ -1196,8 +1381,7 @@ class IsoBuild:
         #if rock:
         cmd.append("-rational-rock")
 
-        #if not use_xorrisofs and translation_table:
-        if not use_xorrisofs:
+        if not use_xorrisofs and translation_table:
             cmd.append("-translation-table")
 
         if input_charset:
@@ -1230,18 +1414,31 @@ class IsoBuild:
         """
         Gets an ISO manifest
         """
-        return "/usr/bin/isoinfo -R -f -i %s | grep -v '/TRANS.TBL$' | sort >> %s.manifest" % (
-            shlex.quote(opts['iso_name']),
-            shlex.quote(opts['iso_name']),
-        )
+        if opts['use_xorrisofs']:
+            return """/usr/bin/xorriso -dev %s --find |
+                tail -n+2 |
+                tr -d "'" |
+                cut -c2- sort >> %s.manifest""" % (
+                shlex.quote(opts['iso_name']),
+                shlex.quote(opts['iso_name']),
+            )
+        else:
+            return "/usr/bin/isoinfo -R -f -i %s | grep -v '/TRANS.TBL$' | sort >> %s.manifest" % (
+                shlex.quote(opts['iso_name']),
+                shlex.quote(opts['iso_name']),
+            )
 
     def _get_isohybrid_cmd(self, opts):
         cmd = []
-        if opts['arch'] == "x86_64":
-            cmd = ["/usr/bin/isohybrid"]
-            cmd.append("--uefi")
-            cmd.append(opts['iso_name'])
-        returned_cmd = ' '.join(cmd)
+        if not opts['use_xorrisofs']:
+            if opts['arch'] == "x86_64":
+                cmd = ["/usr/bin/isohybrid"]
+                cmd.append("--uefi")
+                cmd.append(opts['iso_name'])
+            returned_cmd = ' '.join(cmd)
+        else:
+            returned_cmd = ''
+
         return returned_cmd
 
     def _get_make_image_cmd(self, opts):
@@ -1258,15 +1455,19 @@ class IsoBuild:
         if opts['arch'] in ("ppc64", "ppc64le"):
             isokwargs["input_charset"] = None
 
-        cmd = self._get_mkisofs_cmd(
-                opts['iso_name'],
-                volid=opts['volid'],
-                exclude=["./lost+found"],
-                grafts=opts['graft_points'],
-                use_xorrisofs=opts['use_xorrisofs'],
-                iso_level=opts['iso_level'],
-                **isokwargs
-        )
+        if opts['use_xorrisofs']:
+            cmd = ['/usr/bin/xorrisofs', '-dialog', 'on', '<', opts['graft_points']]
+        else:
+            cmd = self._get_mkisofs_cmd(
+                    opts['iso_name'],
+                    volid=opts['volid'],
+                    exclude=["./lost+found"],
+                    grafts=opts['graft_points'],
+                    use_xorrisofs=False,
+                    iso_level=opts['iso_level'],
+                    **isokwargs
+            )
+
         returned_cmd = ' '.join(cmd)
         return returned_cmd
 

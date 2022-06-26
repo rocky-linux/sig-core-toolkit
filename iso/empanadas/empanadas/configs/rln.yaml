@@ -1,10 +1,10 @@
 ---
-'9-lookahead':
-  fullname: 'Rocky Linux 9'
-  revision: '9.1'
+'rln':
+  fullname: 'Rocky Linux New'
+  revision: '10'
   rclvl: 'RC1'
-  major: '9'
-  minor: '1'
+  major: '10'
+  minor: '0'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   allowed_arches:
@@ -35,23 +35,22 @@
     packages: 'os/Packages'
     repodata: 'os/repodata'
   iso_map:
-    xorrisofs: False
+    xorrisofs: True
     iso_level: False
     images:
       dvd:
-        disc: True
+        discnum: '1'
         variant: 'AppStream'
         repos:
           - 'BaseOS'
           - 'AppStream'
       minimal:
-        disc: True
+        discnum: '1'
         isoskip: True
         repos:
           - 'minimal'
         variant: 'minimal'
       BaseOS:
-        disc: False
         isoskip: True
         variant: 'BaseOS'
         repos:
@@ -70,6 +69,7 @@
         - 'isomd5sum'
         - 'lorax-templates-rhel'
         - 'lorax-templates-generic'
+        - 'xorriso'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
@@ -106,16 +106,16 @@
         - HighAvailability
   extra_files:
     git_repo: 'https://git.rockylinux.org/staging/src/rocky-release.git'
-    git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/r9/'
-    branch: 'r9lh'
+    git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/rln/'
+    branch: 'rln'
     gpg:
-      stable: 'SOURCES/RPM-GPG-KEY-Rocky-9'
-      testing: 'SOURCES/RPM-GPG-KEY-Rocky-9-Testing'
+      stable: 'SOURCES/RPM-GPG-KEY-Rocky-RLN'
+      testing: 'SOURCES/RPM-GPG-KEY-Rocky-RLN-Testing'
     list:
       - 'SOURCES/Contributors'
       - 'SOURCES/COMMUNITY-CHARTER'
       - 'SOURCES/EULA'
       - 'SOURCES/LICENSE'
-      - 'SOURCES/RPM-GPG-KEY-Rocky-9'
-      - 'SOURCES/RPM-GPG-KEY-Rocky-9-Testing'
+      - 'SOURCES/RPM-GPG-KEY-Rocky-RLN'
+      - 'SOURCES/RPM-GPG-KEY-Rocky-RLN'
 ...

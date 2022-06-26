@@ -20,6 +20,9 @@ from jinja2 import Environment, FileSystemLoader
 
 from empanadas.common import Color, _rootdir
 
+# initial treeinfo data is made here
+import productmd.treeinfo
+
 #HAS_LIBREPO = True
 #try:
 #    import librepo
@@ -43,6 +46,7 @@ class RepoSync:
             ignore_source: bool = False,
             repoclosure: bool = False,
             refresh_extra_files: bool = False,
+            refresh_treeinfo: bool = False,
             skip_all: bool = False,
             hashed: bool = False,
             parallel: bool = False,
@@ -63,6 +67,7 @@ class RepoSync:
         self.hashed = hashed
         self.repoclosure = repoclosure
         self.refresh_extra_files = refresh_extra_files
+        self.refresh_treeinfo = refresh_treeinfo
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
         # Relevant config items
@@ -203,17 +208,27 @@ class RepoSync:
             self.log.error('Dry Runs are not supported just yet. Sorry!')
             raise SystemExit()
 
+        if self.fullrun and self.refresh_extra_files:
+            self.log.warn(
+                    '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                    'A full run implies extra files are also deployed.'
+            )
+
         self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
 
         if self.fullrun:
             self.deploy_extra_files(global_work_root)
+            self.deploy_treeinfo(self.repo, sync_root, self.arch)
             self.symlink_to_latest(generated_dir)
 
         if self.repoclosure:
             self.repoclosure_work(sync_root, work_root, log_root)
 
-        if self.refresh_extra_files:
+        if self.refresh_extra_files and not self.fullrun:
             self.deploy_extra_files(global_work_root)
+
+        if self.refresh_treeinfo and not self.fullrun:
+            self.deploy_treeinfo(self.repo, sync_root, self.arch)
 
         self.log.info('Compose repo directory: %s' % sync_root)
         self.log.info('Compose logs: %s' % log_root)
@@ -885,9 +900,12 @@ class RepoSync:
                 stderr=subprocess.DEVNULL
         )
 
-        # Copy files
+        # Copy files to work root
         for extra in self.extra_files['list']:
             src = '/tmp/clone/' + extra
+            # Copy extra files to root of compose here also - The extra files
+            # are meant to be picked up by our ISO creation process and also
+            # exist on our mirrors.
             try:
                 shutil.copy2(src, extra_files_dir)
             except:
@@ -911,6 +929,20 @@ class RepoSync:
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                 'Extra files phase completed.'
         )
+
+    def deploy_treeinfo(self, repo, sync_root, arch):
+        """
+        Deploys initial treeinfo files. These have the potential of being
+        overwritten by our ISO process, which is fine.
+        """
+        arches_to_tree = self.arches
+        if arch:
+            arches_to_tree = [arch]
+
+        repos_to_tree = self.repos
+        if repo and not self.fullrun:
+            repos_to_tree = [repo]
+
 
 class SigRepoSync:
     """
