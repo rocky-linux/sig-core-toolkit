@@ -254,12 +254,23 @@ class IsoBuild:
         if self.release_candidate:
             rclevel = '-' + self.rclvl
 
+        # This is kind of a hack. Installing xorrisofs sets the alternatives to
+        # it, so backwards compatibility is sort of guaranteed. But we want to
+        # emulate as close as possible to what pungi does, so unless we
+        # explicitly ask for xorr (in el8 and 9), we should NOT be using it.
+        # For RLN and el10, we'll use xorr all the way through. When 8 is no
+        # longer getting ISO's, we'll remove this section.
+        required_pkgs = self.required_pkgs.copy()
+        if self.iso_map['xorrisofs']:
+            if 'genisoimage' in required_pkgs and 'xorriso' not in required_pkgs:
+                required_pkgs.append('xorriso')
+
         mock_iso_template_output = mock_iso_template.render(
                 arch=self.current_arch,
                 major=self.major_version,
                 fullname=self.fullname,
                 shortname=self.shortname,
-                required_pkgs=self.required_pkgs,
+                required_pkgs=required_pkgs,
                 dist=self.disttag,
                 repos=self.repolist,
                 user_agent='{{ user_agent }}',
@@ -954,6 +965,17 @@ class IsoBuild:
         iso_template_path = '{}/buildExtraImage-{}-{}.sh'.format(entries_dir, arch, image)
         xorriso_template_path = '{}/xorriso-{}-{}.txt'.format(entries_dir, arch, image)
 
+        # This is kind of a hack. Installing xorrisofs sets the alternatives to
+        # it, so backwards compatibility is sort of guaranteed. But we want to
+        # emulate as close as possible to what pungi does, so unless we
+        # explicitly ask for xorr (in el8 and 9), we should NOT be using it.
+        # For RLN and el10, we'll use xorr all the way through. When 8 is no
+        # longer getting ISO's, we'll remove this section.
+        required_pkgs = self.required_pkgs.copy()
+        if self.iso_map['xorrisofs']:
+            if 'genisoimage' in required_pkgs and 'xorriso' not in required_pkgs:
+                required_pkgs.append('xorriso')
+
         rclevel = ''
         if self.release_candidate:
             rclevel = '-' + self.rclvl
@@ -977,7 +999,7 @@ class IsoBuild:
         )
 
         lorax_pkg_cmd = '/usr/bin/dnf install {} -y'.format(
-                ' '.join(self.iso_map['lorax']['required_pkgs'])
+                ' '.join(required_pkgs)
         )
 
         mock_iso_template_output = mock_iso_template.render(
@@ -985,7 +1007,7 @@ class IsoBuild:
                 major=self.major_version,
                 fullname=self.fullname,
                 shortname=self.shortname,
-                required_pkgs=self.required_pkgs,
+                required_pkgs=required_pkgs,
                 dist=self.disttag,
                 repos=self.repolist,
                 user_agent='{{ user_agent }}',

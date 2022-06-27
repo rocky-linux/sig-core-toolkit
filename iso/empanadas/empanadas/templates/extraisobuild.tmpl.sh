@@ -40,7 +40,8 @@ mock_ret_val=$?
 if [ $mock_ret_val -eq 0 ]; then
   # Copy resulting data to /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/result
   mkdir -p "${MOCK_RESL}"
-  cp "${MOCK_CHRO}${BUILDDIR}/${IMAGE_ISO}*" "${MOCK_RESL}"
+  cp "${MOCK_CHRO}${BUILDDIR}/${IMAGE_ISO}" "${MOCK_RESL}"
+  cp "${MOCK_CHRO}${BUILDDIR}/${IMAGE_ISO}.manifest" "${MOCK_RESL}"
 else
   echo "!! EXTRA ISO RUN FAILED !!"
   exit 1
