@@ -1046,6 +1046,22 @@ class IsoBuild:
                 'iso_level': self.iso_map['iso_level'],
         }
 
+        if opts['use_xorrisofs']:
+            # Generate a xorriso compatible dialog
+            xp = open(grafts)
+            xorpoint = xp.read()
+            xp.close()
+            xorriso_template_output = xorriso_template.render(
+                    boot_iso=boot_iso,
+                    isoname=isoname,
+                    volid=volid,
+                    graft=xorpoint,
+            )
+            xorriso_template_entry = open(xorriso_template_path, "w+")
+            xorriso_template_entry.write(xorriso_template_output)
+            xorriso_template_entry.close()
+            opts['graft_points'] = xorriso_template_path
+
         make_image = '{} {}'.format(self._get_make_image_cmd(opts), log_path_command)
         isohybrid = self._get_isohybrid_cmd(opts)
         implantmd5 = self._get_implantisomd5_cmd(opts)
@@ -1061,25 +1077,6 @@ class IsoBuild:
                 make_manifest=make_manifest,
                 lorax_pkg_cmd=lorax_pkg_cmd,
         )
-
-        if opts['use_xorrisofs']:
-            # Here we generate another template instead for xorrisofs. We'll do
-            # manual writes for now instead of a template. I'm too tired, it's
-            # 1am, and I can't rationally think of how to do this in jinja (I
-            # know it's easy, it's just too late)
-            xp = open(grafts)
-            xorpoint = xp.read()
-            xp.close()
-            xorriso_template_output = xorriso_template.render(
-                    boot_iso=boot_iso,
-                    isoname=isoname,
-                    volid=volid,
-                    graft=xorpoint,
-            )
-            xorriso_template_entry = open(xorriso_template_path, "w+")
-            xorriso_template_entry.write(xorriso_template_output)
-            xorriso_template_entry.close()
-
 
         mock_iso_entry = open(mock_iso_path, "w+")
         mock_iso_entry.write(mock_iso_template_output)
