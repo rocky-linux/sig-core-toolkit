@@ -933,7 +933,6 @@ class IsoBuild:
 
                 if self.extra_iso_mode == 'local':
                     self._extra_iso_local_run(a, y, work_root)
-                    print()
                 elif self.extra_iso_mode == 'podman':
                     continue
                 else:
@@ -964,6 +963,17 @@ class IsoBuild:
         mock_sh_path = '{}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
         iso_template_path = '{}/buildExtraImage-{}-{}.sh'.format(entries_dir, arch, image)
         xorriso_template_path = '{}/xorriso-{}-{}.txt'.format(entries_dir, arch, image)
+
+        log_root = os.path.join(
+                work_root,
+                "logs",
+                self.date_stamp
+        )
+
+        if not os.path.exists(log_root):
+            os.makedirs(log_root, exist_ok=True)
+
+        log_path = '{}/{}-{}.log'.format(log_root, arch, image)
 
         # This is kind of a hack. Installing xorrisofs sets the alternatives to
         # it, so backwards compatibility is sort of guaranteed. But we want to
@@ -1052,6 +1062,7 @@ class IsoBuild:
                 implantmd5=implantmd5,
                 make_manifest=make_manifest,
                 lorax_pkg_cmd=lorax_pkg_cmd,
+                log_path=log_path,
         )
 
         if opts['use_xorrisofs']:
