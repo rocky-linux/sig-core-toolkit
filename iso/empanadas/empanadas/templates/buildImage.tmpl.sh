@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VOLID="{{ shortname }}-{{ major }}-{{ minor }}{{ rc }}-{{ arch }}-boot1"
+VOLID="{{ shortname }}-{{ major }}-{{ minor }}{{ rc }}-{{ arch }}-dvd"
 VARIANT="{{ variant }}"
 ARCH="{{ arch }}"
 VERSION="{{ revision }}"

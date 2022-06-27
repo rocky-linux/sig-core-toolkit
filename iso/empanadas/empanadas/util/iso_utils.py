@@ -824,17 +824,16 @@ class IsoBuild:
         # Set default variant
         ti.dump(treeinfo, main_variant=primary)
 
-    def discinfo_write(self):
+    def discinfo_write(self, file_path, arch):
         """
         Ensure discinfo is written correctly
         """
-        #with open(file_path, "w") as f:
-        #    f.write("%s\n" % self.timestamp)
-        #    f.write("%s\n" % self.fullname)
-        #    f.write("%s\n" % self.arch)
-        #    if disc_numbers:
-        #        f.write("%s\n" % ",".join([str(i) for i in disc_numbers]))
-        print()
+        with open(file_path, "w+") as f:
+            f.write("%s\n" % self.timestamp)
+            f.write("%s\n" % self.fullname)
+            f.write("%s\n" % arch)
+            f.write("ALL\n")
+            f.close()
 
     def write_media_repo(self):
         """
@@ -944,12 +943,6 @@ class IsoBuild:
 
         if self.extra_iso_mode == 'podman':
             self._extra_iso_podman_run(arches_to_build, images_to_build, work_root)
-
-    def _extra_iso_podman_checksum(self, arch, image, work_root):
-        """
-        Generate checksum on the fly post-podman run
-        """
-
 
     def _extra_iso_local_config(self, arch, image, grafts, work_root):
         """
@@ -1099,7 +1092,6 @@ class IsoBuild:
         os.chmod(mock_sh_path, 0o755)
         os.chmod(iso_template_path, 0o755)
 
-
     def _extra_iso_local_run(self, arch, image, work_root):
         """
         Runs the actual local process using mock
@@ -1247,6 +1239,19 @@ class IsoBuild:
                     '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                     'Building ' + i + ' completed'
             )
+
+            if len(bad_exit_list) == 0:
+                self.log.info(
+                        '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                        'Copying ISOs over to compose directory...'
+                )
+                print()
+            else:
+                self.log.error(
+                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                        'There were issues with the work done. As a result, ' +
+                        'the ISOs will not be copied.'
+                )
 
 
     def _generate_graft_points(

@@ -2,7 +2,7 @@
 '9-lookahead':
   fullname: 'Rocky Linux 9'
   revision: '9.1'
-  rclvl: 'RC1'
+  rclvl: 'LH1'
   major: '9'
   minor: '1'
   bugurl: 'https://bugs.rockylinux.org'
