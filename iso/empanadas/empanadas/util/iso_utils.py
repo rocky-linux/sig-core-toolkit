@@ -945,6 +945,12 @@ class IsoBuild:
         if self.extra_iso_mode == 'podman':
             self._extra_iso_podman_run(arches_to_build, images_to_build, work_root)
 
+    def _extra_iso_podman_checksum(self, arch, image, work_root):
+        """
+        Generate checksum on the fly post-podman run
+        """
+
+
     def _extra_iso_local_config(self, arch, image, grafts, work_root):
         """
         Local ISO build configuration - This generates the configuration for
@@ -1121,7 +1127,9 @@ class IsoBuild:
         """
         cmd = self.podman_cmd()
         entries_dir = os.path.join(work_root, "entries")
+        isos_dir = os.path.join(work_root, "isos")
         bad_exit_list = []
+        checksum_list = []
         for i in images:
             entry_name_list = []
             image_name = i
@@ -1130,6 +1138,22 @@ class IsoBuild:
             for a in arch_sync:
                 entry_name = 'buildExtraImage-{}-{}.sh'.format(a, i)
                 entry_name_list.append(entry_name)
+
+                rclevel = ''
+                if self.release_candidate:
+                    rclevel = '-' + self.rclvl
+
+                isoname = '{}/{}-{}.{}{}-{}-{}.iso'.format(
+                        a,
+                        self.shortname,
+                        self.major_version,
+                        self.minor_version,
+                        rclevel,
+                        a,
+                        i
+                )
+
+                checksum_list.append(isoname)
 
             for pod in entry_name_list:
                 podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
@@ -1202,6 +1226,23 @@ class IsoBuild:
             )
 
             entry_name_list.clear()
+            for p in checksum_list:
+                path = os.path.join(isos_dir, p)
+                if os.path.exists(path):
+                    self.log.info(
+                            '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                            'Performing checksum for ' + p
+                    )
+                    checksum = Utils.get_checksum(path, self.checksum, self.log)
+                    if not checksum:
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                path + ' not found! Are you sure it was built?'
+                        )
+                    with open(path + '.CHECKSUM', "w+") as c:
+                        c.write(checksum)
+                        c.close()
+
             self.log.info(
                     '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                     'Building ' + i + ' completed'
@@ -1628,7 +1669,7 @@ class IsoBuild:
             return """/usr/bin/xorriso -dev %s --find |
                 tail -n+2 |
                 tr -d "'" |
-                cut -c2- sort >> %s.manifest""" % (
+                cut -c2-  | sort >> %s.manifest""" % (
                 shlex.quote(opts['iso_name']),
                 shlex.quote(opts['iso_name']),
             )
