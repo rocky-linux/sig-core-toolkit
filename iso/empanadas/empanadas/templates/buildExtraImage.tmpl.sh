@@ -7,12 +7,12 @@ mkdir -p {{ compose_work_iso_dir }}/{{ arch }}
 cd  {{ compose_work_iso_dir  }}/{{ arch }}
 {% else %}
 cd /builddir
-{% endif %}
-
 
 if ! TEMPLATE="$($(head -n1 $(which lorax) | cut -c3-) -c 'import pylorax; print(pylorax.find_templates())')"; then
   TEMPLATE="/usr/share/lorax"
 fi
+{% endif %}
+
 
 {{ make_image }} | tee -a {{ log_path }}
 

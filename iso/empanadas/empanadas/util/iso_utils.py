@@ -986,9 +986,6 @@ class IsoBuild:
             if 'genisoimage' in required_pkgs and 'xorriso' not in required_pkgs:
                 required_pkgs.append('xorriso')
 
-        if self.extra_iso_mode == 'podman':
-            required_pkgs.append('which')
-
         rclevel = ''
         if self.release_candidate:
             rclevel = '-' + self.rclvl
