@@ -2,4 +2,4 @@
 -outdev {{ isoname }}
 -boot_image any replay
 -volid {{ volid }}
-{{ grafts }}
+{{ graft }}

@@ -1074,7 +1074,7 @@ class IsoBuild:
                     boot_iso=boot_iso,
                     isoname=isoname,
                     volid=volid,
-                    grafts=xorpoint,
+                    graft=xorpoint,
             )
             xorriso_template_entry = open(xorriso_template_path, "w+")
             xorriso_template_entry.write(xorriso_template_output)
