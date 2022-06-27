@@ -35,7 +35,7 @@ import productmd.treeinfo
 
 from jinja2 import Environment, FileSystemLoader
 
-from empanadas.common import Color, _rootdir
+from empanadas.common import Color, _rootdir, Utils
 
 class IsoBuild:
     """
@@ -104,6 +104,10 @@ class IsoBuild:
         self.structure = rlvars['structure']
 
         self.extra_files = rlvars['extra_files']
+
+        self.container = config['container']
+        if 'container' in rlvars and len(rlvars['container']) > 0:
+            self.container = rlvars['container']
 
         self.staging_dir = os.path.join(
                     config['staging_root'],
@@ -416,6 +420,8 @@ class IsoBuild:
             for variant in self.iso_map['images']:
                 self._copy_lorax_to_variant(self.force_unpack, arch, variant)
 
+            self._copy_boot_to_work(self.force_unpack, arch)
+
         self.log.info(
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                 'Image variant phase completed'
@@ -595,25 +601,6 @@ class IsoBuild:
                 )
                 return
 
-        self.log.info('Copying %s boot iso to work directory...' % arch)
-        os.makedirs(iso_to_go, exist_ok=True)
-
-        rclevel = ''
-        if self.release_candidate:
-            rclevel = '-' + self.rclvl
-
-        isobootpath = '{}/{}-{}.{}{}-{}-{}.iso'.format(
-                iso_to_go,
-                self.shortname,
-                self.major_version,
-                self.minor_version,
-                rclevel,
-                arch,
-                image
-        )
-
-        shutil.copy2(src_to_image + '/images/boot.iso', isobootpath)
-
         self.log.info('Copying base lorax to %s directory...' % image)
         try:
             shutil.copytree(src_to_image, path_to_image, copy_function=shutil.copy2, dirs_exist_ok=True)
@@ -629,6 +616,73 @@ class IsoBuild:
                             '[' + Color.BOLD + Color.YELLOW + 'FAIL' + Color.END + '] ' +
                             'Cannot remove boot.iso'
                 )
+
+    def _copy_boot_to_work(self, force_unpack, arch):
+        src_to_image = os.path.join(
+                self.lorax_work_dir,
+                arch,
+                'lorax'
+        )
+
+        iso_to_go = os.path.join(
+                self.iso_work_dir,
+                arch
+        )
+
+        path_to_src_image = '{}/{}'.format(
+                src_to_image,
+                '/images/boot.iso'
+        )
+
+        rclevel = ''
+        if self.release_candidate:
+            rclevel = '-' + self.rclvl
+
+        discname = '{}-{}.{}{}-{}-{}.iso'.format(
+                self.shortname,
+                self.major_version,
+                self.minor_version,
+                rclevel,
+                arch,
+                'boot'
+        )
+
+        isobootpath = '{}/{}'.format(
+                iso_to_go,
+                discname
+        )
+
+        manifest = '{}.{}'.format(
+                isobootpath,
+                'manifest'
+        )
+
+        if not force_unpack:
+            file_check = isobootpath
+            if os.path.exists(file_check):
+                self.log.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Boot image (' + discname + ') already exists'
+                )
+                return
+
+        self.log.info('Copying %s boot iso to work directory...' % arch)
+        os.makedirs(iso_to_go, exist_ok=True)
+        shutil.copy2(path_to_src_image, isobootpath)
+        if os.path.exists(path_to_src_image + '.manifest'):
+            shutil.copy2(path_to_src_image + '.manifest', manifest)
+
+        self.log.info('Creating checksum for %s boot iso...' % arch)
+        checksum = Utils.get_checksum(isobootpath, self.checksum, self.log)
+        if not checksum:
+            self.log.error(
+                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    isobootpath + ' not found! Are you sure we copied it?'
+            )
+            return
+        with open(isobootpath + '.CHECKSUM', "w+") as c:
+            c.write(checksum)
+            c.close()
 
     def run_boot_sync(self):
         """
@@ -866,9 +920,13 @@ class IsoBuild:
                     )
                     raise SystemExit()
 
+        if self.extra_iso_mode == 'podman':
+            self._extra_iso_podman_run(arches_to_build, images_to_build, work_root)
+
     def _extra_iso_local_config(self, arch, image, grafts, work_root):
         """
-        Local ISO build mode - this should build in mock
+        Local ISO build configuration - This generates the configuration for
+        both mock and podman entries
         """
         self.log.info('Generating Extra ISO configuration and script')
 
@@ -997,6 +1055,114 @@ class IsoBuild:
         """
         Runs the actual local process using mock
         """
+        entries_dir = os.path.join(work_root, "entries")
+        extra_iso_cmd = '/bin/bash {}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
+        self.log.info('Starting mock build...')
+        p = subprocess.call(shlex.split(extra_iso_cmd))
+        if p != 0:
+            self.log.error('An error occured during execution.')
+            self.log.error('See the logs for more information.')
+            raise SystemExit()
+        # Copy it if the compose dir is here?
+
+    def _extra_iso_podman_run(self, arches, images, work_root):
+        """
+        Does all the image building in podman containers to parallelize the
+        builds. This is a case where you can call this instead of looping mock,
+        or not run it in peridot. This gives the Release Engineer a little more
+        flexibility if they care enough.
+
+        This honestly assumes you are running this on a machine that has access
+        to the compose directories. It's the same as if you were doing a
+        reposync of the repositories.
+        """
+        cmd = self.podman_cmd()
+        entries_dir = os.path.join(work_root, "entries")
+        for i in images:
+            entry_name_list = []
+            image_name = i
+            arch_sync = arches.copy()
+
+            for a in arch_sync:
+                entry_name = 'buildExtraImage-{}-{}.sh'.format(a, i)
+                entry_name_list.append(entry_name)
+
+            for pod in entry_name_list:
+                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                        cmd,
+                        self.compose_root,
+                        self.compose_root,
+                        entries_dir,
+                        entries_dir,
+                        pod,
+                        entries_dir,
+                        pod,
+                        self.container
+                )
+
+                process = subprocess.call(
+                        shlex.split(podman_cmd_entry),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+            join_all_pods = ' '.join(entry_name_list)
+            time.sleep(3)
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                    'Building ' + i + ' ...'
+            )
+            pod_watcher = '{} wait {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            watch_man = subprocess.call(
+                    shlex.split(pod_watcher),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+            )
+
+            # After the above is done, we'll check each pod process for an exit
+            # code.
+            pattern = "Exited (0)"
+            for pod in entry_name_list:
+                checkcmd = '{} ps -f status=exited -f name={}'.format(
+                        cmd,
+                        pod
+                )
+                podcheck = subprocess.Popen(
+                        checkcmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True
+                )
+
+                output, errors = podcheck.communicate()
+                if 'Exited (0)' not in output.decode():
+                    self.log.error(
+                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' + pod
+                    )
+                    bad_exit_list.append(pod)
+
+            rmcmd = '{} rm {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            rmpod = subprocess.Popen(
+                    rmcmd,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    shell=True
+            )
+
+            entry_name_list.clear()
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                    'Building ' + i + ' completed'
+            )
+
 
     def _generate_graft_points(
             self,
@@ -1471,6 +1637,23 @@ class IsoBuild:
         returned_cmd = ' '.join(cmd)
         return returned_cmd
 
+    def podman_cmd(self) -> str:
+        """
+        This generates the podman run command. This is in the case that we want
+        to do reposyncs in parallel as we cannot reasonably run multiple
+        instances of dnf reposync on a single system.
+        """
+        cmd = None
+        if os.path.exists("/usr/bin/podman"):
+            cmd = "/usr/bin/podman"
+        else:
+            self.log.error('/usr/bin/podman was not found. Good bye.')
+            raise SystemExit("\n\n/usr/bin/podman was not found.\n\nPlease "
+                    " ensure that you have installed the necessary packages on "
+                    " this system. " + Color.BOLD + "Note that docker is not "
+                    "supported." + Color.END
+            )
+        return cmd
 
 class LiveBuild:
     """

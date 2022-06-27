@@ -39,6 +39,18 @@ fi
 
 # If we didn't fail, let's pack up everything!
 cd "${MOCKBLD}"
+
+# Get ISO manifest
+if [ -f "/usr/bin/xorriso" ]; then
+    /usr/bin/xorriso -dev lorax/images/boot.iso --find |
+      tail -n+2 |
+      tr -d "'" |
+      cut -c2- sort >> lorax/images/boot.iso.manifest
+elif [ -f "/usr/bin/isoinfo" ]; then
+    /usr/bin/isoinfo -R -f -i lorax/images/boot.iso |
+      grep -v '/TRANS.TBL$' | sort >> lorax/images/boot.iso.manifest
+fi
+
 tar czf "${LORAX_TAR}" lorax "${LOGFILE}"
 
 tar_ret_val=$?
