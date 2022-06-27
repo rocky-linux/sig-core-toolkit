@@ -976,6 +976,9 @@ class IsoBuild:
             if 'genisoimage' in required_pkgs and 'xorriso' not in required_pkgs:
                 required_pkgs.append('xorriso')
 
+        if self.extra_iso_mode == 'podman':
+            required_pkgs.append('which')
+
         rclevel = ''
         if self.release_candidate:
             rclevel = '-' + self.rclvl
@@ -1113,6 +1116,7 @@ class IsoBuild:
         """
         cmd = self.podman_cmd()
         entries_dir = os.path.join(work_root, "entries")
+        bad_exit_list = []
         for i in images:
             entry_name_list = []
             image_name = i
