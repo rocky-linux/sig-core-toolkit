@@ -35,7 +35,7 @@
     packages: 'os/Packages'
     repodata: 'os/repodata'
   iso_map:
-    xorrisofs: False
+    xorrisofs: True
     iso_level: False
     images:
       dvd:
@@ -70,6 +70,7 @@
         - 'isomd5sum'
         - 'lorax-templates-rhel'
         - 'lorax-templates-generic'
+        - 'xorriso'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
