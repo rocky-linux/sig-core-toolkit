@@ -6,15 +6,11 @@ from empanadas.common import *
 from empanadas.util import Checks
 from empanadas.util import RepoSync
 
-#rlvars = rldict['9']
-#r = Checks(rlvars, config['arch'])
-#r.check_valid_arch()
-
 # Start up the parser baby
 parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 
 # All of our options
-parser.add_argument('--release', type=str, help="Major Release Version", required=True)
+parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
 parser.add_argument('--repo', type=str, help="Repository name")
 parser.add_argument('--arch', type=str, help="Architecture")
 parser.add_argument('--ignore-debug', action='store_true')
@@ -41,7 +37,7 @@ r.check_valid_arch()
 a = RepoSync(
         rlvars,
         config,
-        major=results.release,
+        major=rlvars['major'],
         repo=results.repo,
         arch=results.arch,
         ignore_debug=results.ignore_debug,

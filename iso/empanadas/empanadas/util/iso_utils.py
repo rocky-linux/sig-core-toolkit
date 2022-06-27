@@ -439,6 +439,12 @@ class IsoBuild:
                 )
 
                 self._treeinfo_wrapper(arch, variant)
+                # Do a dirsync for non-disc data
+                if not self.iso_map['images'][variant]['disc']:
+                    self.log.info(
+                            'Syncing repo data and images for %s%s%s' % (Color.BOLD, variant, Color.END)
+                    )
+                    self._copy_nondisc_to_repo(self.force_unpack, arch, variant)
 
 
     def _s3_determine_latest(self):
@@ -683,6 +689,12 @@ class IsoBuild:
         with open(isobootpath + '.CHECKSUM', "w+") as c:
             c.write(checksum)
             c.close()
+
+    def _copy_nondisc_to_repo(self, force_unpack, arch, repo):
+        """
+        Syncs data from a non-disc set of images to the appropriate repo. Repo
+        and image MUST match names for this to work.
+        """
 
     def run_boot_sync(self):
         """
@@ -989,6 +1001,7 @@ class IsoBuild:
                 shortname=self.shortname,
                 isoname=isoname,
                 entries_dir=entries_dir,
+                image=image,
         )
 
         opts = {
