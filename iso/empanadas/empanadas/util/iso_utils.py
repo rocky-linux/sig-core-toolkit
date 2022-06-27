@@ -973,7 +973,7 @@ class IsoBuild:
         if not os.path.exists(log_root):
             os.makedirs(log_root, exist_ok=True)
 
-        log_path = '{}/{}-{}.log'.format(log_root, arch, image)
+        log_path_command = '| tee -a {}/{}-{}.log'.format(log_root, arch, image)
 
         # This is kind of a hack. Installing xorrisofs sets the alternatives to
         # it, so backwards compatibility is sort of guaranteed. But we want to
@@ -1008,8 +1008,9 @@ class IsoBuild:
                 image
         )
 
-        lorax_pkg_cmd = '/usr/bin/dnf install {} -y'.format(
-                ' '.join(required_pkgs)
+        lorax_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
+                ' '.join(required_pkgs),
+                log_path_command
         )
 
         mock_iso_template_output = mock_iso_template.render(
@@ -1045,7 +1046,7 @@ class IsoBuild:
                 'iso_level': self.iso_map['iso_level'],
         }
 
-        make_image = self._get_make_image_cmd(opts)
+        make_image = '{} {}'.format(self._get_make_image_cmd(opts), log_path_command)
         isohybrid = self._get_isohybrid_cmd(opts)
         implantmd5 = self._get_implantisomd5_cmd(opts)
         make_manifest = self._get_manifest_cmd(opts)
@@ -1059,7 +1060,6 @@ class IsoBuild:
                 implantmd5=implantmd5,
                 make_manifest=make_manifest,
                 lorax_pkg_cmd=lorax_pkg_cmd,
-                log_path=log_path,
         )
 
         if opts['use_xorrisofs']:

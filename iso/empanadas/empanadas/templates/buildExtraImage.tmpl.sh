@@ -2,7 +2,7 @@
 set -ex
 
 {% if extra_iso_mode == "podman" %}
-{{ lorax_pkg_cmd }} | tee -a {{ log_path }}
+{{ lorax_pkg_cmd }}
 mkdir -p {{ compose_work_iso_dir }}/{{ arch }}
 cd  {{ compose_work_iso_dir  }}/{{ arch }}
 {% else %}
@@ -14,11 +14,11 @@ fi
 {% endif %}
 
 
-{{ make_image }} | tee -a {{ log_path }}
+{{ make_image }}
 
-{{ isohybrid }} | tee -a {{ log_path }}
+{{ isohybrid }}
 
-{{ implantmd5 }} | tee -a {{ log_path }}
+{{ implantmd5 }}
 
-{{ make_manifest }} | tee -a {{ log_path }}
+{{ make_manifest }}
 
