@@ -8,6 +8,7 @@
   profile: '9-beta'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
+  fedora_release: 34
   allowed_arches:
     - x86_64
     - aarch64

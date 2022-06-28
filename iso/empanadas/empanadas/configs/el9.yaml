@@ -6,6 +6,7 @@
   major: '9'
   minor: '0'
   profile: '9'
+  fedora_release: 34
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   allowed_arches:
