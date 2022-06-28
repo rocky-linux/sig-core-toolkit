@@ -8,11 +8,11 @@ from empanadas.common import _rootdir
 
 from jinja2 import Environment, FileSystemLoader
 
-parser = argparse.ArgumentParser(description="ISO Compose")
+parser = argparse.ArgumentParser(description="Generate Kubernetes Jobs to run lorax in mock and upload the result. Pipe into kubectl for the appropriate cluster")
 
-parser.add_argument('--release', type=str, help="Major Release Version", required=True)
-parser.add_argument('--env', type=str, help="environment", required=True)
-parser.add_argument('--rc', action='store_true', help="Release Candidate")
+parser.add_argument('--release', type=str, help="Major Release Version: (8|9)", required=True)
+parser.add_argument('--env', type=str, help="environment: one of (eks|ext|all). presently jobs are scheduled on different kubernetes clusters", required=True)
+parser.add_argument('--rc', action='store_true', help="Release Candidate, Beta, RLN")
 results = parser.parse_args()
 rlvars = rldict[results.release]
 major = rlvars['major']
