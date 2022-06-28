@@ -135,7 +135,7 @@ def run():
             backoffLimit=4,
             buildTime=datetime.datetime.utcnow().strftime("%s"),
             command=commands,
-            imageName="ghcr.io/neilhanlon/sig-core-toolkit:latest",
+            imageName="ghcr.io/rockylinux/sig-core-toolkit:latest",
             jobname="buildimage",
             namespace="empanadas",
             major=major,
