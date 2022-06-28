@@ -2,6 +2,7 @@
 
 import os
 import hashlib
+import productmd.treeinfo
 
 class Shared:
     """
@@ -43,6 +44,46 @@ class Shared:
                 base,
                 checksum.hexdigest()
         )
+
+    @staticmethod
+    def treeinfo_new_write(
+            file_path,
+            distname,
+            shortname,
+            release,
+            arch,
+            time,
+            repo
+        ):
+        """
+        Writes really basic treeinfo, this is for single repository treeinfo
+        data. This is usually called in the case of a fresh run and each repo
+        needs one.
+        """
+        ti = productmd.treeinfo.TreeInfo()
+        ti.release.name = distname
+        ti.release.short = shortname
+        ti.release.version = release
+        ti.tree.arch = arch
+        ti.tree.build_timestamp = time
+        # Variants (aka repos)
+        variant = productmd.treeinfo.Variant(ti)
+        variant.id = repo
+        variant.uid = repo
+        variant.name = repo
+        variant.type = "variant"
+        variant.repository = "."
+        variant.packages = "Packages"
+        ti.variants.add(variant)
+        ti.dump(file_path)
+
+    @staticmethod
+    def treeinfo_modify_write():
+        """
+        Modifies a specific treeinfo with already available data. This is in
+        the case of modifying treeinfo for primary repos or images.
+        """
+
 
     @staticmethod
     def discinfo_write(timestamp, fullname, arch, file_path):

@@ -78,6 +78,7 @@ class RepoSync:
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
         self.profile = rlvars['profile']
+        self.iso_map = rlvars['iso_map']
 
         # Relevant major version items
         self.shortname = config['shortname']
@@ -935,7 +936,8 @@ class RepoSync:
     def deploy_treeinfo(self, repo, sync_root, arch):
         """
         Deploys initial treeinfo files. These have the potential of being
-        overwritten by our ISO process, which is fine.
+        overwritten by our ISO process, which is fine. If there is a treeinfo
+        found, it will be skipped.
         """
         arches_to_tree = self.arches
         if arch:

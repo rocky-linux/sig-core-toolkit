@@ -450,7 +450,7 @@ class IsoBuild:
         for arch in arches_to_unpack:
             for variant in self.iso_map['images']:
                 self.log.info(
-                        'Configuring treeinfo for %s%s %s%s' % (Color.BOLD, arch, variant, Color.END)
+                        'Configuring treeinfo and discinfo for %s%s %s%s' % (Color.BOLD, arch, variant, Color.END)
                 )
 
                 self._treeinfo_wrapper(arch, variant)
@@ -741,12 +741,15 @@ class IsoBuild:
 
     def _treeinfo_wrapper(self, arch, variant):
         """
-        Ensure treeinfo is written correctly based on the variant passed. Each
-        .treeinfo file should be configured similarly but also differently from
-        the next.
+        Ensure treeinfo and discinfo is written correctly based on the variant
+        passed. Each file should be configured similarly but also differently
+        from the next. The Shared module does have a .treeinfo writer, but it
+        is for basic use. Eventually it'll be expanded to handle this scenario.
         """
         image = os.path.join(self.lorax_work_dir, arch, variant)
         treeinfo = os.path.join(image, '.treeinfo')
+        discinfo = os.path.join(image, '.discinfo')
+        mediarepo = os.path.join(image, 'media.repo')
         imagemap = self.iso_map['images'][variant]
         primary = imagemap['variant']
         repos = imagemap['repos']
@@ -827,6 +830,10 @@ class IsoBuild:
 
         # Set default variant
         ti.dump(treeinfo, main_variant=primary)
+        # Set discinfo
+        Shared.discinfo_write(self.timestamp, self.fullname, arch, discinfo)
+        # Set media.repo
+        Shared.media_repo_write(self.timestamp, self.fullname, mediarepo)
 
     # Next set of functions are loosely borrowed (in concept) from pungi. Some
     # stuff may be combined/mixed together, other things may be simplified or
