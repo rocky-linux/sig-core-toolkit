@@ -1,7 +1,0 @@
-#!/usr/bin/env python3
-# builds ISO's
-
-import argparse
-from common import *
-from util import Checks
-from util import IsoBuild

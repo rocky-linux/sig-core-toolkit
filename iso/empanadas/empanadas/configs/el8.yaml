@@ -1,0 +1,137 @@
+---
+'8':
+  fullname: 'Rocky Linux 8'
+  revision: '8.6'
+  rclvl: 'RC2'
+  major: '8'
+  minor: '6'
+  profile: '8'
+  bugurl: 'https://bugs.rockylinux.org'
+  allowed_arches:
+    - x86_64
+    - aarch64
+  provide_multilib: False
+  project_id: ''
+  repo_symlinks:
+    devel: 'Devel'
+    NFV: 'nfv'
+  renames: {}
+  all_repos:
+    - 'BaseOS'
+    - 'AppStream'
+    - 'PowerTools'
+    - 'HighAvailability'
+    - 'ResilientStorage'
+    - 'RT'
+    - 'NFV'
+    - 'extras'
+    - 'devel'
+    - 'plus'
+    - 'rockyrpi'
+  no_comps_or_groups:
+    - 'extras'
+    - 'devel'
+    - 'plus'
+    - 'rockyrpi'
+  comps_or_groups:
+    - 'BaseOS'
+    - 'AppStream'
+    - 'PowerTools'
+    - 'HighAvailability'
+    - 'ResilientStorage'
+    - 'RT'
+    - 'NFV'
+  has_modules:
+    - 'AppStream'
+    - 'PowerTools'
+  iso_map:
+    hosts:
+      x86_64: ''
+      aarch64: ''
+      ppc64le: ''
+      s390x: ''
+    images:
+      - dvd1
+      - minimal
+      - boot
+    repos:
+      - 'BaseOS'
+      - 'AppStream'
+    variant: 'BaseOS'
+    lorax_removes:
+      - 'libreport-rhel-anaconda-bugzilla'
+    required_packages:
+      - 'lorax'
+      - 'genisoimage'
+      - 'isomd5sum'
+      - 'lorax-templates-rhel'
+      - 'lorax-templates-generic'
+  structure:
+    packages: 'os/Packages'
+    repodata: 'os/repodata'
+  iso_map:
+    xorrisofs: False
+    iso_level: False
+    hosts:
+      x86_64: ''
+      aarch64: ''
+    images:
+      dvd:
+        repos:
+          - 'BaseOS'
+          - 'AppStream'
+    lorax_variants:
+      - dvd
+      - minimal
+      - BaseOS
+    repos:
+      - 'BaseOS'
+      - 'AppStream'
+    variant: 'BaseOS'
+    lorax_removes:
+      - 'libreport-rhel-anaconda-bugzilla'
+    required_pkgs:
+      - 'lorax'
+      - 'genisoimage'
+      - 'isomd5sum'
+      - 'lorax-templates-rhel'
+      - 'lorax-templates-generic'
+  repoclosure_map:
+    arches:
+      x86_64: '--arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
+      aarch64: '--arch=aarch64 --arch=noarch'
+      ppc64le: '--arch=ppc64le --arch=noarch'
+      s390x: '--arch=s390x --arch=noarch'
+    repos:
+      BaseOS: []
+      AppStream:
+        - BaseOS
+      PowerTools:
+        - BaseOS
+        - AppStream
+      HighAvailability:
+        - BaseOS
+        - AppStream
+      ResilientStorage:
+        - BaseOS
+        - AppStream
+      RT:
+        - BaseOS
+        - AppStream
+      NFV:
+        - BaseOS
+        - AppStream
+  extra_files:
+    git_repo: 'https://git.rockylinux.org/staging/src/rocky-release.git'
+    git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/r8/'
+    branch: 'r8'
+    gpg:
+      stable: 'SOURCES/RPM-GPG-KEY-rockyofficial'
+      testing: 'SOURCES/RPM-GPG-KEY-rockytesting'
+    list:
+      - 'SOURCES/COMMUNITY-CHARTER'
+      - 'SOURCES/EULA'
+      - 'SOURCES/LICENSE'
+      - 'SOURCES/RPM-GPG-KEY-rockyofficial'
+      - 'SOURCES/RPM-GPG-KEY-rockytesting'
+...

@@ -1,0 +1,61 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: build-iso-{{ major }}-{{ architecture }}
+  namespace: {{ namespace }}
+spec:
+  template:
+    metadata:
+      labels:
+        peridot.rockylinux.org/workflow-tolerates-arch: {{ architecture }}
+    spec:
+      containers:
+      - name: buildiso-{{ major }}-{{ architecture }}
+        image: {{ imageName }}
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            {{ command | join(' ') }}
+            aws s3 cp --recursive --exclude=* --include=lorax* \
+            /var/lib/mock/rocky-{{ major }}-$(uname -m)/root/builddir/ \
+            "s3://resf-empanadas/buildiso-{{ major }}-{{ architecture }}/{{ buildTime }}/"
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          privileged: true
+          runAsNonRoot: false
+          allowPrivilegeEscalation: true
+        volumeMounts:
+          - mountPath: /etc/resolv.conf
+            name: resolv-conf
+          - mountPath: /var/lib/mock/
+            name: mock
+        env:
+        - name: AWS_REGION
+          value: us-east-2
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: empanadas-s3
+              key: ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: empanadas-s3
+              key: SECRET
+      tolerations:
+      - effect: NoSchedule
+        key: peridot.rockylinux.org/workflow-tolerates-arch
+        operator: Equal
+        value: {{ architecture }}
+      restartPolicy: {{ restartPolicy }}
+      volumes:
+      - name: resolv-conf
+        hostPath:
+          path: /etc/resolv.conf
+          type: File
+      - name: mock
+        emptyDir: {}
+  backoffLimit: {{ backoffLimit }}
+

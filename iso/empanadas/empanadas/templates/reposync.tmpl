@@ -1,0 +1,8 @@
+#!/bin/bash
+set -o pipefail
+{{ import_gpg_cmd }} | tee -a {{ sync_log }}
+{{ arch_force_cp }} | tee -a {{ sync_log }}
+{{ dnf_plugin_cmd }} | tee -a {{ sync_log }}
+{{ sync_cmd }} | tee -a {{ sync_log }}
+
+# {{ check_cmd }} | tee -a {{ sync_log }}

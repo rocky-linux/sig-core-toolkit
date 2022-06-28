@@ -89,8 +89,12 @@ gzip $FILE $FILE.1 || r_checkExitStatus 1
 r_log "archive" "Verify that .Z files can be handled"
 gunzip $FILE.gz
 ls -l /var/tmp >> $FILE
-compress $FILE || r_checkExitStatus 1
-gunzip $FILE.Z || r_checkExitStatus 1
+if [ "$RL_VER" -eq 8 ]; then
+  compress $FILE || r_checkExitStatus 1
+  gunzip $FILE.Z || r_checkExitStatus 1
+else
+  r_log "archive" "Skipping for 9"
+fi
 
 # handle some zip files
 r_log "archive" "Verify that .zip files can be handled"
