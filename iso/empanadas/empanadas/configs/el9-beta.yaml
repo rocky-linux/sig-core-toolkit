@@ -1,10 +1,11 @@
 ---
 '9-beta':
-  fullname: 'Rocky Linux 9'
+  fullname: 'Rocky Linux 9.1'
   revision: '9.1'
   rclvl: 'BETA1'
   major: '9'
   minor: '1'
+  profile: '9-beta'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   allowed_arches:

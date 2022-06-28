@@ -7,8 +7,9 @@ VERSION="{{ revision }}"
 PRODUCT="{{ distname }}"
 MOCKBLD="{{ builddir }}"
 LORAXRES="{{ lorax_work_root }}"
-LORAX_TAR="lorax-{{ major }}-{{ arch }}.tar.gz"
+LORAX_TAR="lorax-{{ revision }}-{{ arch }}.tar.gz"
 LOGFILE="lorax-{{ arch }}.log"
+BUGURL="{{ bugurl }}"
 
 {% for pkg in lorax %}
 sed -i '/{{ pkg }}/ s/^/#/' /usr/share/lorax/templates.d/80-rhel/runtime-install.tmpl
@@ -23,6 +24,7 @@ lorax --product="${PRODUCT}" \
 {%- for repo in repos %}
   --source={{ repo.url }} \
 {%- endfor %}
+  --bugurl="${BUGURL}" \
   --variant="${VARIANT}" \
   --nomacboot \
   --buildarch="${ARCH}" \
@@ -45,7 +47,7 @@ if [ -f "/usr/bin/xorriso" ]; then
     /usr/bin/xorriso -dev lorax/images/boot.iso --find |
       tail -n+2 |
       tr -d "'" |
-      cut -c2- sort >> lorax/images/boot.iso.manifest
+      cut -c2-  | sort >> lorax/images/boot.iso.manifest
 elif [ -f "/usr/bin/isoinfo" ]; then
     /usr/bin/isoinfo -R -f -i lorax/images/boot.iso |
       grep -v '/TRANS.TBL$' | sort >> lorax/images/boot.iso.manifest

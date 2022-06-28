@@ -13,7 +13,6 @@ import shlex
 import time
 import tarfile
 import shutil
-import hashlib
 
 # lazy person's s3 parser
 import requests
@@ -35,7 +34,8 @@ import productmd.treeinfo
 
 from jinja2 import Environment, FileSystemLoader
 
-from empanadas.common import Color, _rootdir, Utils
+from empanadas.common import Color, _rootdir
+from empanadas.util import Shared
 
 class IsoBuild:
     """
@@ -90,6 +90,7 @@ class IsoBuild:
         self.extra_iso = extra_iso
         self.extra_iso_mode = extra_iso_mode
         self.checksum = rlvars['checksum']
+        self.profile = rlvars['profile']
 
         # Relevant major version items
         self.arch = arch
@@ -102,6 +103,7 @@ class IsoBuild:
         self.repo_base_url = config['repo_base_url']
         self.project_id = rlvars['project_id']
         self.structure = rlvars['structure']
+        self.bugurl = rlvars['bugurl']
 
         self.extra_files = rlvars['extra_files']
 
@@ -133,7 +135,7 @@ class IsoBuild:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-Rocky-{}".format(major)
+                "latest-Rocky-{}".format(self.profile)
         )
 
         self.compose_latest_sync = os.path.join(
@@ -189,7 +191,7 @@ class IsoBuild:
 
         self.log.info('Compose repo directory: %s' % sync_root)
         self.log.info('ISO Build Logs: /var/lib/mock/{}-{}-{}/result'.format(
-            self.shortname, self.major_version, self.current_arch)
+            self.shortname.lower(), self.major_version, self.current_arch)
         )
         self.log.info('ISO Build completed.')
 
@@ -282,6 +284,7 @@ class IsoBuild:
                 isolation=self.mock_isolation,
                 builddir=self.mock_work_root,
                 shortname=self.shortname,
+                revision=self.release,
         )
 
         iso_template_output = iso_template.render(
@@ -297,6 +300,7 @@ class IsoBuild:
                 rc=rclevel,
                 builddir=self.mock_work_root,
                 lorax_work_root=self.lorax_result_root,
+                bugurl=self.bugurl,
         )
 
         mock_iso_entry = open(mock_iso_path, "w+")
@@ -363,7 +367,7 @@ class IsoBuild:
 
             full_drop = '{}/lorax-{}-{}.tar.gz'.format(
                     lorax_arch_dir,
-                    self.major_version,
+                    self.release,
                     arch
             )
 
@@ -396,7 +400,7 @@ class IsoBuild:
 
         for arch in arches_to_unpack:
             tarname = 'lorax-{}-{}.tar.gz'.format(
-                    self.major_version,
+                    self.release,
                     arch
             )
 
@@ -474,7 +478,7 @@ class IsoBuild:
             raise SystemExit()
 
         for y in self.s3.list_objects(Bucket=self.s3_bucket)['Contents']:
-            if 'tar.gz' in y['Key']:
+            if 'tar.gz' in y['Key'] and self.release in y['Key']:
                 temp.append(y['Key'])
 
         for arch in self.arches:
@@ -525,7 +529,7 @@ class IsoBuild:
         resp = xmltodict.parse(bucket_data.content)
 
         for y in resp['ListBucketResult']['Contents']:
-            if 'tar.gz' in y['Key']:
+            if 'tar.gz' in y['Key'] and self.release in y['Key']:
                 temp.append(y['Key'])
 
         for arch in self.arches:
@@ -690,7 +694,7 @@ class IsoBuild:
             shutil.copy2(path_to_src_image + '.manifest', manifest)
 
         self.log.info('Creating checksum for %s boot iso...' % arch)
-        checksum = Utils.get_checksum(isobootpath, self.checksum, self.log)
+        checksum = Shared.get_checksum(isobootpath, self.checksum, self.log)
         if not checksum:
             self.log.error(
                     '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
@@ -823,31 +827,6 @@ class IsoBuild:
 
         # Set default variant
         ti.dump(treeinfo, main_variant=primary)
-
-    def discinfo_write(self, file_path, arch):
-        """
-        Ensure discinfo is written correctly
-        """
-        with open(file_path, "w+") as f:
-            f.write("%s\n" % self.timestamp)
-            f.write("%s\n" % self.fullname)
-            f.write("%s\n" % arch)
-            f.write("ALL\n")
-            f.close()
-
-    def write_media_repo(self):
-        """
-        Ensure media.repo exists
-        """
-        data = [
-            "[InstallMedia]",
-            "name=%s" % self.fullname,
-            "mediaid=%s" % self.timestamp,
-            "metadata_expire=-1",
-            "gpgcheck=0",
-            "cost=500",
-            "",
-        ]
 
     # Next set of functions are loosely borrowed (in concept) from pungi. Some
     # stuff may be combined/mixed together, other things may be simplified or
@@ -1075,6 +1054,7 @@ class IsoBuild:
                 implantmd5=implantmd5,
                 make_manifest=make_manifest,
                 lorax_pkg_cmd=lorax_pkg_cmd,
+                isoname=isoname,
         )
 
         mock_iso_entry = open(mock_iso_path, "w+")
@@ -1225,7 +1205,7 @@ class IsoBuild:
                             '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                             'Performing checksum for ' + p
                     )
-                    checksum = Utils.get_checksum(path, self.checksum, self.log)
+                    checksum = Shared.get_checksum(path, self.checksum, self.log)
                     if not checksum:
                         self.log.error(
                                 '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +

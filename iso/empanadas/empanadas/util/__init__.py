@@ -6,6 +6,10 @@ from empanadas.util.check import (
         Checks,
 )
 
+from empanadas.util.shared import (
+        Shared,
+)
+
 from empanadas.util.dnf_utils import (
         RepoSync,
         SigRepoSync
@@ -18,5 +22,6 @@ from empanadas.util.iso_utils import (
 
 __all__ = [
         'Checks',
-        'RepoSync'
+        'RepoSync',
+        'Shared'
 ]

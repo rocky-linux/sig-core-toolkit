@@ -19,6 +19,7 @@ import json
 from jinja2 import Environment, FileSystemLoader
 
 from empanadas.common import Color, _rootdir
+from empanadas.util import Shared
 
 # initial treeinfo data is made here
 import productmd.treeinfo
@@ -76,6 +77,7 @@ class RepoSync:
         self.repo_base_url = config['repo_base_url']
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
+        self.profile = rlvars['profile']
 
         # Relevant major version items
         self.shortname = config['shortname']
@@ -112,7 +114,7 @@ class RepoSync:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-Rocky-{}".format(major)
+                "latest-Rocky-{}".format(self.profile)
         )
 
         self.compose_latest_sync = os.path.join(

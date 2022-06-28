@@ -1,10 +1,11 @@
 ---
 '9-lookahead':
-  fullname: 'Rocky Linux 9'
+  fullname: 'Rocky Linux 9.1'
   revision: '9.1'
   rclvl: 'LH1'
   major: '9'
   minor: '1'
+  profile: '9-lookahead'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   allowed_arches:

@@ -28,8 +28,9 @@ parser.add_argument('--logger', type=str)
 
 # Parse them
 results = parser.parse_args()
-
 rlvars = rldict[results.release]
+major = rlvars['major']
+
 r = Checks(rlvars, config['arch'])
 r.check_valid_arch()
 
@@ -37,7 +38,7 @@ r.check_valid_arch()
 a = RepoSync(
         rlvars,
         config,
-        major=rlvars['major'],
+        major=major,
         repo=results.repo,
         arch=results.arch,
         ignore_debug=results.ignore_debug,

@@ -14,4 +14,5 @@ r.check_valid_arch()
 a = RepoSync(rlvars, config, major="9", repo="BaseOS", parallel=True, ignore_debug=False, ignore_source=False, hashed=True)
 
 def run():
-    a.run()
+    print(rlvars.keys())
+    print(rlvars)

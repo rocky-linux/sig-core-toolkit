@@ -2,9 +2,10 @@
 'rln':
   fullname: 'Rocky Linux New'
   revision: '10'
-  rclvl: 'RC1'
+  rclvl: 'RLN120'
   major: '10'
   minor: '0'
+  profile: 'rln'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   allowed_arches:

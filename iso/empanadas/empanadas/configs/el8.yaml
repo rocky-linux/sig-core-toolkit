@@ -5,6 +5,7 @@
   rclvl: 'RC2'
   major: '8'
   minor: '6'
+  profile: '8'
   bugurl: 'https://bugs.rockylinux.org'
   allowed_arches:
     - x86_64

@@ -9,7 +9,7 @@ MOCK_RESL="${MOCK_ROOT}/result"
 MOCK_CHRO="${MOCK_ROOT}/root"
 MOCK_LOG="${MOCK_RESL}/mock-output.log"
 LORAX_SCR="/var/tmp/buildImage.sh"
-LORAX_TAR="lorax-{{ major }}-{{ arch }}.tar.gz"
+LORAX_TAR="lorax-{{ revision }}-{{ arch }}.tar.gz"
 ISOLATION="{{ isolation }}"
 BUILDDIR="{{ builddir }}"
 

@@ -8,7 +8,7 @@ from empanadas.util import IsoBuild
 
 parser = argparse.ArgumentParser(description="ISO Compose")
 
-parser.add_argument('--release', type=str, help="Major Release Version", required=True)
+parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
 parser.add_argument('--rc', action='store_true', help="Release Candidate")
 parser.add_argument('--arch', type=str, help="Architecture")
 parser.add_argument('--isolation', type=str, help="Mock Isolation")
@@ -30,7 +30,7 @@ a = IsoBuild(
         extra_iso=results.extra_iso,
         extra_iso_mode=results.extra_iso_mode,
         compose_dir_is_here=results.local_compose,
-        logger=results.logger,
+        logger=results.logger
 )
 
 def run():
