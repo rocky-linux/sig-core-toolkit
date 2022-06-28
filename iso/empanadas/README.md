@@ -22,18 +22,24 @@ There should be additional logging regardless, not just to stdout, but also to a
 
 ## scripts
 
-* sync-variant-pungi
-* sync-variant-peridot
-* sync-from-pungi
-* sync-from-peridot
-* sync-sig
-* build-all-iso
-* sign-repos-only
+```
+* sync_from_peridot    -> Syncs repositories from Peridot
+* sync_sig             -> Syncs SIG repositories from Peridot
+* build-iso            -> Builds initial ISO's using Lorax
+* build-iso-extra      -> Builds DVD's and other images based on Lorax data
+* launch-builds        -> Creates a kube config to run build-iso
+* build-image          -> Runs build-iso
+```
 
 ## wrappers
 
-* lorax-generators
-* sync-generators
+```
+* common               -> The starting point
+* iso_utils            -> Does work for ISO building and generation
+* dnf_utils            -> Does work for repo building and generation
+* check                -> Checks if the architecture/release combination are valid
+* shared               -> Shared utilities between all wrappers
+```
 
 ## rules
 
@@ -43,8 +49,9 @@ When making a script, you *must* import common. This is insanely bad practice,
 but we would prefer if we started out this way:
 
 ```
-from common import *
 import argparse
+from empanadas.common import *
+from empanadas.util import Checks
 ```
 
 Whatever is imported in common will effectively be imported in your scripts as
