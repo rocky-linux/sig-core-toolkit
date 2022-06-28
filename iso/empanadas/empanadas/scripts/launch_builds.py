@@ -48,7 +48,7 @@ def run():
             backoffLimit=4,
             buildTime=buildstamp.strftime("%s"),
             command=[command, copy_command],
-            imageName="ghcr.io/neilhanlon/sig-core-toolkit:latest",
+            imageName="ghcr.io/rocky-linux/sig-core-toolkit:latest",
             jobname="buildiso",
             namespace="empanadas",
             major=major,
