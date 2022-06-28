@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(description="ISO Compose")
 
 parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
 parser.add_argument('--isolation', type=str, help="mock isolation mode")
-parser.add_argument('--rc', action='store_true', help="Release Candidate")
+parser.add_argument('--rc', action='store_true', help="Release Candidate, Beta, RLN")
 parser.add_argument('--local-compose', action='store_true', help="Compose Directory is Here")
 parser.add_argument('--logger', type=str)
 results = parser.parse_args()
