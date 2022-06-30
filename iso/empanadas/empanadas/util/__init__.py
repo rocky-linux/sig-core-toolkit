@@ -8,6 +8,7 @@ from empanadas.util.check import (
 
 from empanadas.util.shared import (
         Shared,
+        ArchCheck,
 )
 
 from empanadas.util.dnf_utils import (

@@ -4,6 +4,29 @@ import os
 import hashlib
 import productmd.treeinfo
 
+class ArchCheck:
+    """
+    Arches and their files
+    """
+    archfile = {
+        'x86_64': [
+                'isolinux/vmlinuz',
+                'images/grub.conf',
+                'EFI/BOOT/BOOTX64.EFI'
+        ],
+        'aarch64':  [
+                'EFI/BOOT/BOOTAA64.EFI'
+        ],
+        'ppc64le': [
+                'ppc/bootinfo.txt',
+                'ppc/ppc64/vmlinuz'
+        ],
+        's390x': [
+                'generic.ins',
+                'images/generic.prm'
+        ]
+    }
+
 class Shared:
     """
     Quick utilities that may be commonly used

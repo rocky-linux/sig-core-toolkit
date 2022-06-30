@@ -35,7 +35,7 @@ import productmd.treeinfo
 from jinja2 import Environment, FileSystemLoader
 
 from empanadas.common import Color, _rootdir
-from empanadas.util import Shared
+from empanadas.util import Shared, ArchCheck
 
 class IsoBuild:
     """
@@ -710,6 +710,48 @@ class IsoBuild:
         Syncs data from a non-disc set of images to the appropriate repo. Repo
         and image MUST match names for this to work.
         """
+        pathway = os.path.join(
+                self.compose_latest_sync,
+                repo,
+                arch,
+                'os'
+        )
+
+        src_to_image = os.path.join(
+                self.lorax_work_dir,
+                arch,
+                repo
+        )
+
+        if not force_unpack:
+            found_files = []
+            for y in ArchCheck.archfile[arch]:
+                imgpath = os.path.join(
+                        pathway,
+                        y
+                )
+                if os.path.exists(imgpath):
+                    found_files.append(y)
+
+            if os.path.exists(pathway + '/images/boot.iso'):
+                found_files.append('/images/boot.iso')
+
+            if len(found_files) > 0:
+                self.log.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Images and data for ' + repo + ' and ' + arch + ' already exists.'
+                )
+                return
+
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Copying images and data for ' + repo + ' ' + arch
+        )
+        try:
+            shutil.copytree(src_to_image, pathway, copy_function=shutil.copy2, dirs_exist_ok=True)
+        except:
+            self.log.error('%s already exists??' % repo)
+
 
     def run_boot_sync(self):
         """
