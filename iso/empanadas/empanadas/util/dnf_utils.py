@@ -1005,7 +1005,7 @@ class RepoSync:
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + 'os .treeinfo already exists'
+                            repo_name + ' ' + a + ' os .treeinfo already exists'
                     )
 
                 if not os.path.exists(os_disc_path):
@@ -1018,7 +1018,7 @@ class RepoSync:
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + 'os .discinfo already exists'
+                            repo_name + ' ' + a + ' os .discinfo already exists'
                     )
 
                 if not os.path.exists(os_media_path):
@@ -1030,7 +1030,7 @@ class RepoSync:
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + 'os media.repo already exists'
+                            repo_name + ' ' + a + ' os media.repo already exists'
                     )
 
                 if not self.ignore_debug:
@@ -1068,7 +1068,7 @@ class RepoSync:
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                                r + ' ' + a + 'debug .treeinfo already exists'
+                                r + ' ' + a + ' debug .treeinfo already exists'
                         )
 
                     if not os.path.exists(debug_disc_path):
@@ -1081,7 +1081,7 @@ class RepoSync:
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                                r + ' ' + a + 'debug .discinfo already exists'
+                                r + ' ' + a + ' debug .discinfo already exists'
                         )
 
                     if not os.path.exists(debug_media_path):
@@ -1093,7 +1093,7 @@ class RepoSync:
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                                repo_name + ' ' + a + 'debug media.repo already exists'
+                                repo_name + ' ' + a + ' debug media.repo already exists'
                         )
 
 

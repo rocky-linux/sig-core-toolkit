@@ -72,8 +72,8 @@ class Shared:
         variant.uid = repo
         variant.name = repo
         variant.type = "variant"
-        variant.repository = "."
-        variant.packages = "Packages"
+        variant.paths.repository = "."
+        variant.paths.packages = "Packages"
         ti.variants.add(variant)
         ti.dump(file_path)
 
