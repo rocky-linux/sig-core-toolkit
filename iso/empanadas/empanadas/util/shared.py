@@ -117,7 +117,8 @@ class Shared:
             "%s" % timestamp,
             "%s" % fullname,
             "%s" % arch,
-            "ALL"
+            "ALL",
+            ""
         ]
 
         with open(file_path, "w+") as f:

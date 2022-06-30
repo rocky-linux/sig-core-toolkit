@@ -930,7 +930,9 @@ class RepoSync:
                     e.strerror
             )
 
-        # Create metadata here?
+        # Create metadata here
+        # Create COMPOSE_ID here (this doesn't necessarily match anything, it's
+        # just an indicator)
 
         self.log.info(
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
@@ -999,7 +1001,7 @@ class RepoSync:
                             self.shortname,
                             self.fullversion,
                             a,
-                            self.timestamp,
+                            int(self.timestamp),
                             repo_name
                     )
                 else:

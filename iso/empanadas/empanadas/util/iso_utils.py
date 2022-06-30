@@ -723,6 +723,12 @@ class IsoBuild:
                 repo
         )
 
+        if not os.path.exists(pathway):
+            self.log.error(
+                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    'Repo and Image variant do NOT match'
+            )
+
         if not force_unpack:
             found_files = []
             for y in ArchCheck.archfile[arch]:
@@ -747,6 +753,7 @@ class IsoBuild:
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                 'Copying images and data for ' + repo + ' ' + arch
         )
+
         try:
             shutil.copytree(src_to_image, pathway, copy_function=shutil.copy2, dirs_exist_ok=True)
         except:
