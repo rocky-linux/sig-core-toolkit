@@ -1,13 +1,14 @@
 ---
-'8':
+'8-cloud':
   fullname: 'Rocky Linux 8'
   revision: '8.6'
-  rclvl: 'sig-cloud'
+  rclvl: 'RC2'
   major: '8'
   minor: '6'
   profile: '8'
   bugurl: 'https://bugs.rockylinux.org'
   fedora_release: 28
+  checksum: 'sha256'
   allowed_arches:
     - x86_64
     - aarch64
@@ -45,58 +46,48 @@
   has_modules:
     - 'AppStream'
     - 'PowerTools'
-  iso_map:
-    hosts:
-      x86_64: ''
-      aarch64: ''
-      ppc64le: ''
-      s390x: ''
-    images:
-      - dvd1
-      - minimal
-      - boot
-    repos:
-      - 'BaseOS'
-      - 'AppStream'
-    variant: 'BaseOS'
-    lorax_removes:
-      - 'libreport-rhel-anaconda-bugzilla'
-    required_packages:
-      - 'lorax'
-      - 'genisoimage'
-      - 'isomd5sum'
-      - 'lorax-templates-rhel'
-      - 'lorax-templates-generic'
   structure:
     packages: 'os/Packages'
     repodata: 'os/repodata'
   iso_map:
-    xorrisofs: False
+    xorrisofs: True
     iso_level: False
-    hosts:
-      x86_64: ''
-      aarch64: ''
     images:
       dvd:
+        disc: True
+        variant: 'AppStream'
         repos:
           - 'BaseOS'
           - 'AppStream'
-    lorax_variants:
-      - dvd
-      - minimal
-      - BaseOS
-    repos:
-      - 'BaseOS'
-      - 'AppStream'
-    variant: 'BaseOS'
-    lorax_removes:
-      - 'libreport-rhel-anaconda-bugzilla'
-    required_pkgs:
-      - 'lorax'
-      - 'genisoimage'
-      - 'isomd5sum'
-      - 'lorax-templates-rhel'
-      - 'lorax-templates-generic'
+      minimal:
+        disc: True
+        isoskip: True
+        repos:
+          - 'minimal'
+        variant: 'minimal'
+      BaseOS:
+        disc: False
+        isoskip: True
+        variant: 'BaseOS'
+        repos:
+          - 'BaseOS'
+          - 'AppStream'
+    lorax:
+      repos:
+        - 'BaseOS'
+        - 'AppStream'
+      variant: 'BaseOS'
+      lorax_removes:
+        - 'libreport-rhel-anaconda-bugzilla'
+      extra_repos:
+        - 'https://yumrepofs.build.resf.org/v1/projects/f91da90d-5bdb-4cf2-80ea-e07f8dae5a5c/repo/all/aarch64/'
+      required_pkgs:
+        - 'lorax'
+        - 'genisoimage'
+        - 'isomd5sum'
+        - 'lorax-templates-rhel'
+        - 'lorax-templates-generic'
+        - 'xorriso'
   repoclosure_map:
     arches:
       x86_64: '--arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'

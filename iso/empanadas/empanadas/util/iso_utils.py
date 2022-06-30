@@ -106,6 +106,9 @@ class IsoBuild:
         self.bugurl = rlvars['bugurl']
 
         self.extra_files = rlvars['extra_files']
+        self.extra_repos = rlvars['iso_map']['lorax']['extra_repos'] if 'extra_repos' in rlvars['iso_map']['lorax'].keys() else [] 
+
+        self.rocky_staging = config['rocky_staging']
 
         self.container = config['container']
         if 'container' in rlvars and len(rlvars['container']) > 0:
@@ -201,27 +204,42 @@ class IsoBuild:
         """
         repolist = []
         for name in self.repos:
-            if not self.compose_dir_is_here:
-                constructed_url = '{}/{}/repo/hashed-{}/{}'.format(
-                        self.repo_base_url,
-                        self.project_id,
-                        name,
-                        self.current_arch
-                )
-            else:
-                constructed_url = 'file://{}/{}/{}/os'.format(
-                        self.compose_latest_sync,
-                        name,
-                        self.current_arch
-                )
+            if int(self.major_version) > 8:
+                if not self.compose_dir_is_here:
+                    constructed_url = '{}/{}/repo/hashed-{}/{}'.format(
+                            self.repo_base_url,
+                            self.project_id,
+                            name,
+                            self.current_arch
+                    )
+                else:
+                    constructed_url = 'file://{}/{}/{}/os'.format(
+                            self.compose_latest_sync,
+                            name,
+                            self.current_arch
+                    )
 
 
-            repodata = {
-                'name': name,
-                'url': constructed_url
-            }
+                repodata = {
+                    'name': name,
+                    'url': constructed_url
+                }
 
-            repolist.append(repodata)
+                repolist.append(repodata)
+            else: 
+                constructed_url = f"{self.rocky_staging}/{self.major_version}/{name}/{self.current_arch}/os/"
+                repodata = {
+                    'name': name,
+                    'url': constructed_url
+                }
+
+                repolist.append(repodata)
+
+        for idx in range(0,len(self.extra_repos)):
+            repolist.append({
+                "name": f"extra_{idx}",
+                "url": f"{self.extra_repos[idx]}"
+                })
 
         return repolist
 
