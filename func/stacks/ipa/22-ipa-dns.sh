@@ -19,7 +19,7 @@ klist | grep "admin@RLIPA.LOCAL" &> /dev/null
 r_checkExitStatus $?
 
 r_log "ipa" "Adding testzone subdomain"
-ipa dnszone-add --name-server=rltest.rlipa.local. --admin-email=hostmaster.testzone.rlipa.local. testzone.rlipa.local &> /dev/null
+ipa dnszone-add --name-server=onyxtest.rlipa.local. --admin-email=hostmaster.testzone.rlipa.local. testzone.rlipa.local &> /dev/null
 r_checkExitStatus $?
 sleep 5
 
@@ -28,7 +28,7 @@ dig @localhost SOA testzone.rlipa.local | grep -q "status: NOERROR" &> /dev/null
 r_checkExitStatus $?
 
 r_log "ipa" "Adding a CNAME record to the primary domain"
-ipa dnsrecord-add rlipa.local testrecord --cname-hostname=rltest &> /dev/null
+ipa dnsrecord-add rlipa.local testrecord --cname-hostname=onyxtest &> /dev/null
 r_checkExitStatus $?
 sleep 5
 
@@ -37,7 +37,7 @@ dig @localhost CNAME testrecord.rlipa.local | grep -q "status: NOERROR" &> /dev/
 r_checkExitStatus $?
 
 r_log "ipa" "Adding a CNAME to subdomain"
-ipa dnsrecord-add testzone.rlipa.local testrecord --cname-hostname=rltest.rlipa.local. &> /dev/null
+ipa dnsrecord-add testzone.rlipa.local testrecord --cname-hostname=onyxtest.rlipa.local. &> /dev/null
 r_checkExitStatus $?
 sleep 5
 

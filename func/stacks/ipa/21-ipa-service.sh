@@ -19,15 +19,15 @@ klist | grep "admin@RLIPA.LOCAL" &> /dev/null
 r_checkExitStatus $?
 
 r_log "ipa" "Adding test service"
-ipa service-add testservice/rltest.rlipa.local &> /dev/null
+ipa service-add testservice/onyxtest.rlipa.local &> /dev/null
 r_checkExitStatus $?
 
 r_log "ipa" "Getting keytab for service"
-ipa-getkeytab -s rltest.rlipa.local -p testservice/rltest.rlipa.local -k /tmp/testservice.keytab &> /dev/null
+ipa-getkeytab -s onyxtest.rlipa.local -p testservice/onyxtest.rlipa.local -k /tmp/testservice.keytab &> /dev/null
 r_checkExitStatus $?
 
 r_log "ipa" "Getting a certificate for service"
-ipa-getcert request -K testservice/rltest.rlipa.local -D rltest.rlipa.local -f /etc/pki/tls/certs/testservice.crt -k /etc/pki/tls/private/testservice.key &> /dev/null
+ipa-getcert request -K testservice/onyxtest.rlipa.local -D onyxtest.rlipa.local -f /etc/pki/tls/certs/testservice.crt -k /etc/pki/tls/private/testservice.key &> /dev/null
 r_checkExitStatus $?
 
 while true; do
@@ -49,7 +49,7 @@ while ! stat /etc/pki/tls/certs/testservice.crt &> /dev/null; do
 done
 
 r_log "ipa" "Verifying keytab"
-klist -k /tmp/testservice.keytab | grep "testservice/rltest.rlipa.local" &> /dev/null
+klist -k /tmp/testservice.keytab | grep "testservice/onyxtest.rlipa.local" &> /dev/null
 r_checkExitStatus $?
 
 r_log "ipa" "Verifying key matches the certificate"
