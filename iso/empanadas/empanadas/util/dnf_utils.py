@@ -74,11 +74,15 @@ class RepoSync:
         # Relevant config items
         self.major_version = major
         self.date_stamp = config['date_stamp']
+        self.timestamp = time.time()
         self.repo_base_url = config['repo_base_url']
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
         self.profile = rlvars['profile']
         self.iso_map = rlvars['iso_map']
+        self.distname = config['distname']
+        self.fullname = rlvars['fullname']
+        self.shortname = config['shortname']
 
         # Relevant major version items
         self.shortname = config['shortname']
@@ -939,6 +943,11 @@ class RepoSync:
         overwritten by our ISO process, which is fine. If there is a treeinfo
         found, it will be skipped.
         """
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Deploying treeinfo, discinfo, and media.repo'
+        )
+
         arches_to_tree = self.arches
         if arch:
             arches_to_tree = [arch]
@@ -948,6 +957,205 @@ class RepoSync:
             repos_to_tree = [repo]
 
         # If a treeinfo or discinfo file exists, it should be skipped.
+        for r in repos_to_tree:
+            entry_name_list = []
+            repo_name = r
+            arch_tree = arches_to_tree.copy()
+
+            if r in self.repo_renames:
+                repo_name = self.repo_renames[r]
+
+            # I feel it's necessary to make sure even i686 has .treeinfo and
+            # .discinfo, just for consistency.
+            if 'all' in r and 'x86_64' in arches_to_tree and self.multilib:
+                arch_tree.append('i686')
+
+            for a in arch_tree:
+                os_tree_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'os/.treeinfo'
+                )
+
+                os_disc_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'os/.discinfo'
+                )
+
+                os_media_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'os/media.repo'
+                )
+
+                if not os.path.exists(os_tree_path):
+                    Shared.treeinfo_new_write(
+                            os_tree_path,
+                            self.distname,
+                            self.shortname,
+                            self.fullversion,
+                            a,
+                            self.timestamp,
+                            repo_name
+                    )
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' ' + a + 'os .treeinfo already exists'
+                    )
+
+                if not os.path.exists(os_disc_path):
+                    Shared.discinfo_write(
+                            self.timestamp,
+                            self.fullname,
+                            a,
+                            os_disc_path
+                    )
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' ' + a + 'os .discinfo already exists'
+                    )
+
+                if not os.path.exists(os_media_path):
+                    Shared.media_repo_write(
+                            self.timestamp,
+                            self.fullname,
+                            os_media_path
+                    )
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' ' + a + 'os media.repo already exists'
+                    )
+
+                if not self.ignore_debug:
+                    debug_tree_path = os.path.join(
+                            sync_root,
+                            repo_name,
+                            a,
+                            'debug/tree/.treeinfo'
+                    )
+
+                    debug_disc_path = os.path.join(
+                            sync_root,
+                            repo_name,
+                            a,
+                            'debug/tree/.discinfo'
+                    )
+
+                    debug_media_path = os.path.join(
+                            sync_root,
+                            repo_name,
+                            a,
+                            'debug/tree/media.repo'
+                    )
+
+                    if not os.path.exists(debug_tree_path):
+                        Shared.treeinfo_new_write(
+                                debug_tree_path,
+                                self.distname,
+                                self.shortname,
+                                self.fullversion,
+                                a,
+                                self.timestamp,
+                                repo_name
+                        )
+                    else:
+                        self.log.warn(
+                                '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                                r + ' ' + a + 'debug .treeinfo already exists'
+                        )
+
+                    if not os.path.exists(debug_disc_path):
+                        Shared.discinfo_write(
+                                self.timestamp,
+                                self.fullname,
+                                a,
+                                debug_disc_path
+                        )
+                    else:
+                        self.log.warn(
+                                '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                                r + ' ' + a + 'debug .discinfo already exists'
+                        )
+
+                    if not os.path.exists(debug_media_path):
+                        Shared.media_repo_write(
+                                self.timestamp,
+                                self.fullname,
+                                debug_media_path
+                        )
+                    else:
+                        self.log.warn(
+                                '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                                repo_name + ' ' + a + 'debug media.repo already exists'
+                        )
+
+
+            if not self.ignore_source:
+                source_tree_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        'source/tree/.treeinfo'
+                )
+
+                source_disc_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        'source/tree/.discinfo'
+                )
+
+                source_media_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        'source/tree/media.repo'
+                )
+
+                if not os.path.exists(source_tree_path):
+                    Shared.treeinfo_new_write(
+                            source_tree_path,
+                            self.distname,
+                            self.shortname,
+                            self.fullversion,
+                            'src',
+                            self.timestamp,
+                            repo_name
+                    )
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' source os .treeinfo already exists'
+                    )
+
+                if not os.path.exists(source_disc_path):
+                    Shared.discinfo_write(
+                            self.timestamp,
+                            self.fullname,
+                            'src',
+                            source_disc_path
+                    )
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' source .discinfo already exists'
+                    )
+
+                if not os.path.exists(source_media_path):
+                    Shared.media_repo_write(
+                            self.timestamp,
+                            self.fullname,
+                            source_media_path
+                    )
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' source media.repo already exists'
+                    )
 
     def run_compose_closeout(self):
         """
