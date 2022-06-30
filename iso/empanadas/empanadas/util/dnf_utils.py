@@ -947,6 +947,16 @@ class RepoSync:
         if repo and not self.fullrun:
             repos_to_tree = [repo]
 
+        # If a treeinfo or discinfo file exists, it should be skipped.
+
+    def run_compose_closeout(self):
+        """
+        Closes out a compose as file. This ensures kickstart repositories are
+        made, the treeinfo is modifed for the primary repository, syncs
+        work/isos to compose/isos, and combines all checksum files per arch
+        into a final CHECKSUM file.
+        """
+
 
 class SigRepoSync:
     """
