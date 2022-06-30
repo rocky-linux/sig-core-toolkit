@@ -22,6 +22,7 @@ parser.add_argument('--dry-run', action='store_true')
 parser.add_argument('--full-run', action='store_true')
 parser.add_argument('--no-fail', action='store_true')
 parser.add_argument('--refresh-extra-files', action='store_true')
+parser.add_argument('--refresh-treeinfo', action='store_true')
 # I am aware this is confusing, I want podman to be the default option
 parser.add_argument('--simple', action='store_false')
 parser.add_argument('--logger', type=str)
@@ -52,6 +53,7 @@ a = RepoSync(
         nofail=results.no_fail,
         logger=results.logger,
         refresh_extra_files=results.refresh_extra_files,
+        refresh_treeinfo=results.refresh_treeinfo,
 )
 
 def run():
