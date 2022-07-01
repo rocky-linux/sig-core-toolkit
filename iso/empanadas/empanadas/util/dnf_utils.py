@@ -981,7 +981,7 @@ class RepoSync:
         if not os.path.exists(metadata_dir):
             os.makedirs(metadata_dir, exist_ok=True)
 
-        with open(metadata_dir + '/COMPOSE_ID') as f:
+        with open(metadata_dir + '/COMPOSE_ID', "w+") as f:
             f.write(self.compose_id)
             f.close()
 
