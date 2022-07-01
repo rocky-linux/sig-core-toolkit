@@ -340,7 +340,7 @@ class RepoSync:
 
                 entry_name_list.append(entry_name)
 
-                if not self.ignore_debug:
+                if not self.ignore_debug and not a == 'source':
                     entry_name_list.append(debug_entry_name)
 
                 entry_point_sh = os.path.join(
@@ -444,7 +444,8 @@ class RepoSync:
                 os.chmod(debug_entry_point_sh, 0o755)
 
             # We ignoring sources?
-            if not self.ignore_source:
+            if (not self.ignore_source and not arch) or (
+                    not self.ignore_source and arch == 'source'):
                 source_entry_name = '{}-source'.format(r)
                 entry_name_list.append(source_entry_name)
 
@@ -1034,6 +1035,9 @@ class RepoSync:
                 arch_tree.append('i686')
 
             for a in arch_tree:
+                if a == 'source':
+                    continue
+
                 os_tree_path = os.path.join(
                         sync_root,
                         repo_name,
@@ -1096,7 +1100,7 @@ class RepoSync:
                             repo_name + ' ' + a + ' os media.repo already exists'
                     )
 
-                if not self.ignore_debug:
+                if not self.ignore_debug and not a == 'source':
                     debug_tree_path = os.path.join(
                             sync_root,
                             repo_name,
@@ -1160,7 +1164,7 @@ class RepoSync:
                         )
 
 
-            if not self.ignore_source:
+            if not self.ignore_source and not arch:
                 source_tree_path = os.path.join(
                         sync_root,
                         repo_name,
