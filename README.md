@@ -15,7 +15,7 @@ What does this have?
 * iso -> ISO and Compose related utilities, primarily for Rocky Linux 9+
 * live -> Live image related utilities
 * mangle -> Manglers and other misc stuff
-* sync -> Sync tools, primarily for Rocky Linux 8
+* sync -> Sync tools, primarily for Rocky Linux 8 and will eventually be deprecated
 
 How can I help?
 ---------------
@@ -26,7 +26,7 @@ when you make changes:
 * Have pre-commit installed
 * Have shellcheck installed
 * Shell Scripts: These must pass a shellcheck test!
-* Python scripts: Try your best to follow PEP8 guidelines
+* Python scripts: Try your best to follow PEP8 guidelines (even the best linters get things wrong)
 
 Your PR should be against the devel branch at all times. PR's against the main
 branch will be closed.

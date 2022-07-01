@@ -135,7 +135,10 @@ class IsoBuild:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-Rocky-{}".format(self.profile)
+                "latest-{}-{}".format(
+                    self.shortname,
+                    self.profile
+                )
         )
 
         self.compose_latest_sync = os.path.join(

@@ -22,6 +22,16 @@ if [ $ret_val -eq "0" ]; then
   sudo -l && find ** -maxdepth 0 -type l | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
       {} "${TARGET}"
 
+  # Temporary until empanadas has this support
+  if [ -f "COMPOSE_ID" ]; then
+    cp COMPOSE_ID "${TARGET}"
+    chown 10004:10005 "${TARGET}/COMPOSE_ID"
+  fi
+
+  if [ -d "metadata" ]; then
+    rsync -av --chown=10004:10005 --progress --relative --human-readable metadata "${TARGET}"
+  fi
+
   # Full file list update
   cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
   # Hardlink everything except xml files

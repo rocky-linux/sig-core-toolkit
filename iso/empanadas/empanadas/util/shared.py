@@ -1,6 +1,7 @@
 # These are shared utilities used
 
 import os
+import json
 import hashlib
 import productmd.treeinfo
 
@@ -107,6 +108,37 @@ class Shared:
         the case of modifying treeinfo for primary repos or images.
         """
 
+    @staticmethod
+    def write_metadata(
+            timestamp,
+            datestamp,
+            fullname,
+            release,
+            compose_id,
+            file_path
+    ):
+
+        metadata = {
+                "header": {
+                    "name": "empanadas",
+                    "version": "0.2.0",
+                    "type": "toolkit",
+                    "maintainer": "SIG/Core"
+                },
+                "payload": {
+                    "compose": {
+                        "date": datestamp,
+                        "id": compose_id,
+                        "fullname": fullname,
+                        "release": release,
+                        "timestamp": timestamp
+                    }
+                }
+        }
+
+        with open(file_path, "w+") as f:
+            json.dump(metadata, f)
+            f.close()
 
     @staticmethod
     def discinfo_write(timestamp, fullname, arch, file_path):

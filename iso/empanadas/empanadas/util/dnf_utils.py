@@ -97,6 +97,12 @@ class RepoSync:
         self.extra_files = rlvars['extra_files']
         self.gpgkey = gpgkey
 
+        self.compose_id = '{}-{}-{}'.format(
+                config['shortname'],
+                rlvars['revision'],
+                config['date_stamp']
+        )
+
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
         self.tmplenv = Environment(loader=file_loader)
@@ -119,7 +125,10 @@ class RepoSync:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-Rocky-{}".format(self.profile)
+                "latest-{}-{}".format(
+                    self.shortname,
+                    self.profile
+                )
         )
 
         self.compose_latest_sync = os.path.join(
@@ -224,7 +233,7 @@ class RepoSync:
         self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
 
         if self.fullrun:
-            self.deploy_extra_files(global_work_root)
+            self.deploy_extra_files(sync_root, global_work_root)
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
             self.symlink_to_latest(generated_dir)
 
@@ -232,10 +241,12 @@ class RepoSync:
             self.repoclosure_work(sync_root, work_root, log_root)
 
         if self.refresh_extra_files and not self.fullrun:
-            self.deploy_extra_files(global_work_root)
+            self.deploy_extra_files(sync_root, global_work_root)
 
         if self.refresh_treeinfo and not self.fullrun:
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
+
+        self.deploy_metadata(sync_root)
 
         self.log.info('Compose repo directory: %s' % sync_root)
         self.log.info('Compose logs: %s' % log_root)
@@ -576,7 +587,11 @@ class RepoSync:
         """
         compose_base_dir = os.path.join(
                 self.compose_base,
-                "Rocky-{}-{}".format(self.fullversion, self.date_stamp)
+                "{}-{}-{}".format(
+                    self.shortname,
+                    self.fullversion,
+                    self.date_stamp
+                )
         )
         self.log.info('Creating compose directory %s' % compose_base_dir)
         if not os.path.exists(compose_base_dir):
@@ -872,7 +887,7 @@ class RepoSync:
             for issue in bad_exit_list:
                 self.log.error(issue)
 
-    def deploy_extra_files(self, global_work_root):
+    def deploy_extra_files(self, sync_root, global_work_root):
         """
         deploys extra files based on info of rlvars including a
         extra_files.json
@@ -880,19 +895,26 @@ class RepoSync:
         might also deploy COMPOSE_ID and maybe in the future a metadata dir with
         a bunch of compose-esque stuff.
         """
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Deploying treeinfo, discinfo, and media.repo'
+        )
+
         cmd = self.git_cmd()
         tmpclone = '/tmp/clone'
         extra_files_dir = os.path.join(
                 global_work_root,
                 'extra-files'
         )
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Deploying extra files to work directory ...'
+        metadata_dir = os.path.join(
+                sync_root,
+                "metadata"
         )
-
         if not os.path.exists(extra_files_dir):
             os.makedirs(extra_files_dir, exist_ok=True)
+
+        if not os.path.exists(metadata_dir):
+            os.makedirs(metadata_dir, exist_ok=True)
 
         clonecmd = '{} clone {} -b {} -q {}'.format(
                 cmd,
@@ -907,6 +929,11 @@ class RepoSync:
                 stderr=subprocess.DEVNULL
         )
 
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Deploying extra files to work and metadata directories ...'
+        )
+
         # Copy files to work root
         for extra in self.extra_files['list']:
             src = '/tmp/clone/' + extra
@@ -915,6 +942,7 @@ class RepoSync:
             # exist on our mirrors.
             try:
                 shutil.copy2(src, extra_files_dir)
+                shutil.copy2(src, metadata_dir)
             except:
                 self.log.warn(
                         '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -930,14 +958,47 @@ class RepoSync:
                     e.strerror
             )
 
+    def deploy_metadata(self, sync_root):
+        """
+        Deploys metadata that defines information about the compose. Some data
+        will be close to how pungi produces it, but it won't be exact nor a
+        perfect replica.
+        """
+        self.log.info(
+                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                'Deploying metadata for this compose'
+        )
         # Create metadata here
         # Create COMPOSE_ID here (this doesn't necessarily match anything, it's
         # just an indicator)
+        metadata_dir = os.path.join(
+                sync_root,
+                "metadata"
+        )
+
+        # It should already exist from a full run or refresh. This is just in
+        # case and it doesn't hurt.
+        if not os.path.exists(metadata_dir):
+            os.makedirs(metadata_dir, exist_ok=True)
+
+        with open(metadata_dir + '/COMPOSE_ID') as f:
+            f.write(self.compose_id)
+            f.close()
+
+        Shared.write_metadata(
+                self.timestamp,
+                self.date_stamp,
+                self.fullname,
+                self.fullversion,
+                self.compose_id,
+                metadata_dir + 'metadata.json'
+        )
 
         self.log.info(
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Extra files phase completed.'
+                'Metadata files phase completed.'
         )
+
 
     def deploy_treeinfo(self, repo, sync_root, arch):
         """
@@ -1181,6 +1242,7 @@ class SigRepoSync:
             major,
             repo=None,
             arch=None,
+            ignore_debug: bool = False,
             ignore_source: bool = False,
             repoclosure: bool = False,
             refresh_extra_files: bool = False,
@@ -1196,6 +1258,7 @@ class SigRepoSync:
         self.dryrun = dryrun
         self.fullrun = fullrun
         self.arch = arch
+        self.ignore_debug = ignore_debug
         self.ignore_source = ignore_source
         self.skip_all = skip_all
         self.hashed = hashed
@@ -1206,9 +1269,15 @@ class SigRepoSync:
         # Relevant config items
         self.major_version = major
         self.date_stamp = config['date_stamp']
+        self.timestamp = time.time()
         self.repo_base_url = config['repo_base_url']
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
+        self.profile = rlvars['profile']
+        self.iso_map = rlvars['iso_map']
+        self.distname = config['distname']
+        self.fullname = rlvars['fullname']
+        self.shortname = config['shortname']
 
         # Relevant major version items
         self.sigvars = sigvars
@@ -1216,6 +1285,10 @@ class SigRepoSync:
         #self.arches = sigvars['allowed_arches']
         #self.project_id = sigvars['project_id']
         self.sigrepo = repo
+
+        # Templates
+        file_loader = FileSystemLoader(f"{_rootdir}/templates")
+        self.tmplenv = Environment(loader=file_loader)
 
         # each el can have its own designated container to run stuff in,
         # otherwise we'll just default to the default config.
@@ -1235,7 +1308,7 @@ class SigRepoSync:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-Rocky-{}-SIG".format(major)
+                "latest-{}-{}-SIG".format(self.shortname, major)
         )
 
         self.compose_latest_sync = os.path.join(

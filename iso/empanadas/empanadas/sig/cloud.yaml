@@ -12,6 +12,13 @@ cloud:
         - x86_64
       project_id: ''
   '9':
+    cloud-kernel:
+      project_id: ''
+      allowed_arches:
+        - aarch64
+        - x86_64
+        - ppc64le
+        - s390x
     cloud-common:
       project_id: ''
       allowed_arches:
