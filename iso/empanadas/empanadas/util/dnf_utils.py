@@ -988,10 +988,10 @@ class RepoSync:
         Shared.write_metadata(
                 self.timestamp,
                 self.date_stamp,
-                self.fullname,
+                self.distname,
                 self.fullversion,
                 self.compose_id,
-                metadata_dir + 'metadata.json'
+                metadata_dir + '/metadata'
         )
 
         self.log.info(

@@ -3,6 +3,7 @@
 import os
 import json
 import hashlib
+import yaml
 import productmd.treeinfo
 
 class ArchCheck:
@@ -136,9 +137,13 @@ class Shared:
                 }
         }
 
-        with open(file_path, "w+") as f:
-            json.dump(metadata, f)
-            f.close()
+        with open(file_path + ".json", "w+") as fp:
+            json.dump(metadata, fp, indent=4)
+            fp.close()
+
+        with open(file_path + ".yaml", "w+") as yp:
+            yaml.dump(metadata, yp)
+            yp.close()
 
     @staticmethod
     def discinfo_write(timestamp, fullname, arch, file_path):
