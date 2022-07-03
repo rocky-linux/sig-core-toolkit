@@ -29,6 +29,7 @@ build-iso-extra = "empanadas.scripts.build_iso_extra:run"
 pull-unpack-tree = "empanadas.scripts.pull_unpack_tree:run"
 launch-builds = "empanadas.scripts.launch_builds:run"
 build-image = "empanadas.scripts.build_image:run"
+finalize_compose = "empanadas.scripts.finalize_compose:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
