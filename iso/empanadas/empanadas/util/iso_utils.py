@@ -1156,7 +1156,7 @@ class IsoBuild:
         to the compose directories. It's the same as if you were doing a
         reposync of the repositories.
         """
-        cmd = self.podman_cmd()
+        cmd = Shared.podman_cmd(self.log)
         entries_dir = os.path.join(work_root, "entries")
         isos_dir = os.path.join(work_root, "isos")
         bad_exit_list = []
@@ -1765,24 +1765,6 @@ class IsoBuild:
 
         returned_cmd = ' '.join(cmd)
         return returned_cmd
-
-    def podman_cmd(self) -> str:
-        """
-        This generates the podman run command. This is in the case that we want
-        to do reposyncs in parallel as we cannot reasonably run multiple
-        instances of dnf reposync on a single system.
-        """
-        cmd = None
-        if os.path.exists("/usr/bin/podman"):
-            cmd = "/usr/bin/podman"
-        else:
-            self.log.error('/usr/bin/podman was not found. Good bye.')
-            raise SystemExit("\n\n/usr/bin/podman was not found.\n\nPlease "
-                    " ensure that you have installed the necessary packages on "
-                    " this system. " + Color.BOLD + "Note that docker is not "
-                    "supported." + Color.END
-            )
-        return cmd
 
 class LiveBuild:
     """
