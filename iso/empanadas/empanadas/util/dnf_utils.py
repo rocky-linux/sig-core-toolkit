@@ -173,7 +173,8 @@ class RepoSync:
 
          * Dry runs only create initial directories and structure
          * Full runs sync everything from the top and setup structure,
-           including creating a symlink to latest-Rocky-X
+           including creating a symlink to latest-Rocky-X and creating the
+           kickstart directories
          * self.repo is ignored during full runs (noted in stdout)
          * self.arch being set will force only that arch to sync
         """

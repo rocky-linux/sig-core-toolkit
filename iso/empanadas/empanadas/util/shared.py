@@ -86,7 +86,8 @@ class Shared:
         """
         Writes really basic treeinfo, this is for single repository treeinfo
         data. This is usually called in the case of a fresh run and each repo
-        needs one.
+        needs one. This basic info may be overwritten later either by lorax
+        data or a full run.
         """
         ti = productmd.treeinfo.TreeInfo()
         ti.release.name = distname
