@@ -3,6 +3,8 @@
 # under extreme circumstances should you be filling this out and running
 # manually.
 
+set -o pipefail
+
 # Vars
 MOCK_CFG="/var/tmp/lorax-{{ major }}.cfg"
 MOCK_ROOT="/var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}"

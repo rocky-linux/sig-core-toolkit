@@ -2,5 +2,26 @@ These set of repositories (or "compose") is for {{ fullname }} and was generated
 using Empanadas {{ version }} from the SIG/Core Toolkit.
 
 As this is not a traditional compose, there will be things that you might be
-expecting and do not see, or not expecting and do see.. While we attempted to
-recreate a lot of those elements, it's not perfect.
+expecting and do not see, or not expecting and do see. While we attempted to
+recreate a lot of those elements, it's not perfect. In the future, we do plan on
+having more metadata and providing a client libraries that can ingest this type
+of metadata that we produce for easy consumption.
+
+# Notes #
+
+## Checksums ##
+
+CHECKSUM Validation: https://github.com/rocky-linux/checksums
+
+Traditionally, we would to "sign" the checksum files with the current GPG key
+of a major release. However, due to how the new build system operates and for
+ensuring strong security within the build system as it pertains the signing
+keys, this is no longer possible. It was determined by SIG/Core or Release
+Engineering to instead provide verified signed commits using our keys with
+RESF/Rocky Linux email domain names to a proper git repository.
+
+With that being said, if you are looking for "verification" of the ISO
+checksums, it is highly recommended to visit the link above.
+
+These are *always* updated with new releases or new images. This includes
+live images as we release them.

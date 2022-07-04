@@ -15,11 +15,11 @@ import tarfile
 import shutil
 
 # lazy person's s3 parser
-import requests
-import json
-import xmltodict
+#import requests
+#import json
+#import xmltodict
 # if we can access s3
-import boto3
+#import boto3
 # relative_path, compute_file_checksums
 import kobo.shortcuts
 from fnmatch import fnmatch
@@ -122,8 +122,8 @@ class IsoBuild:
         self.s3_bucket = config['bucket']
         self.s3_bucket_url = config['bucket_url']
 
-        if s3:
-            self.s3 = boto3.client('s3')
+        #if s3:
+        #    self.s3 = boto3.client('s3')
 
         # arch specific
         self.hfs_compat = hfs_compat
@@ -352,9 +352,21 @@ class IsoBuild:
                 'Determining the latest pulls...'
         )
         if self.s3:
-            latest_artifacts = self._s3_determine_latest()
+            latest_artifacts = Shared.s3_determine_latest(
+                    self.s3_bucket,
+                    self.release,
+                    self.arches,
+                    'tar.gz',
+                    self.log
+            )
         else:
-            latest_artifacts = self._reqs_determine_latest()
+            latest_artifacts = Shared.reqs_determine_latest(
+                    self.s3_bucket_url,
+                    self.release,
+                    self.arches,
+                    'tar.gz',
+                    self.log
+            )
 
         self.log.info(
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
@@ -381,16 +393,20 @@ class IsoBuild:
                     'Downloading artifact for ' + Color.BOLD + arch + Color.END
             )
             if self.s3:
-                self._s3_download_artifacts(
+                Shared.s3_download_artifacts(
                         self.force_download,
+                        self.s3_bucket,
                         source_path,
-                        full_drop
+                        full_drop,
+                        self.log
                 )
             else:
-                self._reqs_download_artifacts(
+                Shared.reqs_download_artifacts(
                         self.force_download,
+                        self.s3_bucket_url,
                         source_path,
-                        full_drop
+                        full_drop,
+                        self.log
                 )
         self.log.info(
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
@@ -463,111 +479,6 @@ class IsoBuild:
                             'Syncing repo data and images for %s%s%s' % (Color.BOLD, variant, Color.END)
                     )
                     self._copy_nondisc_to_repo(self.force_unpack, arch, variant)
-
-
-    def _s3_determine_latest(self):
-        """
-        Using native s3, determine the latest artifacts and return a dict
-        """
-        temp = []
-        data = {}
-        try:
-            self.s3.list_objects(Bucket=self.s3_bucket)['Contents']
-        except:
-            self.log.error(
-                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                        'Cannot access s3 bucket.'
-            )
-            raise SystemExit()
-
-        for y in self.s3.list_objects(Bucket=self.s3_bucket)['Contents']:
-            if 'tar.gz' in y['Key'] and self.release in y['Key']:
-                temp.append(y['Key'])
-
-        for arch in self.arches:
-            temps = []
-            for y in temp:
-                if arch in y:
-                    temps.append(y)
-            temps.sort(reverse=True)
-            data[arch] = temps[0]
-
-        return data
-
-    def _s3_download_artifacts(self, force_download, source, dest):
-        """
-        Download the requested artifact(s) via s3
-        """
-        if os.path.exists(dest):
-            if not force_download:
-                self.log.warn(
-                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                        'Artifact at ' + dest + ' already exists'
-                )
-                return
-
-        self.log.info('Downloading ({}) to: {}'.format(source, dest))
-        try:
-            self.s3.download_file(
-                    Bucket=self.s3_bucket,
-                    Key=source,
-                    Filename=dest
-            )
-        except:
-            self.log.error('There was an issue downloading from %s' % self.s3_bucket)
-
-    def _reqs_determine_latest(self):
-        """
-        Using requests, determine the latest artifacts and return a list
-        """
-        temp = []
-        data = {}
-
-        try:
-            bucket_data = requests.get(self.s3_bucket_url)
-        except requests.exceptions.RequestException as e:
-            self.log.error('The s3 bucket http endpoint is inaccessible')
-            raise SystemExit(e)
-
-        resp = xmltodict.parse(bucket_data.content)
-
-        for y in resp['ListBucketResult']['Contents']:
-            if 'tar.gz' in y['Key'] and self.release in y['Key']:
-                temp.append(y['Key'])
-
-        for arch in self.arches:
-            temps = []
-            for y in temp:
-                if arch in y:
-                    temps.append(y)
-            temps.sort(reverse=True)
-            data[arch] = temps[0]
-
-        return data
-
-    def _reqs_download_artifacts(self, force_download, source, dest):
-        """
-        Download the requested artifact(s) via requests only
-        """
-        if os.path.exists(dest):
-            if not force_download:
-                self.log.warn(
-                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                        'Artifact at ' + dest + ' already exists'
-                )
-                return
-        unurl = self.s3_bucket_url + '/' + source
-
-        self.log.info('Downloading ({}) to: {}'.format(source, dest))
-        try:
-            with requests.get(unurl, allow_redirects=True) as r:
-                with open(dest, 'wb') as f:
-                    f.write(r.content)
-                    f.close()
-                r.close()
-        except requests.exceptions.RequestException as e:
-            self.log.error('There was a problem downloading the artifact')
-            raise SystemExit(e)
 
     def _unpack_artifacts(self, force_unpack, arch, tarball):
         """
@@ -729,7 +640,8 @@ class IsoBuild:
         if not os.path.exists(pathway):
             self.log.error(
                     '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    'Repo and Image variant do NOT match'
+                    'Repo and Image variant either does NOT match or does ' +
+                    'NOT exist. Are you sure you have synced the repository?'
             )
 
         if not force_unpack:

@@ -6,7 +6,11 @@ import hashlib
 import shlex
 import subprocess
 import yaml
+import requests
+import boto3
+import xmltodict
 import productmd.treeinfo
+import empanadas
 from empanadas.common import Color
 
 class ArchCheck:
@@ -233,7 +237,7 @@ class Shared:
         metadata = {
                 "header": {
                     "name": "empanadas",
-                    "version": "0.2.0",
+                    "version": empanadas.__version__,
                     "type": "toolkit",
                     "maintainer": "SIG/Core"
                 },
@@ -507,3 +511,114 @@ class Shared:
         os.makedirs(dest, exist_ok=True)
 
         return 'Not available', 1
+
+    @staticmethod
+    def s3_determine_latest(s3_bucket, release, arches, filetype, logger):
+        """
+        Using native s3, determine the latest artifacts and return a dict
+        """
+        temp = []
+        data = {}
+        s3 = boto3.client('s3')
+
+        try:
+            s3.list_objects(Bucket=s3_bucket)['Contents']
+        except:
+            logger.error(
+                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                        'Cannot access s3 bucket.'
+            )
+            raise SystemExit()
+
+        for y in s3.list_objects(Bucket=s3_bucket)['Contents']:
+            if filetype in y['Key'] and release in y['Key']:
+                temp.append(y['Key'])
+
+        for arch in arches:
+            temps = []
+            for y in temp:
+                if arch in y:
+                    temps.append(y)
+            temps.sort(reverse=True)
+            data[arch] = temps[0]
+
+        return data
+
+    @staticmethod
+    def s3_download_artifacts(force_download, s3_bucket, source, dest, logger):
+        """
+        Download the requested artifact(s) via s3
+        """
+        s3 = boto3.client('s3')
+        if os.path.exists(dest):
+            if not force_download:
+                logger.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Artifact at ' + dest + ' already exists'
+                )
+                return
+
+        logger.info('Downloading ({}) to: {}'.format(source, dest))
+        try:
+            s3.download_file(
+                    Bucket=s3_bucket,
+                    Key=source,
+                    Filename=dest
+            )
+        except:
+            logger.error('There was an issue downloading from %s' % s3_bucket)
+
+    @staticmethod
+    def reqs_determine_latest(s3_bucket_url, release, arches, filetype, logger):
+        """
+        Using requests, determine the latest artifacts and return a list
+        """
+        temp = []
+        data = {}
+
+        try:
+            bucket_data = requests.get(s3_bucket_url)
+        except requests.exceptions.RequestException as e:
+            logger.error('The s3 bucket http endpoint is inaccessible')
+            raise SystemExit(e)
+
+        resp = xmltodict.parse(bucket_data.content)
+
+        for y in resp['ListBucketResult']['Contents']:
+            if filetype in y['Key'] and release in y['Key']:
+                temp.append(y['Key'])
+
+        for arch in arches:
+            temps = []
+            for y in temp:
+                if arch in y:
+                    temps.append(y)
+            temps.sort(reverse=True)
+            data[arch] = temps[0]
+
+        return data
+
+    @staticmethod
+    def reqs_download_artifacts(force_download, s3_bucket_url, source, dest, logger):
+        """
+        Download the requested artifact(s) via requests only
+        """
+        if os.path.exists(dest):
+            if not force_download:
+                logger.warn(
+                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                        'Artifact at ' + dest + ' already exists'
+                )
+                return
+        unurl = s3_bucket_url + '/' + source
+
+        logger.info('Downloading ({}) to: {}'.format(source, dest))
+        try:
+            with requests.get(unurl, allow_redirects=True) as r:
+                with open(dest, 'wb') as f:
+                    f.write(r.content)
+                    f.close()
+                r.close()
+        except requests.exceptions.RequestException as e:
+            logger.error('There was a problem downloading the artifact')
+            raise SystemExit(e)

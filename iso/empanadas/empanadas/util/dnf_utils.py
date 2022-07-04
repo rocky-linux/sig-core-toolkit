@@ -18,6 +18,7 @@ import json
 
 from jinja2 import Environment, FileSystemLoader
 
+import empanadas
 from empanadas.common import Color, _rootdir
 from empanadas.util import Shared
 
@@ -986,6 +987,17 @@ class RepoSync:
                 '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                 'Metadata files phase completed.'
         )
+
+        # Deploy README to metadata directory
+        readme_template = self.tmplenv.get_template('README.tmpl')
+        readme_output = readme_template.render(
+                fullname=self.fullname,
+                version=empanadas.__version__
+        )
+
+        with open(metadata_dir + '/README') as readme_file:
+            readme_file.write(readme_output)
+            readme_file.close()
 
 
     def deploy_treeinfo(self, repo, sync_root, arch):
