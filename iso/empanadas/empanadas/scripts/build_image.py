@@ -79,6 +79,7 @@ class ImageBuild:
     revision: Optional[int] = field()
     metadata: pathlib.Path = field(init=False)
     fedora_release: int = field()
+    release: int = field(default=0)
 
     def __attrs_post_init__(self):
         self.tdl_path = self.render_icicle_template()
@@ -122,7 +123,7 @@ class ImageBuild:
                     log.exception("Couldn't decode metadata file", e)
 
     def output_name(self):
-        return f"Rocky-{self.architecture.version}-{self.type_variant}.{BUILDTIME.strftime('%Y%m%d')}.{results.release if results.release else 0}.{self.architecture.name}"
+        return f"Rocky-{self.architecture.version}-{self.type_variant}.{BUILDTIME.strftime('%Y%m%d')}.{self.release}.{self.architecture.name}"
     
     def type_variant_name(self):
         return self.image_type if not self.variant else f"{self.image_type}-{self.variant.capitalize()}"
@@ -174,7 +175,7 @@ class ImageBuild:
                 iso8601date=BUILDTIME.strftime("%Y%m%d"),
                 installdir="kickstart" if results.kickstartdir else "os",
                 major=self.architecture.version,
-                release=results.release if results.release else 0,
+                release=self.release,
                 size="10G",
                 type=self.image_type,
                 utcnow=BUILDTIME,
@@ -211,15 +212,9 @@ class ImageBuild:
             return 0
 
         ret, out, err, uuid = self.runCmd(self.build_command()) 
-        if ret > 0:
-            #error in build command
-            log.error("Problem during build.")
-        if not uuid:
-            log.error("Build UUID not found in stdout. Dumping stdout and stderr")
-            self.log_subprocess(ret, out, err)
-            return ret
-        self.base_uuid = uuid.rstrip()
-        self.save()
+        if uuid:
+            self.base_uuid = uuid.rstrip()
+            self.save()
         return ret
 
     def package(self) -> int: 
@@ -231,14 +226,9 @@ class ImageBuild:
             return 0
 
         ret, out, err, uuid = self.runCmd(self.package_command())
-        if ret > 0:
-            log.error("Problem during packaging")
-        if not uuid:
-            log.error("Target Image UUID not found in stdout. Dumping stdout and stderr")
-            self.log_subprocess(ret, out, err)
-            return ret
-        self.target_uuid = uuid.rstrip()
-        self.save()
+        if uuid:
+            self.target_uuid = uuid.rstrip()
+            self.save()
         return ret
 
     def stage(self) -> int:
@@ -249,9 +239,6 @@ class ImageBuild:
         returns = []
         for command in self.stage_commands:
             ret, out, err, _ = self.runCmd(command, search=False)
-            if ret > 0:
-                log.error("Problem during unpack.")
-                self.log_subprocess(ret, out, err)
             returns.append(ret)
 
         return all(ret > 0 for ret in returns)
@@ -262,9 +249,6 @@ class ImageBuild:
             raise Exception(stage)
 
         ret, out, err, _ = self.runCmd(self.copy_command(), search=False) 
-        if ret > 0:
-            #error in build command
-            log.error("Problem during build.")
         return ret
 
     def runCmd(self, command: List[Union[str, Callable]], search: bool = True) -> Tuple[int, Union[IO[bytes],None], Union[IO[bytes],None], Union[str,None]]:
@@ -285,7 +269,15 @@ class ImageBuild:
                     if ln.startswith("UUID: "):
                         uuid = ln.split(" ")[-1]
                         log.debug(f"found uuid: {uuid}")
-            return p.wait(), p.stdout, p.stdin, uuid
+                
+            res = p.wait(), p.stdout, p.stdin, uuid
+            if res[0] > 0:
+                log.error(f"Problem while executing command: '{prepared}'")
+            if search and not res[3]:
+                log.error("UUID not found in stdout. Dumping stdout and stderr")
+                self.log_subprocess(res)
+
+            return res
 
     def prepare_command(self, command_list: List[Union[str, Callable]]) -> Tuple[List[str],List[None]]:
         """
@@ -300,14 +292,14 @@ class ImageBuild:
         r = []
         return r, [r.append(c()) if (callable(c) and c.__name__ == '<lambda>') else r.append(str(c)) for c in command_list]
 
-    def log_subprocess(self, return_code: int, stdout: Union[IO[bytes], None], stderr: Union[IO[bytes], None]):
+    def log_subprocess(self, result: Tuple[int, Union[IO[bytes], None], Union[IO[bytes], None], Union[str, None]]):
         def log_lines(title, lines):
             log.info(f"====={title}=====")
             for _, line in lines:
                 log.info(line.decode())
-        log.info(f"Command return code: {return_code}")
-        log_lines("Command STDOUT", enumerate(stdout)) # type: ignore
-        log_lines("Command STDERR", enumerate(stderr)) # type: ignore
+        log.info(f"Command return code: {result[0]}")
+        log_lines("Command STDOUT", enumerate(result[1])) # type: ignore
+        log_lines("Command STDERR", enumerate(result[2])) # type: ignore
 
     def render_kubernetes_job(self):
         commands = [self.build_command(), self.package_command(), self.copy_command()]
@@ -347,13 +339,14 @@ def run():
 
     for architecture in arches:
         IB = ImageBuild(
-                image_type=results.type, 
-                variant=results.variant,
                 architecture=Architecture.New(architecture, major),
-                template=tdl_template,
-                revision=rlvars['revision'],
+                debug=results.debug,
                 fedora_release=rlvars['fedora_release'],
-                debug=True
+                image_type=results.type, 
+                release=results.release if results.release else 0,
+                revision=rlvars['revision'],
+                template=tdl_template,
+                variant=results.variant,
         )
         if results.kube:
             IB.job_template = tmplenv.get_template('kube/Job.tmpl')
@@ -363,5 +356,4 @@ def run():
             ret = IB.build()
             ret = IB.package()
             ret = IB.copy()
-
 
