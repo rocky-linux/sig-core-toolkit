@@ -97,24 +97,35 @@ for conf in glob.iglob(f"{_rootdir}/sig/*.yaml"):
 #COMPOSE_ISO_WORKDIR = COMPOSE_ROOT + "work/" + arch + "/" + date_stamp
 
 
-def valid_type_variant(_type: str, variant: str="") -> Tuple[bool, str]:
-    ALLOWED_TYPE_VARIANTS = {
-            "Container": ["Base", "Minimal"],
-            "GenericCloud": [],
-    }
-
+ALLOWED_TYPE_VARIANTS = {
+        "Azure": None,
+        "Container": ["Base", "Minimal"],
+        "EC2": None,
+        "GenericCloud": None,
+        "Vagrant": ["Libvirt", "VBox"]
+}
+def valid_type_variant(_type: str, variant: str="") -> bool:
     if _type not in ALLOWED_TYPE_VARIANTS:
-        return False, f"Type is invalid: ({_type}, {variant})"
-    elif variant not in ALLOWED_TYPE_VARIANTS[_type]:
+        raise Exception(f"Type is invalid: ({_type}, {variant})")
+    if ALLOWED_TYPE_VARIANTS[_type] == None:
+        if variant is not None:
+            raise Exception(f"{_type} Type expects no variant type.")
+        return True
+    if variant not in ALLOWED_TYPE_VARIANTS[_type]:
         if variant.capitalize() in ALLOWED_TYPE_VARIANTS[_type]:
-            return False, f"Capitalization mismatch. Found: ({_type}, {variant}). Expected: ({_type}, {variant.capitalize()})"
-        return False, f"Type/Variant Combination is not allowed: ({_type}, {variant})"
-    return True, ""
+            raise Exception(f"Capitalization mismatch. Found: ({_type}, {variant}). Expected: ({_type}, {variant.capitalize()})")
+        raise Exception(f"Type/Variant Combination is not allowed: ({_type}, {variant})")
+    return True
 
-class Architecture(str):
-    @staticmethod
-    def New(architecture: str, version: int):
+from attrs import define, field
+@define
+class Architecture:
+    name: str = field()
+    version: str = field()
+
+    @classmethod
+    def New(cls, architecture: str, version: int):
         if architecture not in rldict[version]["allowed_arches"]:
             print("Invalid architecture/version combo, skipping")
             exit()
-        return Architecture(architecture)
+        return cls(architecture, version)
