@@ -1236,6 +1236,10 @@ class RepoSync:
 
         for v in variants_to_tweak:
             for a in arches_to_tree:
+                self.log.info(
+                        '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                        'Tweaking treeinfo for ' + a + ' ' + v
+                )
                 image = os.path.join(sync_root, v, a, 'os')
                 imagemap = self.iso_map['images'][v]
                 data = {
