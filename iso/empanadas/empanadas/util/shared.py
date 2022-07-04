@@ -505,3 +505,5 @@ class Shared:
         switches = '-av --chown=10004:10005 --progress --relative --human-readable'
 
         os.makedirs(dest, exist_ok=True)
+
+        return 'Not available', 1

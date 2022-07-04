@@ -1234,6 +1234,13 @@ class RepoSync:
             if r in self.iso_map['images']:
                 variants_to_tweak.append(r)
 
+        if not len(variants_to_tweak) > 0:
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                    'No treeinfo to tweak.'
+            )
+            return
+
         for a in arches_to_tree:
             for v in variants_to_tweak:
                 self.log.info(
@@ -1289,10 +1296,9 @@ class RepoSync:
 
     def run_compose_closeout(self):
         """
-        Closes out a compose as file. This ensures kickstart repositories are
-        made, the treeinfo is modifed for the primary repository, syncs
-        work/isos to compose/isos, and combines all checksum files per arch
-        into a final CHECKSUM file.
+        Closes out a compose. This ensures the ISO's are synced from work/isos
+        to compose/isos, checks for live media and syncs as well from work/live
+        to compose/live, deploys final metadata.
         """
         # latest-X-Y should exist at all times for this to work.
         work_root = os.path.join(
@@ -1332,6 +1338,11 @@ class RepoSync:
                 "isos"
         )
 
+        live_root = os.path.join(
+                work_root,
+                "live"
+        )
+
         global_work_root = os.path.join(
                 work_root,
                 "global",
@@ -1365,6 +1376,32 @@ class RepoSync:
                     '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                     message
             )
+
+        if os.path.exists(live_root):
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                    'Starting to sync live images to compose'
+            )
+
+            if os.path.exists('/usr/bin/fpsync'):
+                message, ret = Shared.fpsync_method(iso_root, sync_iso_root, tmp_dir)
+            elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
+                message, ret = Shared.rsync_method(iso_root, sync_iso_root)
+
+            if ret != 0:
+                self.log.error(
+                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                        message
+                )
+            else:
+                self.log.info(
+                        '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                        message
+                )
+
+        # Combine all checksums here
+        # Deploy final metadata for a close out
+        self.deploy_metadata(sync_root)
 
 class SigRepoSync:
     """
