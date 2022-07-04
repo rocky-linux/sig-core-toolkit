@@ -5,17 +5,16 @@ import argparse
 import datetime
 import json
 import logging
-import subprocess
-import sys
-import time
 import os
-import tempfile
 import pathlib
 import platform
+import subprocess
+import sys
+import tempfile
+import time
 
-from botocore import args
 from attrs import define, Factory, field, asdict
-
+from botocore import args
 from jinja2 import Environment, FileSystemLoader, Template
 from typing import Callable, List, NoReturn, Optional, Tuple, IO, Union
 
@@ -60,26 +59,27 @@ BUILDTIME = datetime.datetime.utcnow()
 class ImageBuild:
     architecture: Architecture = field()
     base_uuid: Optional[str] = field(default="")
+    cli_args: argparse.Namespace = field()
     command_args: List[str] = field(factory=list)
     common_args: List[str] = field(factory=list)
     debug: bool = field(default=False)
+    fedora_release: int = field()
     image_type: str = field()
     job_template: Optional[Template] = field(init=False)
     kickstart_arg: List[str] = field(factory=list)
+    metadata: pathlib.Path = field(init=False)
     out_type: str = field(init=False)
     outdir: pathlib.Path = field(init=False) 
     outname: str = field(init=False)
     package_args: List[str] = field(factory=list)
+    release: int = field(default=0)
+    revision: Optional[int] = field()
+    stage_commands: Optional[List[List[Union[str,Callable]]]] = field(init=False)
     target_uuid: Optional[str] = field(default="")
     tdl_path: pathlib.Path = field(init=False)
     template: Template = field()
     type_variant: str = field(init=False) 
-    stage_commands: Optional[List[List[Union[str,Callable]]]] = field(init=False)
     variant: Optional[str] = field()
-    revision: Optional[int] = field()
-    metadata: pathlib.Path = field(init=False)
-    fedora_release: int = field()
-    release: int = field(default=0)
 
     def __attrs_post_init__(self):
         self.tdl_path = self.render_icicle_template()
@@ -121,6 +121,8 @@ class ImageBuild:
                     self.target_uuid = o['target_uuid']
                 except json.decoder.JSONDecodeError as e:
                     log.exception("Couldn't decode metadata file", e)
+                finally:
+                    f.flush()
 
     def output_name(self):
         return f"Rocky-{self.architecture.version}-{self.type_variant}.{BUILDTIME.strftime('%Y%m%d')}.{self.release}.{self.architecture.name}"
@@ -132,10 +134,10 @@ class ImageBuild:
         args_mapping = {
             "debug": "--debug" 
         }
-        return [param for name, param in args_mapping.items() if getattr(results,name)]
+        return [param for name, param in args_mapping.items() if getattr(self.cli_args, name)]
 
     def _package_args(self) -> List[str]:
-        if results.type == "Container":
+        if self.image_type == "Container":
             return ["--parameter", "compress", "xz"]
         return [""]
 
@@ -143,7 +145,7 @@ class ImageBuild:
         args = []
         if self.image_type == "Container":
             args = ["--parameter", "offline_icicle", "true"]
-        if self.image_type == "GenericCloud":
+        if self.image_type in ["GenericCloud", "EC2"]:
             args = ["--parameter", "generate_icicle", "false"]
         return args
 
@@ -173,7 +175,7 @@ class ImageBuild:
                 architecture=self.architecture.name,
                 fedora_version=self.fedora_release,
                 iso8601date=BUILDTIME.strftime("%Y%m%d"),
-                installdir="kickstart" if results.kickstartdir else "os",
+                installdir="kickstart" if self.cli_args.kickstartdir else "os",
                 major=self.architecture.version,
                 release=self.release,
                 size="10G",
@@ -183,7 +185,11 @@ class ImageBuild:
             )
             tmp.write(_template.encode())
             tmp.flush()
-        return pathlib.Path(output)
+        output = pathlib.Path(output)
+        if not output.exists():
+            log.error("Failed to write TDL template")
+            raise Exception("Failed to write TDL template")
+        return output
 
     def build_command(self) -> List[str]:
         build_command = ["imagefactory", *self.command_args, "base_image", *self.common_args, *self.kickstart_arg, self.tdl_path
@@ -219,6 +225,7 @@ class ImageBuild:
 
     def package(self) -> int: 
         # Some build types don't need to be packaged by imagefactory
+        # @TODO remove business logic if possible
         if self.image_type == "GenericCloud":
             self.target_uuid = self.base_uuid if hasattr(self, 'base_uuid') else ""
 
@@ -243,15 +250,21 @@ class ImageBuild:
 
         return all(ret > 0 for ret in returns)
 
-    def copy(self) -> int:
+    def copy(self, skip=False) -> int:
         # move or unpack if necessary
+        log.info("Executing staging commands")
         if (stage := self.stage() > 0):
             raise Exception(stage)
 
-        ret, out, err, _ = self.runCmd(self.copy_command(), search=False) 
-        return ret
+        if not skip:
+            log.info("Copying files to output directory")
+            ret, out, err, _ = self.runCmd(self.copy_command(), search=False) 
+            return ret
 
-    def runCmd(self, command: List[Union[str, Callable]], search: bool = True) -> Tuple[int, Union[IO[bytes],None], Union[IO[bytes],None], Union[str,None]]:
+        log.info(f"Build complete! Output available in {self.outdir}/")
+        return 0
+
+    def runCmd(self, command: List[Union[str, Callable]], search: bool = True) -> Tuple[int, Union[bytes,None], Union[bytes,None], Union[str,None]]:
         prepared, _ = self.prepare_command(command)
         log.info(f"Running command: {' '.join(prepared)}")
 
@@ -263,6 +276,7 @@ class ImageBuild:
 
         with subprocess.Popen(prepared,  **kwargs) as p:
             uuid = None
+            # @TODO implement this as a callback?
             if search:
                 for _, line in enumerate(p.stdout): # type: ignore
                     ln = line.decode()
@@ -270,12 +284,14 @@ class ImageBuild:
                         uuid = ln.split(" ")[-1]
                         log.debug(f"found uuid: {uuid}")
                 
-            res = p.wait(), p.stdout, p.stdin, uuid
+            out, err = p.communicate()
+            res = p.wait(), out, err, uuid
+
             if res[0] > 0:
                 log.error(f"Problem while executing command: '{prepared}'")
             if search and not res[3]:
                 log.error("UUID not found in stdout. Dumping stdout and stderr")
-                self.log_subprocess(res)
+            self.log_subprocess(res)
 
             return res
 
@@ -292,14 +308,17 @@ class ImageBuild:
         r = []
         return r, [r.append(c()) if (callable(c) and c.__name__ == '<lambda>') else r.append(str(c)) for c in command_list]
 
-    def log_subprocess(self, result: Tuple[int, Union[IO[bytes], None], Union[IO[bytes], None], Union[str, None]]):
+    def log_subprocess(self, result: Tuple[int, Union[bytes, None], Union[bytes, None], Union[str, None]]):
         def log_lines(title, lines):
             log.info(f"====={title}=====")
-            for _, line in lines:
-                log.info(line.decode())
+            log.info(lines.decode())
         log.info(f"Command return code: {result[0]}")
-        log_lines("Command STDOUT", enumerate(result[1])) # type: ignore
-        log_lines("Command STDERR", enumerate(result[2])) # type: ignore
+        stdout = result[1]
+        stderr = result[2]
+        if stdout:
+            log_lines("Command STDOUT", stdout)
+        if stderr:
+            log_lines("Command STDERR", stderr)
 
     def render_kubernetes_job(self):
         commands = [self.build_command(), self.package_command(), self.copy_command()]
@@ -320,9 +339,16 @@ class ImageBuild:
 
     def save(self):
         with open(pathlib.Path(self.outdir, "metadata.json"), "w") as f:
-            o = { name: getattr(self, name) for name in ["base_uuid", "target_uuid"] }
-            log.debug(o)
-            json.dump(o, f)
+            try: 
+                o = { name: getattr(self, name) for name in ["base_uuid", "target_uuid"] }
+                log.debug(o)
+                json.dump(o, f)
+            except AttributeError as e:
+                log.error("Couldn't find attribute in object. Something is probably wrong", e)
+            except Exception as e:
+                log.exception(e)
+            finally:
+                f.flush()   
 
 def run():
     try:
@@ -340,6 +366,7 @@ def run():
     for architecture in arches:
         IB = ImageBuild(
                 architecture=Architecture.New(architecture, major),
+                cli_args=results,
                 debug=results.debug,
                 fedora_release=rlvars['fedora_release'],
                 image_type=results.type, 
