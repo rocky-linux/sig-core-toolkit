@@ -107,7 +107,7 @@ class Shared:
         ti.dump(file_path)
 
     @staticmethod
-    def treeinfo_modify_write(data, imagemap):
+    def treeinfo_modify_write(data, imagemap, logger):
         """
         Modifies a specific treeinfo with already available data. This is in
         the case of modifying treeinfo for primary repos or images.
@@ -211,10 +211,13 @@ class Shared:
             del vari
 
         # Set default variant
+        logger.info('Writing treeinfo')
         ti.dump(treeinfo, main_variant=primary)
         # Set discinfo
+        logger.info('Writing discinfo')
         Shared.discinfo_write(timestamp, fullname, arch, discinfo)
         # Set media.repo
+        logger.info('Writing media.repo')
         Shared.media_repo_write(timestamp, fullname, mediarepo)
 
     @staticmethod

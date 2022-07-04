@@ -813,7 +813,7 @@ class IsoBuild:
         }
 
         try:
-            Shared.treeinfo_modify_write(data, imagemap)
+            Shared.treeinfo_modify_write(data, imagemap, self.log)
         except Exception as e:
             self.log.error(
                     '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
