@@ -96,6 +96,7 @@ class RepoSync:
         self.repo = repo
         self.extra_files = rlvars['extra_files']
         self.gpgkey = gpgkey
+        self.checksum = rlvars['checksum']
 
         self.compose_id = '{}-{}-{}'.format(
                 config['shortname'],
@@ -251,8 +252,9 @@ class RepoSync:
         if self.refresh_extra_files and not self.fullrun:
             self.deploy_extra_files(sync_root, global_work_root)
 
-        # This does NOT overwrite treeinfo files. This just ensures they exist
-        # and are configured correctly.
+        # deploy_treeinfo does NOT overwrite any treeinfo files. However,
+        # tweak_treeinfo calls out to a method that does. This should not
+        # cause issues as the method is fairly static in nature.
         if self.refresh_treeinfo and not self.fullrun:
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
             self.tweak_treeinfo(self.repo, sync_root, self.arch)
@@ -1214,6 +1216,75 @@ class RepoSync:
         This modifies treeinfo for the primary repository. If the repository is
         listed in the iso_map as a non-disc, it will be considered for modification.
         """
+        variants_to_tweak = []
+
+        arches_to_tree = self.arches
+        if arch:
+            arches_to_tree = [arch]
+
+        repos_to_tree = self.repos
+        if repo and not self.fullrun:
+            repos_to_tree = [repo]
+
+        for r in repos_to_tree:
+            entry_name_list = []
+            repo_name = r
+            arch_tree = arches_to_tree.copy()
+
+            if r in self.iso_map['images']:
+                variants_to_tweak.append(r)
+
+        for v in variants_to_tweak:
+            for a in arches_to_tree:
+                image = os.path.join(sync_root, v, a, 'os')
+                imagemap = self.iso_map['images'][v]
+                data = {
+                        'arch': a,
+                        'variant': v,
+                        'variant_path': image,
+                        'checksum': self.checksum,
+                        'distname': self.distname,
+                        'fullname': self.fullname,
+                        'shortname': self.shortname,
+                        'release': self.fullversion,
+                        'timestamp': self.timestamp,
+                }
+
+                try:
+                    Shared.treeinfo_modify_write(data, imagemap)
+                except Exception as e:
+                    self.log.error(
+                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                            'There was an error writing treeinfo.'
+                    )
+                    self.log.error(e)
+
+                if self.fullrun:
+                    ksimage = os.path.join(sync_root, v, a, 'kickstart')
+                    ksdata = {
+                            'arch': a,
+                            'variant': v,
+                            'variant_path': image,
+                            'checksum': self.checksum,
+                            'distname': self.distname,
+                            'fullname': self.fullname,
+                            'shortname': self.shortname,
+                            'release': self.fullversion,
+                            'timestamp': self.timestamp,
+                    }
+                    ksdata.clear()
+
+                    try:
+                        Shared.treeinfo_modify_write(ksdata, imagemap)
+                    except Exception as e:
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                'There was an error writing treeinfo.'
+                        )
+                        self.log.error(e)
+
+                data.clear()
+                imagemap.clear()
 
     def run_compose_closeout(self):
         """
