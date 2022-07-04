@@ -1234,8 +1234,8 @@ class RepoSync:
             if r in self.iso_map['images']:
                 variants_to_tweak.append(r)
 
-        for v in variants_to_tweak:
-            for a in arches_to_tree:
+        for a in arches_to_tree:
+            for v in variants_to_tweak:
                 self.log.info(
                         '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
                         'Tweaking treeinfo for ' + a + ' ' + v
@@ -1286,9 +1286,6 @@ class RepoSync:
                                 'There was an error writing treeinfo.'
                         )
                         self.log.error(e)
-
-                data.clear()
-                imagemap.clear()
 
     def run_compose_closeout(self):
         """
