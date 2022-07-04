@@ -996,7 +996,7 @@ class RepoSync:
                 version=empanadas.__version__
         )
 
-        with open(metadata_dir + '/README') as readme_file:
+        with open(metadata_dir + '/README', 'w+', encoding='utf-8') as readme_file:
             readme_file.write(readme_output)
             readme_file.close()
 

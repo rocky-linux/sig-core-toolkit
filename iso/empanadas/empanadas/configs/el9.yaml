@@ -2,7 +2,7 @@
 '9':
   fullname: 'Rocky Linux 9.0'
   revision: '9.0'
-  rclvl: 'RC1'
+  rclvl: 'RC2'
   major: '9'
   minor: '0'
   profile: '9'
