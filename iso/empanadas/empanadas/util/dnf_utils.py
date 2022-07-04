@@ -14,6 +14,7 @@ import shutil
 import time
 import re
 import json
+import glob
 #import pipes
 
 from jinja2 import Environment, FileSystemLoader
@@ -1412,6 +1413,16 @@ class RepoSync:
                 )
 
         # Combine all checksums here
+        for arch in self.arches:
+            iso_arch_root = os.path.join(sync_iso_root, arch)
+            iso_arch_checksum = os.path.join(iso_arch_root, 'CHECKSUM')
+            with open(iso_arch_checksum, 'w+', encoding='utf-8') as fp:
+                for check in glob.iglob(iso_arch_root + '/*.CHECKSUM'):
+                    with open(check, 'r', encoding='utf-8') as sum:
+                        for line in sum:
+                            fp.write(line)
+                fp.close()
+
         # Deploy final metadata for a close out
         self.deploy_metadata(sync_root)
 
