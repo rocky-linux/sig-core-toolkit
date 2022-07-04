@@ -63,7 +63,6 @@ class ImageBuild:
     command_args: List[str] = field(factory=list)
     common_args: List[str] = field(factory=list)
     debug: bool = field(default=False)
-    fedora_release: int = field()
     image_type: str = field()
     job_template: Optional[Template] = field(init=False)
     kickstart_arg: List[str] = field(factory=list)
@@ -172,7 +171,6 @@ class ImageBuild:
         with os.fdopen(handle, "wb") as tmp:
             _template = self.template.render(
                 architecture=self.architecture.name,
-                fedora_version=self.fedora_release,
                 iso8601date=BUILDTIME.strftime("%Y%m%d"),
                 installdir="kickstart" if self.cli_args.kickstartdir else "os",
                 major=self.architecture.major,
@@ -368,7 +366,6 @@ def run():
                 architecture=Architecture.from_version(architecture, rlvars['revision']),
                 cli_args=results,
                 debug=results.debug,
-                fedora_release=rlvars['fedora_release'],
                 image_type=results.type, 
                 release=results.release if results.release else 0,
                 template=tdl_template,
