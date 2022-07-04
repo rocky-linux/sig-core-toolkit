@@ -176,6 +176,7 @@ class ImageBuild:
                 iso8601date=BUILDTIME.strftime("%Y%m%d"),
                 installdir="kickstart" if self.cli_args.kickstartdir else "os",
                 major=self.architecture.major,
+                minor=self.architecture.minor,
                 release=self.release,
                 size="10G",
                 type=self.image_type,

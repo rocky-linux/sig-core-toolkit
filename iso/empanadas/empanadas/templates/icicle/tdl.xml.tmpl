@@ -1,8 +1,8 @@
 <template>
   <name>Rocky-{{major}}-{{type}}-{{version_variant}}.{{iso8601date}}.{{release}}.{{architecture}}</name>
         <os>
-            <name>Fedora</name>
-            <version>{{fedora_version}}</version>
+            <name>RHEL-{{major}}</name>
+            <version>{{minor}}</version>
             <arch>{{architecture}}</arch>
             <install type='url'>
               <url>https://dl.rockylinux.org/stg/rocky/{{major}}/BaseOS/{{architecture}}/{{installdir}}</url>
