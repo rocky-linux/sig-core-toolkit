@@ -1356,6 +1356,11 @@ class RepoSync:
                 "live"
         )
 
+        sync_live_root = os.path.join(
+                sync_root,
+                'live'
+        )
+
         global_work_root = os.path.join(
                 work_root,
                 "global",
@@ -1397,9 +1402,9 @@ class RepoSync:
             )
 
             if os.path.exists('/usr/bin/fpsync'):
-                message, ret = Shared.fpsync_method(iso_root, sync_iso_root, tmp_dir)
+                message, ret = Shared.fpsync_method(live_root, sync_live_root, tmp_dir)
             elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
-                message, ret = Shared.rsync_method(iso_root, sync_iso_root)
+                message, ret = Shared.rsync_method(live_root, sync_live_root)
 
             if ret != 0:
                 self.log.error(
@@ -1421,7 +1426,19 @@ class RepoSync:
                     with open(check, 'r', encoding='utf-8') as sum:
                         for line in sum:
                             fp.write(line)
+                        sum.close()
                 fp.close()
+
+            if arch == 'x86_64' and os.path.exists(sync_live_root):
+                live_arch_root = os.path.join(sync_live_root, arch)
+                live_arch_checksum = os.path.join(live_arch_root, 'CHECKSUM')
+                with open(live_arch_checksum, 'w+', encoding='utf-8') as lp:
+                    for lcheck in glob.iglob(iso_arch_root + '/*.CHECKSUM'):
+                        with open(lcheck, 'r', encoding='utf-8') as sum:
+                            for line in sum:
+                                lp.write(line)
+                            sum.close()
+                    lp.close()
 
         # Deploy final metadata for a close out
         self.deploy_metadata(sync_root)
