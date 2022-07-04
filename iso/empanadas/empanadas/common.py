@@ -118,14 +118,17 @@ def valid_type_variant(_type: str, variant: str="") -> bool:
     return True
 
 from attrs import define, field
-@define
+@define(kw_only=True)
 class Architecture:
     name: str = field()
     version: str = field()
+    major: int = field(converter=int)
+    minor: int = field(converter=int)
 
     @classmethod
-    def New(cls, architecture: str, version: int):
-        if architecture not in rldict[version]["allowed_arches"]:
+    def from_version(cls, architecture: str, version: str):
+        major, minor = str.split(version, ".")
+        if architecture not in rldict[major]["allowed_arches"]:
             print("Invalid architecture/version combo, skipping")
             exit()
-        return cls(architecture, version)
+        return cls(name=architecture, version=version, major=major, minor=minor)

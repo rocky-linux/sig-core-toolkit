@@ -73,7 +73,6 @@ class ImageBuild:
     outname: str = field(init=False)
     package_args: List[str] = field(factory=list)
     release: int = field(default=0)
-    revision: Optional[int] = field()
     stage_commands: Optional[List[List[Union[str,Callable]]]] = field(init=False)
     target_uuid: Optional[str] = field(default="")
     tdl_path: pathlib.Path = field(init=False)
@@ -100,7 +99,7 @@ class ImageBuild:
             self.stage_commands = [
                     ["tar", "-C", f"{self.outdir}", "--strip-components=1", "-x", "-f", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", "*/layer.tar"]
             ]
-        if self.image_type == "GenericCloud":
+        if self.image_type in ["GenericCloud", "EC2"]:
             self.stage_commands = [
                     ["qemu-img", "convert", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
             ]
@@ -125,7 +124,7 @@ class ImageBuild:
                     f.flush()
 
     def output_name(self):
-        return f"Rocky-{self.architecture.version}-{self.type_variant}.{BUILDTIME.strftime('%Y%m%d')}.{self.release}.{self.architecture.name}"
+        return f"Rocky-{self.architecture.major}-{self.type_variant}-{self.architecture.version}-{BUILDTIME.strftime('%Y%m%d')}.{self.release}.{self.architecture.name}"
     
     def type_variant_name(self):
         return self.image_type if not self.variant else f"{self.image_type}-{self.variant.capitalize()}"
@@ -156,7 +155,7 @@ class ImageBuild:
         return mapping[self.image_type] if self.image_type in mapping.keys() else ''
 
     def kickstart_imagefactory_args(self) -> List[str]:
-        kickstart_path = pathlib.Path(f"{KICKSTART_PATH}/Rocky-{self.architecture.version}-{self.type_variant}.ks")
+        kickstart_path = pathlib.Path(f"{KICKSTART_PATH}/Rocky-{self.architecture.major}-{self.type_variant}.ks")
 
         if not kickstart_path.is_file():
             log.warn(f"Kickstart file is not available: {kickstart_path}")
@@ -176,12 +175,12 @@ class ImageBuild:
                 fedora_version=self.fedora_release,
                 iso8601date=BUILDTIME.strftime("%Y%m%d"),
                 installdir="kickstart" if self.cli_args.kickstartdir else "os",
-                major=self.architecture.version,
+                major=self.architecture.major,
                 release=self.release,
                 size="10G",
                 type=self.image_type,
                 utcnow=BUILDTIME,
-                version_variant=self.revision if not self.variant else f"{self.revision}-{self.variant}",
+                version_variant=self.architecture.version if not self.variant else f"{self.architecture.version}-{self.variant}",
             )
             tmp.write(_template.encode())
             tmp.flush()
@@ -226,7 +225,7 @@ class ImageBuild:
     def package(self) -> int: 
         # Some build types don't need to be packaged by imagefactory
         # @TODO remove business logic if possible
-        if self.image_type == "GenericCloud":
+        if self.image_type in ["GenericCloud", "EC2"]:
             self.target_uuid = self.base_uuid if hasattr(self, 'base_uuid') else ""
 
         if self.target_uuid:
@@ -365,13 +364,12 @@ def run():
 
     for architecture in arches:
         IB = ImageBuild(
-                architecture=Architecture.New(architecture, major),
+                architecture=Architecture.from_version(architecture, rlvars['revision']),
                 cli_args=results,
                 debug=results.debug,
                 fedora_release=rlvars['fedora_release'],
                 image_type=results.type, 
                 release=results.release if results.release else 0,
-                revision=rlvars['revision'],
                 template=tdl_template,
                 variant=results.variant,
         )
