@@ -107,11 +107,115 @@ class Shared:
         ti.dump(file_path)
 
     @staticmethod
-    def treeinfo_modify_write():
+    def treeinfo_modify_write(data, imagemap):
         """
         Modifies a specific treeinfo with already available data. This is in
         the case of modifying treeinfo for primary repos or images.
         """
+        arch = data['arch']
+        variant = data['variant']
+        variant_path = data['variant_path']
+        checksum = data['checksum']
+        distname = data['distname']
+        fullname = data['fullname']
+        shortname = data['shortname']
+        release = data['release']
+        timestamp = data['timestamp']
+
+        os_or_ks = ''
+        if '/os/' in variant_path:
+            os_or_ks = 'os'
+        if '/kickstart/' in variant_path:
+            os_or_ks = 'kickstart'
+
+        image = os.path.join(variant_path)
+        treeinfo = os.path.join(image, '.treeinfo')
+        discinfo = os.path.join(image, '.discinfo')
+        mediarepo = os.path.join(image, 'media.repo')
+        #imagemap = self.iso_map['images'][variant]
+        primary = imagemap['variant']
+        repos = imagemap['repos']
+        is_disc = False
+
+        if imagemap['disc']:
+            is_disc = True
+            discnum = 1
+
+        # load up productmd
+        ti = productmd.treeinfo.TreeInfo()
+        ti.load(treeinfo)
+
+        # Set the name
+        ti.release.name = distname
+        ti.release.short = shortname
+        # Set the version (the initial lorax run does this, but we are setting
+        # it just in case)
+        ti.release.version = release
+        # Assign the present images into a var as a copy. For each platform,
+        # clear out the present dictionary. For each item and path in the
+        # assigned var, assign it back to the platform dictionary. If the path
+        # is empty, continue. Do checksums afterwards.
+        plats = ti.images.images.copy()
+        for platform in ti.images.images:
+            ti.images.images[platform] = {}
+            for i, p in plats[platform].items():
+                if not p:
+                    continue
+                if 'boot.iso' in i and is_disc:
+                    continue
+                ti.images.images[platform][i] = p
+                ti.checksums.add(p, checksum, root_dir=image)
+
+        # stage2 checksums
+        if ti.stage2.mainimage:
+            ti.checksums.add(ti.stage2.mainimage, checksum, root_dir=image)
+
+        if ti.stage2.instimage:
+            ti.checksums.add(ti.stage2.instimage, checksum, root_dir=image)
+
+        # If we are a disc, set the media section appropriately.
+        if is_disc:
+            ti.media.discnum = discnum
+            ti.media.totaldiscs = discnum
+
+        # Create variants
+        # Note to self: There's a lot of legacy stuff running around for
+        # Fedora, ELN, and RHEL in general. This is the general structure,
+        # apparently. But there could be a chance it'll change. We may need to
+        # put in a configuration to deal with it at some point.
+        #ti.variants.variants.clear()
+        for y in repos:
+            if y in ti.variants.variants.keys():
+                vari = ti.variants.variants[y]
+            else:
+                vari = productmd.treeinfo.Variant(ti)
+
+            vari.id = y
+            vari.uid = y
+            vari.name = y
+            vari.type = "variant"
+            if is_disc:
+                vari.paths.repository = y
+                vari.paths.packages = y + "/Packages"
+            else:
+                if y == primary:
+                    vari.paths.repository = "."
+                    vari.paths.packages = "Packages"
+                else:
+                    vari.paths.repository = "../../../" + y + "/" + arch + "/" + os_or_ks
+                    vari.paths.packages = "../../../" + y + "/" + arch + "/" + os_or_ks + "/Packages"
+
+            if y not in ti.variants.variants.keys():
+                ti.variants.add(vari)
+
+            del vari
+
+        # Set default variant
+        ti.dump(treeinfo, main_variant=primary)
+        # Set discinfo
+        Shared.discinfo_write(timestamp, fullname, arch, discinfo)
+        # Set media.repo
+        Shared.media_repo_write(timestamp, fullname, mediarepo)
 
     @staticmethod
     def write_metadata(
@@ -345,18 +449,16 @@ class Shared:
         """
 
     @staticmethod
-    def fpsync_method(src, dest, logger, tmp_dir):
+    def fpsync_method(src, dest, tmp_dir):
         """
         Returns a list for the fpsync command
         """
         cmd = '/usr/bin/fpsync'
         rsync_switches = '-av --numeric-ids --no-compress --chown=10004:10005'
         if not os.path.exists(cmd):
-            logger.warn(
-                    '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                    'fpsync not found'
-            )
-            return False
+            message = 'fpsync not found'
+            retval = 1
+            return message, retval
 
         os.makedirs(tmp_dir, exist_ok=True)
 
@@ -373,25 +475,30 @@ class Shared:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
         )
+
         if process != 0:
-            logger.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    'fpsync failed'
-            )
-            return False
+            message = 'Syncing (fpsync) failed'
+            retval = process
+            return message, retval
 
         if os.path.exists(dest):
-            return True
+            message = 'Syncing (fpsync) succeeded'
+            retval = process
         else:
-            logger.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    'Path synced does not seem to exist for some reason.'
-            )
-            return False
+            message = 'Path synced does not seem to exist for some reason.'
+            retval = 1
+
+        return message, retval
 
     @staticmethod
-    def rsync_method(src, dest, logger, tmp_dir):
+    def rsync_method(src, dest):
         """
         Returns a string for the rsync command plus parallel. Yes, this is a
         hack.
         """
+        find_cmd = '/usr/bin/find'
+        parallel_cmd = '/usr/bin/parallel'
+        rsync_cmd = '/usr/bin/rsync'
+        switches = '-av --chown=10004:10005 --progress --relative --human-readable'
+
+        os.makedirs(dest, exist_ok=True)

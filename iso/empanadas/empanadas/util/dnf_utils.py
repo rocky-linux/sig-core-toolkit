@@ -242,6 +242,7 @@ class RepoSync:
         if self.fullrun:
             self.deploy_extra_files(sync_root, global_work_root)
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
+            self.tweak_treeinfo(self.repo, sync_root, self.arch)
             self.symlink_to_latest(generated_dir)
 
         if self.repoclosure:
@@ -250,8 +251,11 @@ class RepoSync:
         if self.refresh_extra_files and not self.fullrun:
             self.deploy_extra_files(sync_root, global_work_root)
 
+        # This does NOT overwrite treeinfo files. This just ensures they exist
+        # and are configured correctly.
         if self.refresh_treeinfo and not self.fullrun:
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
+            self.tweak_treeinfo(self.repo, sync_root, self.arch)
 
         self.deploy_metadata(sync_root)
 
@@ -450,6 +454,53 @@ class RepoSync:
                 os.chmod(entry_point_sh, 0o755)
                 os.chmod(debug_entry_point_sh, 0o755)
 
+                # During fullruns, a kickstart directory is made. Kickstart
+                # should not be updated nor touched during regular runs under
+                # any circumstances.
+                if self.fullrun:
+                    ks_entry_name = '{}-ks-{}'.format(r, a)
+                    entry_name_list.append(ks_entry_name)
+                    ks_point_sh = os.path.join(
+                            entries_dir,
+                            ks_entry_name
+                    )
+
+                    ks_sync_path = os.path.join(
+                            sync_root,
+                            repo_name,
+                            a,
+                            'kickstart'
+                    )
+
+                    ks_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
+                            "--repoid={} -p {} --forcearch {} --norepopath "
+                            "--gpgcheck --assumeyes 2>&1").format(
+                            self.dnf_config,
+                            a,
+                            r,
+                            ks_sync_path,
+                            a
+                    )
+
+                    ks_sync_log = ("{}/{}-{}-ks.log").format(
+                            log_root,
+                            repo_name,
+                            a
+                    )
+
+                    ks_sync_template = self.tmplenv.get_template('reposync.tmpl')
+                    ks_sync_output = ks_sync_template.render(
+                            import_gpg_cmd=import_gpg_cmd,
+                            arch_force_cp=arch_force_cp,
+                            dnf_plugin_cmd=dnf_plugin_cmd,
+                            sync_cmd=ks_sync_cmd,
+                            sync_log=ks_sync_log
+                    )
+                    ks_entry_point_open = open(ks_point_sh, "w+")
+                    ks_entry_point_open.write(ks_sync_output)
+                    ks_entry_point_open.close()
+                    os.chmod(ks_point_sh, 0o755)
+
             # We ignoring sources?
             if (not self.ignore_source and not arch) or (
                     not self.ignore_source and arch == 'source'):
@@ -635,7 +686,6 @@ class RepoSync:
         config_file = open(fname, "w+")
         repolist = []
         for repo in self.repos:
-
             constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
                     self.repo_base_url,
                     self.project_id,
@@ -1159,6 +1209,12 @@ class RepoSync:
                             repo_name + ' source media.repo already exists'
                     )
 
+    def tweak_treeinfo(self, repo, sync_root, arch):
+        """
+        This modifies treeinfo for the primary repository. If the repository is
+        listed in the iso_map as a non-disc, it will be considered for modification.
+        """
+
     def run_compose_closeout(self):
         """
         Closes out a compose as file. This ensures kickstart repositories are
@@ -1185,8 +1241,12 @@ class RepoSync:
 
         # Verify if the link even exists
         if not os.path.exists(self.compose_latest_dir):
-            self.log.error('!! Latest compose link is broken does not exist: %s' % self.compose_latest_dir)
-            self.log.error('!! Please perform a full run if you have not done so.')
+            self.log.error(
+                    '!! Latest compose link is broken does not exist: %s' % self.compose_latest_dir
+            )
+            self.log.error(
+                    '!! Please perform a full run if you have not done so.'
+            )
             raise SystemExit()
 
         log_root = os.path.join(
@@ -1210,12 +1270,28 @@ class RepoSync:
                 'Starting to sync ISOs to compose'
         )
 
-        iso_result = Shared.fpsync_method(iso_root, sync_iso_root, self.log, tmp_dir)
-
-        if not iso_result:
+        if os.path.exists('/usr/bin/fpsync'):
+            message, ret = Shared.fpsync_method(iso_root, sync_iso_root, tmp_dir)
+        elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
+            message, ret = Shared.rsync_method(iso_root, sync_iso_root)
+        else:
             self.log.error(
                     '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    'Sync failed'
+                    'fpsync nor parallel + rsync were found on this system. ' +
+                    'There is also no built-in parallel rsync method at this ' +
+                    'time.'
+            )
+            raise SystemExit()
+
+        if ret != 0:
+            self.log.error(
+                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    message
+            )
+        else:
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
+                    message
             )
 
 class SigRepoSync:

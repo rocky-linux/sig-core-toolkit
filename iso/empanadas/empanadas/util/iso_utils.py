@@ -799,54 +799,76 @@ class IsoBuild:
         is for basic use. Eventually it'll be expanded to handle this scenario.
         """
         image = os.path.join(self.lorax_work_dir, arch, variant)
-        treeinfo = os.path.join(image, '.treeinfo')
-        discinfo = os.path.join(image, '.discinfo')
-        mediarepo = os.path.join(image, 'media.repo')
         imagemap = self.iso_map['images'][variant]
-        primary = imagemap['variant']
-        repos = imagemap['repos']
-        is_disc = False
+        data = {
+                'arch': arch,
+                'variant': variant,
+                'variant_path': image,
+                'checksum': self.checksum,
+                'distname': self.distname,
+                'fullname': self.fullname,
+                'shortname': self.shortname,
+                'release': self.release,
+                'timestamp': self.timestamp,
+        }
 
-        if imagemap['disc']:
-            is_disc = True
-            discnum = 1
+        try:
+            Shared.treeinfo_modify_write(data, imagemap)
+        except Exception as e:
+            self.log.error(
+                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    'There was an error writing treeinfo.'
+            )
+            self.log.error(e)
+
+        #treeinfo = os.path.join(image, '.treeinfo')
+        #discinfo = os.path.join(image, '.discinfo')
+        #mediarepo = os.path.join(image, 'media.repo')
+        #imagemap = self.iso_map['images'][variant]
+        #primary = imagemap['variant']
+        #repos = imagemap['repos']
+        #is_disc = False
+
+        #if imagemap['disc']:
+        #    is_disc = True
+        #    discnum = 1
 
         # load up productmd
-        ti = productmd.treeinfo.TreeInfo()
-        ti.load(treeinfo)
+        #ti = productmd.treeinfo.TreeInfo()
+        #ti.load(treeinfo)
 
         # Set the name
-        ti.release.name = self.distname
-        ti.release.short = self.shortname
+        #ti.release.name = self.distname
+        #ti.release.short = self.shortname
         # Set the version (the initial lorax run does this, but we are setting
         # it just in case)
-        ti.release.version = self.release
+        #ti.release.version = self.release
         # Assign the present images into a var as a copy. For each platform,
         # clear out the present dictionary. For each item and path in the
         # assigned var, assign it back to the platform dictionary. If the path
         # is empty, continue. Do checksums afterwards.
-        plats = ti.images.images.copy()
-        for platform in ti.images.images:
-            ti.images.images[platform] = {}
-            for i, p in plats[platform].items():
-                if not p:
-                    continue
-                if 'boot.iso' in i and is_disc:
-                    continue
-                ti.images.images[platform][i] = p
-                ti.checksums.add(p, self.checksum, root_dir=image)
+        #plats = ti.images.images.copy()
+        #for platform in ti.images.images:
+        #    ti.images.images[platform] = {}
+        #    for i, p in plats[platform].items():
+        #        if not p:
+        #            continue
+        #        if 'boot.iso' in i and is_disc:
+        #            continue
+        #        ti.images.images[platform][i] = p
+        #        ti.checksums.add(p, self.checksum, root_dir=image)
 
         # stage2 checksums
-        if ti.stage2.mainimage:
-            ti.checksums.add(ti.stage2.mainimage, self.checksum, root_dir=image)
+        #if ti.stage2.mainimage:
+        #    ti.checksums.add(ti.stage2.mainimage, self.checksum, root_dir=image)
 
-        if ti.stage2.instimage:
-            ti.checksums.add(ti.stage2.instimage, self.checksum, root_dir=image)
+        #if ti.stage2.instimage:
+        #    ti.checksums.add(ti.stage2.instimage, self.checksum, root_dir=image)
 
         # If we are a disc, set the media section appropriately.
-        if is_disc:
-            ti.media.discnum = discnum
-            ti.media.totaldiscs = discnum
+        #if is_disc:
+        #    ti.media.discnum = discnum
+        #    ti.media.totaldiscs = discnum
 
         # Create variants
         # Note to self: There's a lot of legacy stuff running around for
@@ -854,38 +876,38 @@ class IsoBuild:
         # apparently. But there could be a chance it'll change. We may need to
         # put in a configuration to deal with it at some point.
         #ti.variants.variants.clear()
-        for y in repos:
-            if y in ti.variants.variants.keys():
-                vari = ti.variants.variants[y]
-            else:
-                vari = productmd.treeinfo.Variant(ti)
+        #for y in repos:
+        #    if y in ti.variants.variants.keys():
+        #        vari = ti.variants.variants[y]
+        #    else:
+        #        vari = productmd.treeinfo.Variant(ti)
 
-            vari.id = y
-            vari.uid = y
-            vari.name = y
-            vari.type = "variant"
-            if is_disc:
-                vari.paths.repository = y
-                vari.paths.packages = y + "/Packages"
-            else:
-                if y == primary:
-                    vari.paths.repository = "."
-                    vari.paths.packages = "Packages"
-                else:
-                    vari.paths.repository = "../../../" + y + "/" + arch + "/os"
-                    vari.paths.packages = "../../../" + y + "/" + arch + "/os/Packages"
+        #    vari.id = y
+        #    vari.uid = y
+        #    vari.name = y
+        #    vari.type = "variant"
+        #    if is_disc:
+        #        vari.paths.repository = y
+        #        vari.paths.packages = y + "/Packages"
+        #    else:
+        #        if y == primary:
+        #            vari.paths.repository = "."
+        #            vari.paths.packages = "Packages"
+        #        else:
+        #            vari.paths.repository = "../../../" + y + "/" + arch + "/os"
+        #            vari.paths.packages = "../../../" + y + "/" + arch + "/os/Packages"
 
-            if y not in ti.variants.variants.keys():
-                ti.variants.add(vari)
+        #    if y not in ti.variants.variants.keys():
+        #        ti.variants.add(vari)
 
-            del vari
+        #    del vari
 
         # Set default variant
-        ti.dump(treeinfo, main_variant=primary)
+        #ti.dump(treeinfo, main_variant=primary)
         # Set discinfo
-        Shared.discinfo_write(self.timestamp, self.fullname, arch, discinfo)
+        #Shared.discinfo_write(self.timestamp, self.fullname, arch, discinfo)
         # Set media.repo
-        Shared.media_repo_write(self.timestamp, self.fullname, mediarepo)
+        #Shared.media_repo_write(self.timestamp, self.fullname, mediarepo)
 
     # Next set of functions are loosely borrowed (in concept) from pungi. Some
     # stuff may be combined/mixed together, other things may be simplified or
