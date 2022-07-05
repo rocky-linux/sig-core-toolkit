@@ -40,8 +40,8 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           platforms: linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
           context: ./iso/empanadas
-          file: ./iso/empanadas/Containerfile.imagefactory
+          file: ./iso/empanadas/Containerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/rocky-linux/empanadas-imagefactory:latest
+          tags: ghcr.io/rocky-linux/sig-core-toolkit:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
