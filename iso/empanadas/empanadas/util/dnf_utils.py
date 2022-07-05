@@ -1059,6 +1059,28 @@ class RepoSync:
                         'os/media.repo'
                 )
 
+                ks_tree_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'kickstart/.treeinfo'
+                )
+
+                ks_disc_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'kickstart/.discinfo'
+                )
+
+                ks_media_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'kickstart/media.repo'
+                )
+
+
                 if not os.path.exists(os_tree_path):
                     try:
                         Shared.treeinfo_new_write(
@@ -1119,6 +1141,69 @@ class RepoSync:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
                             repo_name + ' ' + a + ' os media.repo already exists'
+                    )
+
+                # Kickstart part of the repos
+                if not os.path.exists(ks_tree_path):
+                    try:
+                        Shared.treeinfo_new_write(
+                                ks_tree_path,
+                                self.distname,
+                                self.shortname,
+                                self.fullversion,
+                                a,
+                                int(self.timestamp),
+                                repo_name
+                        )
+                    except Exception as e:
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' ' + a + ' kickstart .treeinfo could not be written'
+                        )
+                        self.log.error(e)
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' ' + a + ' kickstart .treeinfo already exists'
+                    )
+
+                if not os.path.exists(ks_disc_path):
+                    try:
+                        Shared.discinfo_write(
+                                self.timestamp,
+                                self.fullname,
+                                a,
+                                ks_disc_path
+                        )
+                    except Exception as e:
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' ' + a + ' kickstart .discinfo could not be written'
+                        )
+                        self.log.error(e)
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' ' + a + ' kickstart .discinfo already exists'
+                    )
+
+                if not os.path.exists(ks_media_path):
+                    try:
+                        Shared.media_repo_write(
+                                self.timestamp,
+                                self.fullname,
+                                ks_media_path
+                        )
+                    except Exception as e:
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' ' + a + ' kickstart media.repo could not be written'
+                        )
+                        self.log.error(e)
+                else:
+                    self.log.warn(
+                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
+                            repo_name + ' ' + a + ' kickstart media.repo already exists'
                     )
 
                 if not self.ignore_debug and not a == 'source':
