@@ -1,5 +1,5 @@
 ---
-name: Build empanada container images
+name: Build empanada images for imagefactory
 
 on:
   push:
