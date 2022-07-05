@@ -1279,7 +1279,7 @@ class RepoSync:
                 except Exception as e:
                     self.log.error(
                             '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                            'There was an error writing treeinfo.'
+                            'There was an error writing os treeinfo.'
                     )
                     self.log.error(e)
 
@@ -1288,7 +1288,7 @@ class RepoSync:
                     ksdata = {
                             'arch': a,
                             'variant': v,
-                            'variant_path': image,
+                            'variant_path': ksimage,
                             'checksum': self.checksum,
                             'distname': self.distname,
                             'fullname': self.fullname,
@@ -1303,7 +1303,7 @@ class RepoSync:
                     except Exception as e:
                         self.log.error(
                                 '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                'There was an error writing treeinfo.'
+                                'There was an error writing kickstart treeinfo.'
                         )
                         self.log.error(e)
 
