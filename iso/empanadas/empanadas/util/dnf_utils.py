@@ -1444,7 +1444,6 @@ class RepoSync:
                             'release': self.fullversion,
                             'timestamp': self.timestamp,
                     }
-                    ksdata.clear()
 
                     try:
                         Shared.treeinfo_modify_write(ksdata, imagemap, self.log)

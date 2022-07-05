@@ -127,9 +127,9 @@ class Shared:
         timestamp = data['timestamp']
 
         os_or_ks = ''
-        if '/os/' in variant_path or not imagemap['disc']:
+        if '/os' in variant_path or not imagemap['disc']:
             os_or_ks = 'os'
-        if '/kickstart/' in variant_path:
+        if '/kickstart' in variant_path:
             os_or_ks = 'kickstart'
 
         image = os.path.join(variant_path)
