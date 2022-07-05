@@ -1071,7 +1071,11 @@ class RepoSync:
                                 repo_name
                         )
                     except Exception as e:
-                        print(e)
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' ' + a + ' os .treeinfo could not be written'
+                        )
+                        self.log.error(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1087,7 +1091,11 @@ class RepoSync:
                                 os_disc_path
                         )
                     except Exception as e:
-                        print(e)
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' ' + a + ' os .discinfo could not be written'
+                        )
+                        self.log.error(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1102,7 +1110,11 @@ class RepoSync:
                                 os_media_path
                         )
                     except Exception as e:
-                        print(e)
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' ' + a + ' os media.repo could not be written'
+                        )
+                        self.log.error(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1143,7 +1155,11 @@ class RepoSync:
                                     repo_name
                             )
                         except Exception as e:
-                            print(e)
+                            self.log.error(
+                                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                    repo_name + ' ' + a + ' debug .treeinfo could not be written'
+                            )
+                            self.log.error(e)
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1159,7 +1175,11 @@ class RepoSync:
                                     debug_disc_path
                             )
                         except Exception as e:
-                            print(e)
+                            self.log.error(
+                                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                    repo_name + ' ' + a + ' debug .discinfo could not be written'
+                            )
+                            self.log.error(e)
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1174,7 +1194,11 @@ class RepoSync:
                                     debug_media_path
                             )
                         except Exception as e:
-                            print(e)
+                            self.log.error(
+                                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                    repo_name + ' ' + a + ' debug media.repo could not be written'
+                            )
+                            self.log.error(e)
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1213,7 +1237,11 @@ class RepoSync:
                                 repo_name
                         )
                     except Exception as e:
-                        print(e)
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' source os .treeinfo could not be written'
+                        )
+                        self.log.error(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1229,7 +1257,11 @@ class RepoSync:
                                 source_disc_path
                         )
                     except Exception as e:
-                        print(e)
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' source os .discinfo could not be written'
+                        )
+                        self.log.error(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1244,7 +1276,11 @@ class RepoSync:
                                 source_media_path
                         )
                     except Exception as e:
-                        print(e)
+                        self.log.error(
+                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                                repo_name + ' source os media.repo could not be written'
+                        )
+                        self.log.error(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
