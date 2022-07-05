@@ -1060,15 +1060,18 @@ class RepoSync:
                 )
 
                 if not os.path.exists(os_tree_path):
-                    Shared.treeinfo_new_write(
-                            os_tree_path,
-                            self.distname,
-                            self.shortname,
-                            self.fullversion,
-                            a,
-                            int(self.timestamp),
-                            repo_name
-                    )
+                    try:
+                        Shared.treeinfo_new_write(
+                                os_tree_path,
+                                self.distname,
+                                self.shortname,
+                                self.fullversion,
+                                a,
+                                int(self.timestamp),
+                                repo_name
+                        )
+                    except Exception as e:
+                        print(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1076,12 +1079,15 @@ class RepoSync:
                     )
 
                 if not os.path.exists(os_disc_path):
-                    Shared.discinfo_write(
-                            self.timestamp,
-                            self.fullname,
-                            a,
-                            os_disc_path
-                    )
+                    try:
+                        Shared.discinfo_write(
+                                self.timestamp,
+                                self.fullname,
+                                a,
+                                os_disc_path
+                        )
+                    except Exception as e:
+                        print(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1089,11 +1095,14 @@ class RepoSync:
                     )
 
                 if not os.path.exists(os_media_path):
-                    Shared.media_repo_write(
-                            self.timestamp,
-                            self.fullname,
-                            os_media_path
-                    )
+                    try:
+                        Shared.media_repo_write(
+                                self.timestamp,
+                                self.fullname,
+                                os_media_path
+                        )
+                    except Exception as e:
+                        print(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1123,15 +1132,18 @@ class RepoSync:
                     )
 
                     if not os.path.exists(debug_tree_path):
-                        Shared.treeinfo_new_write(
-                                debug_tree_path,
-                                self.distname,
-                                self.shortname,
-                                self.fullversion,
-                                a,
-                                self.timestamp,
-                                repo_name
-                        )
+                        try:
+                            Shared.treeinfo_new_write(
+                                    debug_tree_path,
+                                    self.distname,
+                                    self.shortname,
+                                    self.fullversion,
+                                    a,
+                                    self.timestamp,
+                                    repo_name
+                            )
+                        except Exception as e:
+                            print(e)
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1139,12 +1151,15 @@ class RepoSync:
                         )
 
                     if not os.path.exists(debug_disc_path):
-                        Shared.discinfo_write(
-                                self.timestamp,
-                                self.fullname,
-                                a,
-                                debug_disc_path
-                        )
+                        try:
+                            Shared.discinfo_write(
+                                    self.timestamp,
+                                    self.fullname,
+                                    a,
+                                    debug_disc_path
+                            )
+                        except Exception as e:
+                            print(e)
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1152,11 +1167,14 @@ class RepoSync:
                         )
 
                     if not os.path.exists(debug_media_path):
-                        Shared.media_repo_write(
-                                self.timestamp,
-                                self.fullname,
-                                debug_media_path
-                        )
+                        try:
+                            Shared.media_repo_write(
+                                    self.timestamp,
+                                    self.fullname,
+                                    debug_media_path
+                            )
+                        except Exception as e:
+                            print(e)
                     else:
                         self.log.warn(
                                 '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1184,15 +1202,18 @@ class RepoSync:
                 )
 
                 if not os.path.exists(source_tree_path):
-                    Shared.treeinfo_new_write(
-                            source_tree_path,
-                            self.distname,
-                            self.shortname,
-                            self.fullversion,
-                            'src',
-                            self.timestamp,
-                            repo_name
-                    )
+                    try:
+                        Shared.treeinfo_new_write(
+                                source_tree_path,
+                                self.distname,
+                                self.shortname,
+                                self.fullversion,
+                                'src',
+                                self.timestamp,
+                                repo_name
+                        )
+                    except Exception as e:
+                        print(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1200,12 +1221,15 @@ class RepoSync:
                     )
 
                 if not os.path.exists(source_disc_path):
-                    Shared.discinfo_write(
-                            self.timestamp,
-                            self.fullname,
-                            'src',
-                            source_disc_path
-                    )
+                    try:
+                        Shared.discinfo_write(
+                                self.timestamp,
+                                self.fullname,
+                                'src',
+                                source_disc_path
+                        )
+                    except Exception as e:
+                        print(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
@@ -1213,11 +1237,14 @@ class RepoSync:
                     )
 
                 if not os.path.exists(source_media_path):
-                    Shared.media_repo_write(
-                            self.timestamp,
-                            self.fullname,
-                            source_media_path
-                    )
+                    try:
+                        Shared.media_repo_write(
+                                self.timestamp,
+                                self.fullname,
+                                source_media_path
+                        )
+                    except Exception as e:
+                        print(e)
                 else:
                     self.log.warn(
                             '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
