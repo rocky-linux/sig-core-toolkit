@@ -513,7 +513,7 @@ class Shared:
         return 'Not available', 1
 
     @staticmethod
-    def s3_determine_latest(s3_bucket, release, arches, filetype, logger):
+    def s3_determine_latest(s3_bucket, release, arches, filetype, name, logger):
         """
         Using native s3, determine the latest artifacts and return a dict
         """
@@ -531,7 +531,7 @@ class Shared:
             raise SystemExit()
 
         for y in s3.list_objects(Bucket=s3_bucket)['Contents']:
-            if filetype in y['Key'] and release in y['Key']:
+            if filetype in y['Key'] and release in y['Key'] and name in y['Key']:
                 temp.append(y['Key'])
 
         for arch in arches:
@@ -569,7 +569,7 @@ class Shared:
             logger.error('There was an issue downloading from %s' % s3_bucket)
 
     @staticmethod
-    def reqs_determine_latest(s3_bucket_url, release, arches, filetype, logger):
+    def reqs_determine_latest(s3_bucket_url, release, arches, filetype, name, logger):
         """
         Using requests, determine the latest artifacts and return a list
         """
@@ -585,7 +585,7 @@ class Shared:
         resp = xmltodict.parse(bucket_data.content)
 
         for y in resp['ListBucketResult']['Contents']:
-            if filetype in y['Key'] and release in y['Key']:
+            if filetype in y['Key'] and release in y['Key'] and name in y['Key']:
                 temp.append(y['Key'])
 
         for arch in arches:

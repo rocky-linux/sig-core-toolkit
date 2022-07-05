@@ -83,6 +83,7 @@ class IsoBuild:
         self.lorax_result_root = config['mock_work_root'] + "/" + "lorax"
         self.mock_isolation = isolation
         self.iso_map = rlvars['iso_map']
+        self.cloudimages = rlvars['cloudimages']
         self.release_candidate = rc
         self.s3 = s3
         self.force_unpack = force_unpack
@@ -154,6 +155,16 @@ class IsoBuild:
         self.iso_work_dir = os.path.join(
                 self.compose_latest_dir,
                 "work/isos"
+        )
+
+        self.live_work_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/live"
+        )
+
+        self.image_work_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/images"
         )
 
         self.lorax_work_dir = os.path.join(
@@ -347,16 +358,14 @@ class IsoBuild:
             unpack_single_arch = True
             arches_to_unpack = [self.arch]
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Determining the latest pulls...'
-        )
+        self.log.info(Color.INFO + 'Determining the latest pulls...')
         if self.s3:
             latest_artifacts = Shared.s3_determine_latest(
                     self.s3_bucket,
                     self.release,
                     self.arches,
                     'tar.gz',
+                    'lorax',
                     self.log
             )
         else:
@@ -365,13 +374,11 @@ class IsoBuild:
                     self.release,
                     self.arches,
                     'tar.gz',
+                    'lorax',
                     self.log
             )
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Downloading requested artifact(s)'
-        )
+        self.log.info(Color.INFO + 'Downloading requested artifact(s)')
         for arch in arches_to_unpack:
             lorax_arch_dir = os.path.join(
                 self.lorax_work_dir,
@@ -408,14 +415,8 @@ class IsoBuild:
                         full_drop,
                         self.log
                 )
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Download phase completed'
-        )
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Beginning unpack phase...'
-        )
+        self.log.info(Color.INFO + 'Download phase completed')
+        self.log.info(Color.INFO + 'Beginning unpack phase...')
 
         for arch in arches_to_unpack:
             tarname = 'lorax-{}-{}.tar.gz'.format(
@@ -430,22 +431,13 @@ class IsoBuild:
             )
 
             if not os.path.exists(tarball):
-                self.log.error(
-                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                        'Artifact does not exist: ' + tarball
-                )
+                self.log.error(Color.FAIL + 'Artifact does not exist: ' + tarball)
                 continue
 
             self._unpack_artifacts(self.force_unpack, arch, tarball)
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Unpack phase completed'
-        )
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Beginning image variant phase'
-        )
+        self.log.info(Color.INFO + 'Unpack phase completed')
+        self.log.info(Color.INFO + 'Beginning image variant phase')
 
         for arch in arches_to_unpack:
             self.log.info(
@@ -456,15 +448,9 @@ class IsoBuild:
 
             self._copy_boot_to_work(self.force_unpack, arch)
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Image variant phase completed'
-        )
+        self.log.info(Color.INFO + 'Image variant phase completed')
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Beginning treeinfo phase'
-        )
+        self.log.info(Color.INFO + 'Beginning treeinfo phase')
 
         for arch in arches_to_unpack:
             for variant in self.iso_map['images']:
@@ -488,10 +474,7 @@ class IsoBuild:
         if not force_unpack:
             file_check = os.path.join(unpack_dir, 'lorax/.treeinfo')
             if os.path.exists(file_check):
-                self.log.warn(
-                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                        'Artifact (' + arch + ') already unpacked'
-                )
+                self.log.warn(Color.WARN + 'Artifact (' + arch + ') already unpacked')
                 return
 
         self.log.info('Unpacking %s' % tarball)
@@ -515,10 +498,7 @@ class IsoBuild:
         )
 
         if not os.path.exists(os.path.join(src_to_image, '.treeinfo')):
-            self.log.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    'Lorax base image does not exist'
-            )
+            self.log.error(Color.FAIL + 'Lorax base image does not exist')
             return
 
         path_to_image = os.path.join(
@@ -530,10 +510,7 @@ class IsoBuild:
         if not force_unpack:
             file_check = os.path.join(path_to_image, '.treeinfo')
             if os.path.exists(file_check):
-                self.log.warn(
-                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                        'Lorax image for ' + image + ' already exists'
-                )
+                self.log.warn(Color.WARN + 'Lorax image for ' + image + ' already exists')
                 return
 
         self.log.info('Copying base lorax to %s directory...' % image)
@@ -595,10 +572,7 @@ class IsoBuild:
         if not force_unpack:
             file_check = isobootpath
             if os.path.exists(file_check):
-                self.log.warn(
-                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                        'Boot image (' + discname + ') already exists'
-                )
+                self.log.warn(Color.WARN + 'Boot image (' + discname + ') already exists')
                 return
 
         self.log.info('Copying %s boot iso to work directory...' % arch)
@@ -610,10 +584,7 @@ class IsoBuild:
         self.log.info('Creating checksum for %s boot iso...' % arch)
         checksum = Shared.get_checksum(isobootpath, self.checksum, self.log)
         if not checksum:
-            self.log.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    isobootpath + ' not found! Are you sure we copied it?'
-            )
+            self.log.error(Color.FAIL + isobootpath + ' not found! Are you sure we copied it?')
             return
         with open(isobootpath + '.CHECKSUM', "w+") as c:
             c.write(checksum)
@@ -638,8 +609,7 @@ class IsoBuild:
         )
 
         if not os.path.exists(pathway):
-            self.log.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+            self.log.error(Color.FAIL +
                     'Repo and Image variant either does NOT match or does ' +
                     'NOT exist. Are you sure you have synced the repository?'
             )
@@ -658,16 +628,10 @@ class IsoBuild:
                 found_files.append('/images/boot.iso')
 
             if len(found_files) > 0:
-                self.log.warn(
-                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                        'Images and data for ' + repo + ' and ' + arch + ' already exists.'
-                )
+                self.log.warn(Color.WARN + 'Images and data for ' + repo + ' and ' + arch + ' already exists.')
                 return
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Copying images and data for ' + repo + ' ' + arch
-        )
+        self.log.info(Color.INFO + 'Copying images and data for ' + repo + ' ' + arch)
 
         try:
             shutil.copytree(src_to_image, pathway, copy_function=shutil.copy2, dirs_exist_ok=True)
@@ -727,10 +691,7 @@ class IsoBuild:
         try:
             Shared.treeinfo_modify_write(data, imagemap, self.log)
         except Exception as e:
-            self.log.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    'There was an error writing treeinfo.'
-            )
+            self.log.error(Color.FAIL + 'There was an error writing treeinfo.')
             self.log.error(e)
 
     # Next set of functions are loosely borrowed (in concept) from pungi. Some
@@ -743,26 +704,17 @@ class IsoBuild:
         """
         sync_root = self.compose_latest_sync
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Starting Extra ISOs phase'
-        )
+        self.log.info(Color.INFO + 'Starting Extra ISOs phase')
 
         if not os.path.exists(self.compose_base):
-            self.log.info(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    'The compose directory MUST be here. Cannot continue.'
-            )
+            self.log.info(Color.FAIL + 'The compose directory MUST be here. Cannot continue.')
             raise SystemExit()
 
         self._extra_iso_build_wrap()
 
         self.log.info('Compose repo directory: %s' % sync_root)
         self.log.info('ISO result directory: %s/$arch' % self.lorax_work_dir)
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Extra ISO phase completed.'
-        )
+        self.log.info(Color.INFO + 'Extra ISO phase completed.')
 
     def _extra_iso_build_wrap(self):
         """
@@ -784,26 +736,17 @@ class IsoBuild:
 
         for y in images_to_build:
             if 'isoskip' in self.iso_map['images'][y] and self.iso_map['images'][y]['isoskip']:
-                self.log.info(
-                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                        'Skipping ' + y + ' image'
-                )
+                self.log.info(Color.WARN + 'Skipping ' + y + ' image')
                 continue
 
             for a in arches_to_build:
                 lorax_path = os.path.join(self.lorax_work_dir, a, 'lorax', '.treeinfo')
                 image_path = os.path.join(self.lorax_work_dir, a, y, '.treeinfo')
                 if not os.path.exists(image_path):
-                    self.log.error(
-                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                            'Lorax data not found for ' + y + '. Skipping.'
-                    )
+                    self.log.error(Color.FAIL + 'Lorax data not found for ' + y + '. Skipping.')
 
                     if not os.path.exists(lorax_path):
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                'Lorax not found at all. This is considered fatal.'
-                        )
+                        self.log.error(Color.FAIL + 'Lorax not found at all. This is considered fatal.')
 
                     raise SystemExit()
 
@@ -819,10 +762,7 @@ class IsoBuild:
                 elif self.extra_iso_mode == 'podman':
                     continue
                 else:
-                    self.log.info(
-                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                            'Mode specified is not valid.'
-                    )
+                    self.log.info(Color.FAIL + 'Mode specified is not valid.')
                     raise SystemExit()
 
         if self.extra_iso_mode == 'podman':
@@ -1053,10 +993,7 @@ class IsoBuild:
 
             join_all_pods = ' '.join(entry_name_list)
             time.sleep(3)
-            self.log.info(
-                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                    'Building ' + i + ' ...'
-            )
+            self.log.info(Color.INFO + 'Building ' + i + ' ...')
             pod_watcher = '{} wait {}'.format(
                     cmd,
                     join_all_pods
@@ -1085,9 +1022,7 @@ class IsoBuild:
 
                 output, errors = podcheck.communicate()
                 if 'Exited (0)' not in output.decode():
-                    self.log.error(
-                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' + pod
-                    )
+                    self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
             rmcmd = '{} rm {}'.format(
@@ -1106,34 +1041,21 @@ class IsoBuild:
             for p in checksum_list:
                 path = os.path.join(isos_dir, p)
                 if os.path.exists(path):
-                    self.log.info(
-                            '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                            'Performing checksum for ' + p
-                    )
+                    self.log.info(Color.INFO + 'Performing checksum for ' + p)
                     checksum = Shared.get_checksum(path, self.checksum, self.log)
                     if not checksum:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                path + ' not found! Are you sure it was built?'
-                        )
+                        self.log.error(Color.FAIL + path + ' not found! Are you sure it was built?')
                     with open(path + '.CHECKSUM', "w+") as c:
                         c.write(checksum)
                         c.close()
 
-            self.log.info(
-                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                    'Building ' + i + ' completed'
-            )
+            self.log.info(Color.INFO + 'Building ' + i + ' completed')
 
             if len(bad_exit_list) == 0:
-                self.log.info(
-                        '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                        'Copying ISOs over to compose directory...'
-                )
-                print()
+                self.log.info(Color.INFO + 'Copying ISOs over to compose directory...')
             else:
                 self.log.error(
-                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                        Color.FAIL +
                         'There were issues with the work done. As a result, ' +
                         'the ISOs will not be copied.'
                 )
@@ -1152,17 +1074,14 @@ class IsoBuild:
         lorax_base_dir = os.path.join(self.lorax_work_dir, arch)
         global_work_dir = os.path.join(self.compose_latest_dir, "work/global")
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Generating graft points for extra iso: (' + arch + ') ' + iso
-        )
+        self.log.info(Color.INFO + 'Generating graft points for extra iso: (' + arch + ') ' + iso)
         files = {}
         # This is the data we need to actually boot
         lorax_for_var = os.path.join(lorax_base_dir, iso)
 
         if not os.path.exists(lorax_for_var + '/.treeinfo'):
             self.log.info(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    Color.FAIL +
                     '!! .treeinfo is missing, does this variant actually exist? !!'
             )
             return
@@ -1611,6 +1530,64 @@ class IsoBuild:
 
         returned_cmd = ' '.join(cmd)
         return returned_cmd
+
+    def run_pull_generic_images(self):
+        """
+        Pulls generic images built in peridot and places them where they need
+        to be. This relies on a list called "cloudimages" in the version
+        configuration.
+        """
+        unpack_single_arch = False
+        arches_to_unpack = self.arches
+        if self.arch:
+            unpack_single_arch = True
+            arches_to_unpack = [self.arch]
+
+        for imagename in self.cloudimages:
+            self.log.info(Color.INFO + 'Determining the latest images for ' + imagename + ' ...')
+
+            if self.s3:
+                latest_artifacts = Shared.s3_determine_latest(
+                        self.s3_bucket,
+                        self.release,
+                        self.arches,
+                        'qcow2',
+                        imagename,
+                        self.log
+                )
+
+            else:
+                latest_artifacts = Shared.reqs_determine_latest(
+                        self.s3_bucket_url,
+                        self.release,
+                        self.arches,
+                        'qcow2',
+                        imagename,
+                        self.log
+                )
+
+
+    def run_build_live_iso(self):
+        """
+        Builds DVD images based on the data created from the initial lorax on
+        each arch. This should NOT be called during the usual run() section.
+        """
+        sync_root = self.compose_latest_sync
+
+        self.log.info(Color.INFO + 'Starting Live ISOs phase')
+
+        self._live_iso_build_wrap()
+
+        self.log.info('Compose repo directory: %s' % sync_root)
+        self.log.info('ISO result directory: %s/$arch' % self.lorax_work_dir)
+        self.log.info(Color.INFO + 'Extra ISO phase completed.')
+
+    def _live_iso_build_wrap(self):
+        """
+        Prepare and actually build the live images. Based on arguments in self,
+        we'll either do it on mock in a loop or in podman, just like with the
+        extra iso phase.
+        """
 
 class LiveBuild:
     """

@@ -38,6 +38,10 @@ class Color:
     UNDERLINE = '\033[4m'
     BOLD = '\033[1m'
     END = '\033[0m'
+    INFO = '[' + BOLD + GREEN + 'INFO' + END + '] '
+    WARN = '[' + BOLD + YELLOW + 'WARN' + END + '] '
+    FAIL = '[' + BOLD + RED + 'FAIL' + END + '] '
+    STAT = '[' + BOLD + CYAN + 'STAT' + END + '] '
 
 # vars and additional checks
 rldict = AttributeDict()

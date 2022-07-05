@@ -235,10 +235,7 @@ class RepoSync:
             raise SystemExit()
 
         if self.fullrun and self.refresh_extra_files:
-            self.log.warn(
-                    '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                    'A full run implies extra files are also deployed.'
-            )
+            self.log.warn(Color.WARN + 'A full run implies extra files are also deployed.')
 
         self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
 
@@ -575,10 +572,7 @@ class RepoSync:
 
             join_all_pods = ' '.join(entry_name_list)
             time.sleep(3)
-            self.log.info(
-                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                    'Syncing ' + r + ' ...'
-            )
+            self.log.info(Color.INFO + 'Syncing ' + r + ' ...')
             pod_watcher = '{} wait {}'.format(
                     cmd,
                     join_all_pods
@@ -608,9 +602,7 @@ class RepoSync:
 
                 output, errors = podcheck.communicate()
                 if 'Exited (0)' not in output.decode():
-                    self.log.error(
-                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' + pod
-                    )
+                    self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
             rmcmd = '{} rm {}'.format(
@@ -626,10 +618,7 @@ class RepoSync:
             )
 
             entry_name_list.clear()
-            self.log.info(
-                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                    'Syncing ' + r + ' completed'
-            )
+            self.log.info(Color.INFO + 'Syncing ' + r + ' completed')
 
         if len(bad_exit_list) > 0:
             self.log.error(
@@ -849,9 +838,7 @@ class RepoSync:
 
                 output, errors = podcheck.communicate()
                 if 'Exited (0)' not in output.decode():
-                    self.log.error(
-                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' + pod
-                    )
+                    self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
             rmcmd = '{} rm {}'.format(
@@ -885,10 +872,7 @@ class RepoSync:
         might also deploy COMPOSE_ID and maybe in the future a metadata dir with
         a bunch of compose-esque stuff.
         """
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Deploying treeinfo, discinfo, and media.repo'
-        )
+        self.log.info(Color.INFO + 'Deploying treeinfo, discinfo, and media.repo')
 
         cmd = Shared.git_cmd(self.log)
         tmpclone = '/tmp/clone'
@@ -919,10 +903,7 @@ class RepoSync:
                 stderr=subprocess.DEVNULL
         )
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Deploying extra files to work and metadata directories ...'
-        )
+        self.log.info(Color.INFO + 'Deploying extra files to work and metadata directories ...')
 
         # Copy files to work root
         for extra in self.extra_files['list']:
@@ -934,18 +915,13 @@ class RepoSync:
                 shutil.copy2(src, extra_files_dir)
                 shutil.copy2(src, metadata_dir)
             except:
-                self.log.warn(
-                        '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                        'Extra file not copied: ' + src
-                )
+                self.log.warn(Color.WARN + 'Extra file not copied: ' + src)
 
         try:
             shutil.rmtree(tmpclone)
         except OSError as e:
-            self.log.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    'Directory ' + tmpclone + ' could not be removed: ' +
-                    e.strerror
+            self.log.error(Color.FAIL + 'Directory ' + tmpclone +
+                    ' could not be removed: ' + e.strerror
             )
 
     def deploy_metadata(self, sync_root):
@@ -954,10 +930,7 @@ class RepoSync:
         will be close to how pungi produces it, but it won't be exact nor a
         perfect replica.
         """
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Deploying metadata for this compose'
-        )
+        self.log.info(Color.INFO + 'Deploying metadata for this compose')
         # Create metadata here
         # Create COMPOSE_ID here (this doesn't necessarily match anything, it's
         # just an indicator)
@@ -984,10 +957,7 @@ class RepoSync:
                 metadata_dir + '/metadata'
         )
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Metadata files phase completed.'
-        )
+        self.log.info(Color.INFO + 'Metadata files phase completed.')
 
         # Deploy README to metadata directory
         readme_template = self.tmplenv.get_template('README.tmpl')
@@ -1007,10 +977,7 @@ class RepoSync:
         overwritten by our ISO process, which is fine. If there is a treeinfo
         found, it will be skipped.
         """
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Deploying treeinfo, discinfo, and media.repo'
-        )
+        self.log.info(Color.INFO + 'Deploying treeinfo, discinfo, and media.repo')
 
         arches_to_tree = self.arches
         if arch:
@@ -1093,16 +1060,12 @@ class RepoSync:
                                 repo_name
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' ' + a + ' os .treeinfo could not be written'
+                        self.log.error(Color.FAIL + repo_name + ' ' +
+                                a + ' os .treeinfo could not be written'
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + ' os .treeinfo already exists'
-                    )
+                    self.log.warn(Color.WARN + repo_name + ' ' + a + ' os .treeinfo already exists')
 
                 if not os.path.exists(os_disc_path):
                     try:
@@ -1113,15 +1076,13 @@ class RepoSync:
                                 os_disc_path
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' ' + a + ' os .discinfo could not be written'
+                        self.log.error(Color.FAIL + repo_name + ' ' +
+                                a + ' os .discinfo could not be written'
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + ' os .discinfo already exists'
+                    self.log.warn(Color.WARN + repo_name + ' ' + a +
+                            ' os .discinfo already exists'
                     )
 
                 if not os.path.exists(os_media_path):
@@ -1132,15 +1093,13 @@ class RepoSync:
                                 os_media_path
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' ' + a + ' os media.repo could not be written'
+                        self.log.error(Color.FAIL + repo_name + ' ' + a +
+                                ' os media.repo could not be written'
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + ' os media.repo already exists'
+                    self.log.warn(Color.WARN + repo_name + ' ' + a +
+                            ' os media.repo already exists'
                     )
 
                 # Kickstart part of the repos
@@ -1156,15 +1115,13 @@ class RepoSync:
                                 repo_name
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' ' + a + ' kickstart .treeinfo could not be written'
+                        self.log.error(Color.FAIL + repo_name + ' ' + a +
+                                ' kickstart .treeinfo could not be written'
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + ' kickstart .treeinfo already exists'
+                    self.log.warn(Color.WARN + repo_name + ' ' + a +
+                            ' kickstart .treeinfo already exists'
                     )
 
                 if not os.path.exists(ks_disc_path):
@@ -1176,15 +1133,13 @@ class RepoSync:
                                 ks_disc_path
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' ' + a + ' kickstart .discinfo could not be written'
+                        self.log.error(Color.FAIL + repo_name + ' ' + a +
+                                ' kickstart .discinfo could not be written'
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + ' kickstart .discinfo already exists'
+                    self.log.warn(Color.FAIL + repo_name + ' ' + a +
+                            ' kickstart .discinfo already exists'
                     )
 
                 if not os.path.exists(ks_media_path):
@@ -1195,15 +1150,13 @@ class RepoSync:
                                 ks_media_path
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' ' + a + ' kickstart media.repo could not be written'
+                        self.log.error(Color.FAIL + repo_name + ' ' + a +
+                                ' kickstart media.repo could not be written'
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' ' + a + ' kickstart media.repo already exists'
+                    self.log.warn(Color.WARN + repo_name + ' ' + a +
+                            ' kickstart media.repo already exists'
                     )
 
                 if not self.ignore_debug and not a == 'source':
@@ -1240,15 +1193,13 @@ class RepoSync:
                                     repo_name
                             )
                         except Exception as e:
-                            self.log.error(
-                                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                    repo_name + ' ' + a + ' debug .treeinfo could not be written'
+                            self.log.error(Color.FAIL + repo_name + ' ' + a +
+                                    ' debug .treeinfo could not be written'
                             )
                             self.log.error(e)
                     else:
-                        self.log.warn(
-                                '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                                r + ' ' + a + ' debug .treeinfo already exists'
+                        self.log.warn(Color.WARN + r + ' ' + a +
+                                ' debug .treeinfo already exists'
                         )
 
                     if not os.path.exists(debug_disc_path):
@@ -1260,15 +1211,13 @@ class RepoSync:
                                     debug_disc_path
                             )
                         except Exception as e:
-                            self.log.error(
-                                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                    repo_name + ' ' + a + ' debug .discinfo could not be written'
+                            self.log.error(Color.FAIL + repo_name + ' ' + a +
+                                    ' debug .discinfo could not be written'
                             )
                             self.log.error(e)
                     else:
-                        self.log.warn(
-                                '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                                r + ' ' + a + ' debug .discinfo already exists'
+                        self.log.warn(Color.WARN + r + ' ' + a +
+                                ' debug .discinfo already exists'
                         )
 
                     if not os.path.exists(debug_media_path):
@@ -1279,15 +1228,13 @@ class RepoSync:
                                     debug_media_path
                             )
                         except Exception as e:
-                            self.log.error(
-                                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                    repo_name + ' ' + a + ' debug media.repo could not be written'
+                            self.log.error(Color.FAIL + repo_name + ' ' + a +
+                                    ' debug media.repo could not be written'
                             )
                             self.log.error(e)
                     else:
-                        self.log.warn(
-                                '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                                repo_name + ' ' + a + ' debug media.repo already exists'
+                        self.log.warn(Color.WARN + repo_name + ' ' + a +
+                                ' debug media.repo already exists'
                         )
 
 
@@ -1322,16 +1269,10 @@ class RepoSync:
                                 repo_name
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' source os .treeinfo could not be written'
-                        )
+                        self.log.error(Color.FAIL + repo_name + ' source os .treeinfo could not be written')
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' source os .treeinfo already exists'
-                    )
+                    self.log.warn(Color.WARN + repo_name + ' source os .treeinfo already exists')
 
                 if not os.path.exists(source_disc_path):
                     try:
@@ -1342,16 +1283,10 @@ class RepoSync:
                                 source_disc_path
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' source os .discinfo could not be written'
-                        )
+                        self.log.error(Color.FAIL + repo_name + ' source os .discinfo could not be written')
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' source .discinfo already exists'
-                    )
+                    self.log.warn(Color.WARN + repo_name + ' source .discinfo already exists')
 
                 if not os.path.exists(source_media_path):
                     try:
@@ -1361,16 +1296,10 @@ class RepoSync:
                                 source_media_path
                         )
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                repo_name + ' source os media.repo could not be written'
-                        )
+                        self.log.error(Color.FAIL + repo_name + ' source os media.repo could not be written')
                         self.log.error(e)
                 else:
-                    self.log.warn(
-                            '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
-                            repo_name + ' source media.repo already exists'
-                    )
+                    self.log.warn(Color.WARN + repo_name + ' source media.repo already exists')
 
     def tweak_treeinfo(self, repo, sync_root, arch):
         """
@@ -1396,18 +1325,12 @@ class RepoSync:
                 variants_to_tweak.append(r)
 
         if not len(variants_to_tweak) > 0:
-            self.log.info(
-                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                    'No treeinfo to tweak.'
-            )
+            self.log.info(Color.INFO + 'No treeinfo to tweak.')
             return
 
         for a in arches_to_tree:
             for v in variants_to_tweak:
-                self.log.info(
-                        '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                        'Tweaking treeinfo for ' + a + ' ' + v
-                )
+                self.log.info(Color.INFO + 'Tweaking treeinfo for ' + a + ' ' + v)
                 image = os.path.join(sync_root, v, a, 'os')
                 imagemap = self.iso_map['images'][v]
                 data = {
@@ -1425,10 +1348,7 @@ class RepoSync:
                 try:
                     Shared.treeinfo_modify_write(data, imagemap, self.log)
                 except Exception as e:
-                    self.log.error(
-                            '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                            'There was an error writing os treeinfo.'
-                    )
+                    self.log.error(Color.FAIL + 'There was an error writing os treeinfo.')
                     self.log.error(e)
 
                 if self.fullrun:
@@ -1448,10 +1368,7 @@ class RepoSync:
                     try:
                         Shared.treeinfo_modify_write(ksdata, imagemap, self.log)
                     except Exception as e:
-                        self.log.error(
-                                '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                                'There was an error writing kickstart treeinfo.'
-                        )
+                        self.log.error(Color.FAIL + 'There was an error writing kickstart treeinfo.')
                         self.log.error(e)
 
     def run_compose_closeout(self):
@@ -1513,18 +1430,17 @@ class RepoSync:
                 "global",
         )
 
-        self.log.info(
-                '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                'Starting to sync ISOs to compose'
-        )
+        self.log.info(Color.INFO + 'Starting to sync ISOs to compose')
 
         if os.path.exists('/usr/bin/fpsync'):
+            self.log.info(Color.INFO + 'Starting up fpsync')
             message, ret = Shared.fpsync_method(iso_root, sync_iso_root, tmp_dir)
         elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
+            self.log.info(Color.INFO + 'Starting up parallel | rsync')
             message, ret = Shared.rsync_method(iso_root, sync_iso_root)
         else:
             self.log.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
+                    Color.FAIL +
                     'fpsync nor parallel + rsync were found on this system. ' +
                     'There is also no built-in parallel rsync method at this ' +
                     'time.'
@@ -1532,21 +1448,12 @@ class RepoSync:
             raise SystemExit()
 
         if ret != 0:
-            self.log.error(
-                    '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                    message
-            )
+            self.log.error(Color.FAIL + message)
         else:
-            self.log.info(
-                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                    message
-            )
+            self.log.info(Color.INFO + message)
 
         if os.path.exists(live_root):
-            self.log.info(
-                    '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                    'Starting to sync live images to compose'
-            )
+            self.log.info(Color.INFO + 'Starting to sync live images to compose')
 
             if os.path.exists('/usr/bin/fpsync'):
                 message, ret = Shared.fpsync_method(live_root, sync_live_root, tmp_dir)
@@ -1554,15 +1461,9 @@ class RepoSync:
                 message, ret = Shared.rsync_method(live_root, sync_live_root)
 
             if ret != 0:
-                self.log.error(
-                        '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
-                        message
-                )
+                self.log.error(Color.FAIL + message)
             else:
-                self.log.info(
-                        '[' + Color.BOLD + Color.GREEN + 'INFO' + Color.END + '] ' +
-                        message
-                )
+                self.log.info(Color.INFO + message)
 
         # Combine all checksums here
         for arch in self.arches:
