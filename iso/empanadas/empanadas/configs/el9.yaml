@@ -75,6 +75,16 @@
   cloudimages:
     - EC2
     - GenericCloud
+  livemap:
+    git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
+    branch: 'r9-beta'
+    ksentry:
+      - rocky-live-workstation.ks
+      - rocky-live-workstation-lite.ks
+      - rocky-live-xfce.ks
+      - rocky-live-kde.ks
+    allowed_arches:
+      - x86_64
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'

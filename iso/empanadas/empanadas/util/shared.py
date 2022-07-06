@@ -540,7 +540,8 @@ class Shared:
                 if arch in y:
                     temps.append(y)
             temps.sort(reverse=True)
-            data[arch] = temps[0]
+            if len(temps) > 0:
+                data[arch] = temps[0]
 
         return data
 
@@ -594,7 +595,8 @@ class Shared:
                 if arch in y:
                     temps.append(y)
             temps.sort(reverse=True)
-            data[arch] = temps[0]
+            if len(temps) > 0:
+                data[arch] = temps[0]
 
         return data
 

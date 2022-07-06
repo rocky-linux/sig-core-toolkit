@@ -1566,6 +1566,47 @@ class IsoBuild:
                         self.log
                 )
 
+            if not len(latest_artifacts) > 0:
+                self.log.warn(Color.WARN + 'No images found.')
+                continue
+
+            self.log.info(Color.INFO + 'Downloading requested artifacts')
+            for arch in arches_to_unpack:
+                image_arch_dir = os.path.join(
+                        self.image_work_dir,
+                        arch
+                )
+
+                source_path = latest_artifacts[arch]
+                drop_name = source_path.split('/')[-1]
+                full_drop = '{}/{}'.format(
+                        image_arch_dir,
+                        drop_name
+                )
+
+                if not os.path.exists(image_arch_dir):
+                    os.makedirs(image_arch_dir, exist_ok=True)
+
+                self.log.info('Downloading artifact for ' + Color.BOLD + arch + Color.END)
+                if self.s3:
+                    Shared.s3_download_artifacts(
+                            self.force_download,
+                            self.s3_bucket,
+                            source_path,
+                            full_drop,
+                            self.log
+                    )
+                else:
+                    Shared.reqs_download_artifacts(
+                            self.force_download,
+                            self.s3_bucket_url,
+                            source_path,
+                            full_drop,
+                            self.log
+                    )
+
+        self.log.info(Color.INFO + 'Image download phase completed')
+
 
     def run_build_live_iso(self):
         """
