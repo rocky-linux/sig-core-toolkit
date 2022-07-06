@@ -77,12 +77,12 @@
     - GenericCloud
   livemap:
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
-    branch: 'r9'
+    branch: 'r9-beta'
     ksentry:
-      - rocky-live-workstation.ks
-      - rocky-live-workstation-lite.ks
-      - rocky-live-xfce.ks
-      - rocky-live-kde.ks
+      Workstation: rocky-live-workstation.ks
+      Workstation-Lite: rocky-live-workstation-lite.ks
+      XFCE: rocky-live-xfce.ks
+      KDE: rocky-live-kde.ks
     allowed_arches:
       - x86_64
   repoclosure_map:

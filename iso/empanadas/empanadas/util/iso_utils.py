@@ -42,9 +42,8 @@ class IsoBuild:
     This helps us build the generic ISO's for a Rocky Linux release. In
     particular, this is for the boot images.
 
-    While there is a function for building the DVD and live images, this not
-    the main design of this class. The other functions can be called on their
-    own to facilitate those particular builds.
+    There are functions to build the DVD (and potentially other) images. Each
+    particular build or process starts with "run" in their name.
     """
     def __init__(
             self,
@@ -83,6 +82,7 @@ class IsoBuild:
         self.lorax_result_root = config['mock_work_root'] + "/" + "lorax"
         self.mock_isolation = isolation
         self.iso_map = rlvars['iso_map']
+        self.livemap = rlvars['livemap']
         self.cloudimages = rlvars['cloudimages']
         self.release_candidate = rc
         self.s3 = s3
@@ -1616,6 +1616,8 @@ class IsoBuild:
         sync_root = self.compose_latest_sync
 
         self.log.info(Color.INFO + 'Starting Live ISOs phase')
+
+        # Check that the arch we've assigned is valid...
 
         self._live_iso_build_wrap()
 
