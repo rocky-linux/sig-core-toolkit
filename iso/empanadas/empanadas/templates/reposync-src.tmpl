@@ -2,6 +2,7 @@
 set -o pipefail
 {{ import_gpg_cmd }} | tee -a {{ sync_log }}
 {{ dnf_plugin_cmd }} | tee -a {{ sync_log }}
+sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/*.repo
 {{ sync_cmd }} | tee -a {{ sync_log }}
 
 # {{ check_cmd  }} | tee -a {{ sync_log }}

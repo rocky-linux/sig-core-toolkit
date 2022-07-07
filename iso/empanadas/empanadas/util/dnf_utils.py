@@ -661,7 +661,7 @@ class RepoSync:
         """
         fname = os.path.join(
                 dest_path,
-                "{}-{}-config.repo".format(self.shortname, self.major_version)
+                "{}-config.repo".format(self.major_version)
         )
         self.log.info('Generating the repo configuration: %s' % fname)
 
