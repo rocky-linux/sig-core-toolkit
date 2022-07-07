@@ -100,6 +100,12 @@ class RepoSync:
         self.gpgkey = gpgkey
         self.checksum = rlvars['checksum']
 
+        # The repo name should be valid
+        if self.repo is not None:
+            if self.repo not in self.repos:
+                self.log.error(Color.FAIL + 'Invalid repository: ' + self.repo)
+                raise SystemExit()
+
         self.compose_id = '{}-{}-{}'.format(
                 config['shortname'],
                 rlvars['revision'],
@@ -661,7 +667,7 @@ class RepoSync:
         """
         fname = os.path.join(
                 dest_path,
-                "{}-config.repo".format(self.major_version)
+                "{}-{}-config.repo".format(self.shortname, self.major_version)
         )
         self.log.info('Generating the repo configuration: %s' % fname)
 
