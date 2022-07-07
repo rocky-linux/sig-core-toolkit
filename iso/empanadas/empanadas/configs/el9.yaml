@@ -2,7 +2,7 @@
 '9':
   fullname: 'Rocky Linux 9.0'
   revision: '9.0'
-  rclvl: 'RC2'
+  rclvl: 'RC3'
   major: '9'
   minor: '0'
   profile: '9'
@@ -73,8 +73,12 @@
         - 'lorax-templates-generic'
         - 'xorriso'
   cloudimages:
-    - EC2
-    - GenericCloud
+    images:
+      - EC2
+      - GenericCloud
+    formats:
+      - qcow2
+      - raw
   livemap:
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
     branch: 'r9'

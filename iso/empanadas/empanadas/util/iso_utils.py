@@ -1543,67 +1543,73 @@ class IsoBuild:
             unpack_single_arch = True
             arches_to_unpack = [self.arch]
 
-        for imagename in self.cloudimages:
+        for imagename in self.cloudimages['images']:
             self.log.info(Color.INFO + 'Determining the latest images for ' + imagename + ' ...')
 
-            if self.s3:
-                latest_artifacts = Shared.s3_determine_latest(
-                        self.s3_bucket,
-                        self.release,
-                        self.arches,
-                        'qcow2',
-                        imagename,
-                        self.log
-                )
-
-            else:
-                latest_artifacts = Shared.reqs_determine_latest(
-                        self.s3_bucket_url,
-                        self.release,
-                        self.arches,
-                        'qcow2',
-                        imagename,
-                        self.log
-                )
-
-            if not len(latest_artifacts) > 0:
-                self.log.warn(Color.WARN + 'No images found.')
-                continue
-
-            self.log.info(Color.INFO + 'Downloading requested artifacts')
-            for arch in arches_to_unpack:
-                image_arch_dir = os.path.join(
-                        self.image_work_dir,
-                        arch
-                )
-
-                source_path = latest_artifacts[arch]
-                drop_name = source_path.split('/')[-1]
-                full_drop = '{}/{}'.format(
-                        image_arch_dir,
-                        drop_name
-                )
-
-                if not os.path.exists(image_arch_dir):
-                    os.makedirs(image_arch_dir, exist_ok=True)
-
-                self.log.info('Downloading artifact for ' + Color.BOLD + arch + Color.END)
+            for formattype in self.cloudimages['formats']:
                 if self.s3:
-                    Shared.s3_download_artifacts(
-                            self.force_download,
+                    latest_artifacts = Shared.s3_determine_latest(
                             self.s3_bucket,
-                            source_path,
-                            full_drop,
+                            self.release,
+                            self.arches,
+                            formattype,
+                            imagename,
                             self.log
                     )
+
                 else:
-                    Shared.reqs_download_artifacts(
-                            self.force_download,
+                    latest_artifacts = Shared.reqs_determine_latest(
                             self.s3_bucket_url,
-                            source_path,
-                            full_drop,
+                            self.release,
+                            self.arches,
+                            formattype,
+                            imagename,
                             self.log
                     )
+
+                if not len(latest_artifacts) > 0:
+                    self.log.warn(Color.WARN + 'No images found.')
+                    continue
+
+                self.log.info(Color.INFO + 'Attempting to download requested artifacts')
+                for arch in arches_to_unpack:
+                    image_arch_dir = os.path.join(
+                            self.image_work_dir,
+                            arch
+                    )
+
+                    if arch not in latest_artifacts.keys():
+                        self.log.warn(Color.WARN + 'Artifact for ' + imagename +
+                                ' ' + arch + ' (' + formattype + ') does not exist.')
+                        continue
+
+                    source_path = latest_artifacts[arch]
+                    drop_name = source_path.split('/')[-1]
+                    full_drop = '{}/{}'.format(
+                            image_arch_dir,
+                            drop_name
+                    )
+
+                    if not os.path.exists(image_arch_dir):
+                        os.makedirs(image_arch_dir, exist_ok=True)
+
+                    self.log.info('Downloading artifact for ' + Color.BOLD + arch + Color.END)
+                    if self.s3:
+                        Shared.s3_download_artifacts(
+                                self.force_download,
+                                self.s3_bucket,
+                                source_path,
+                                full_drop,
+                                self.log
+                        )
+                    else:
+                        Shared.reqs_download_artifacts(
+                                self.force_download,
+                                self.s3_bucket_url,
+                                source_path,
+                                full_drop,
+                                self.log
+                        )
 
         self.log.info(Color.INFO + 'Image download phase completed')
 
