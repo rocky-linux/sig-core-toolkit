@@ -100,12 +100,6 @@ class RepoSync:
         self.gpgkey = gpgkey
         self.checksum = rlvars['checksum']
 
-        # The repo name should be valid
-        if self.repo is not None:
-            if self.repo not in self.repos:
-                self.log.error(Color.FAIL + 'Invalid repository: ' + self.repo)
-                raise SystemExit()
-
         self.compose_id = '{}-{}-{}'.format(
                 config['shortname'],
                 rlvars['revision'],
@@ -172,6 +166,11 @@ class RepoSync:
         self.log.info(self.revision)
         self.dnf_config = self.generate_conf()
 
+        # The repo name should be valid
+        if self.repo is not None:
+            if self.repo not in self.repos:
+                self.log.error(Color.FAIL + 'Invalid repository: ' + self.repo)
+                raise SystemExit()
 
     def run(self):
         """
