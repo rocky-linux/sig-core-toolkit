@@ -108,7 +108,7 @@ class ImageBuild:
             ]
         if self.image_type in ["Azure"]:
             self.stage_commands = [
-                    ["/empanadas/prep-azure.sh", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{STORAGE_DIR}"],
+                    ["/prep-azure.sh", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{STORAGE_DIR}"],
                     ["cp", lambda: f"{STORAGE_DIR}/{self.target_uuid}.vhd", f"{self.outdir}/{self.outname}.vhd"]
             ]
             #         ["qemu-img", "resize", "-f", "raw", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", lambda: f"{self.rounded_size()}"],
