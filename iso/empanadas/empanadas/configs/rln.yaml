@@ -74,11 +74,10 @@
         - 'xorriso'
   cloudimages:
     images:
-      - EC2
-      - GenericCloud
-    formats:
-      - qcow2
-      - raw
+      EC2:
+        format: raw
+      GenericCloud:
+        format: qcow2
   livemap:
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
     branch: 'rln'

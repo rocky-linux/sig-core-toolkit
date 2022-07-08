@@ -1,12 +1,21 @@
 # iso
 
-
 ## Setup / Install
 
 1. Install [Poetry](https://python-poetry.org/docs/)
 2. Setup: `poetry install`
+3. Install dependencies: `dnf install podman mock`
 3. Have fun
 
+## Reliance on podman and mock
+
+### Why podman?
+
+Podman is a requirement for performing reposyncs. This was done because it was found to be easier to spin up several podman containers than several mock chroots and it was faster than doing one at a time in a loop. Podman is also used to parallelize ISO builds.
+
+### Why mock?
+
+There are cases where running `mock` is the preferred go-to: For example, building lorax images. Since you cannot build a lorax image for an architecture your system does not support, trying to "parallelize" it was out of the question. Adding this support in was not only for local testing without podman, it was also done so it can be run in our peridot kube cluster for each architecture.
 
 ## Updating dependencies
 
@@ -16,9 +25,8 @@ Changes to the poetry.lock should be commited if dependencies are added or updat
 
 ## TODO
 
-Verbose mode should exist to output everything that's being called or ran.
-
-There should be additional logging regardless, not just to stdout, but also to a file.
+* Verbose mode should exist to output everything that's being called or ran.
+* There should be additional logging regardless, not just to stdout, but also to a file.
 
 ## scripts
 
@@ -27,6 +35,10 @@ There should be additional logging regardless, not just to stdout, but also to a
 * sync_sig             -> Syncs SIG repositories from Peridot
 * build-iso            -> Builds initial ISO's using Lorax
 * build-iso-extra      -> Builds DVD's and other images based on Lorax data
+* build-iso-live       -> Builds live images
+* pull-unpack-tree     -> Pulls the latest lorax data from an S3 bucket and configures treeinfo
+* pull-cloud-image     -> Pulls the latest cloud images from an S3 bucket
+* finalize_compose     -> Finalizes a compose with metadata and checksums, as well as copies images
 * launch-builds        -> Creates a kube config to run build-iso
 * build-image          -> Runs build-iso
 ```
