@@ -60,13 +60,11 @@ RUN pip install awscli
 ENV BRANCH r9
 RUN git clone https://git.resf.org/sig_core/kickstarts.git --branch $BRANCH /kickstarts
 
-# devel only
-# COPY . /empanadas
-# RUN pip install -e /empanadas
-
-# prod
 RUN pip install 'git+https://git.resf.org/sig_core/toolkit.git@devel#egg=empanadas&subdirectory=iso/empanadas'
 
 ENV LIBGUESTFS_BACKEND direct
+
+COPY prep-azure.sh /prep-azure.sh
+RUN chmod +x /prep-azure.sh
 
 ENTRYPOINT ["/tini", "--"]

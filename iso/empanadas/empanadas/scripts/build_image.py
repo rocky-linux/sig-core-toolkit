@@ -106,6 +106,13 @@ class ImageBuild:
             self.stage_commands = [
                     ["qemu-img", "convert", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
             ]
+        if self.image_type in ["Azure"]:
+            self.stage_commands = [
+                    ["/empanadas/prep-azure.sh", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{STORAGE_DIR}"],
+                    ["cp", lambda: f"{STORAGE_DIR}/{self.target_uuid}.vhd", f"{self.outdir}/{self.outname}.vhd"]
+            ]
+            #         ["qemu-img", "resize", "-f", "raw", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", lambda: f"{self.rounded_size()}"],
+            #         ["qemu-img", "convert", "-f", "raw", "-o", "subformat=fixed,force_size" ,"-O", "vpc", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.vhd"]
         if self.image_type in ["Vagrant"]:
             _map = {
                     "VBox": "vmdk",
@@ -135,6 +142,13 @@ class ImageBuild:
                     log.exception("Couldn't decode metadata file", e)
                 finally:
                     f.flush()
+
+    # def rounded_size(self) -> int:
+    #     # Azure images need to be rounded to the nearest 1MB boundary.
+    #     MB=1024*1024
+    #
+    #     raw_size = pathlib.Path(STORAGE_DIR},f"{self.target_uuid}.body").stat().st_size
+    #     rounded_size = raw
 
     def output_name(self) -> Tuple[pathlib.Path, str]:
         directory = f"Rocky-{self.architecture.major}-{self.type_variant}-{self.architecture.version}-{BUILDTIME.strftime('%Y%m%d')}.{self.release}"
@@ -245,7 +259,7 @@ class ImageBuild:
     def package(self) -> int: 
         # Some build types don't need to be packaged by imagefactory
         # @TODO remove business logic if possible
-        if self.image_type in ["GenericCloud", "EC2"]:
+        if self.image_type in ["GenericCloud", "EC2", "Azure"]:
             self.target_uuid = self.base_uuid if hasattr(self, 'base_uuid') else ""
 
         if self.target_uuid:
