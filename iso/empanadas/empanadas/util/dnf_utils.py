@@ -1445,6 +1445,7 @@ class RepoSync:
                 "global",
         )
 
+        # Standard ISOs
         self.log.info(Color.INFO + 'Starting to sync ISOs to compose')
 
         if os.path.exists('/usr/bin/fpsync'):
@@ -1467,6 +1468,7 @@ class RepoSync:
         else:
             self.log.info(Color.INFO + message)
 
+        # Live images
         if os.path.exists(live_root):
             self.log.info(Color.INFO + 'Starting to sync live images to compose')
 
@@ -1480,8 +1482,7 @@ class RepoSync:
             else:
                 self.log.info(Color.INFO + message)
 
-        # Sync the cloud images?
-
+        # Cloud images
         if os.path.exists(images_root):
             self.log.info(Color.INFO + 'Starting to sync cloud images to compose')
 
@@ -1512,12 +1513,23 @@ class RepoSync:
             live_arch_checksum = os.path.join(live_arch_root, 'CHECKSUM')
             if os.path.exists(live_arch_root):
                 with open(live_arch_checksum, 'w+', encoding='utf-8') as lp:
-                    for lcheck in glob.iglob(iso_arch_root + '/*.CHECKSUM'):
+                    for lcheck in glob.iglob(live_arch_root + '/*.CHECKSUM'):
                         with open(lcheck, 'r', encoding='utf-8') as sum:
                             for line in sum:
                                 lp.write(line)
                             sum.close()
                     lp.close()
+
+            images_arch_root = os.path.join(sync_images_root, arch)
+            images_arch_checksum = os.path.join(sync_images_root, arch)
+            if os.path.exists(images_arch_root):
+                with open(images_arch_checksum, 'w+', encoding='utf-8') as ip:
+                    for icheck in glob.iglob(images_arch_root + '/*.CHECKSUM'):
+                        with open(icheck, 'r', encoding='utf-8') as sum:
+                            for line in sum:
+                                ip.write(line)
+                            sum.close()
+                    ip.close()
 
         # Deploy final metadata for a close out
         self.deploy_metadata(sync_root)
