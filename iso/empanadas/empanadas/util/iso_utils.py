@@ -75,14 +75,13 @@ class IsoBuild:
         self.timestamp = time.time()
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
-        self.iso_drop = config['compose_root'] + "/" + major + "/isos"
         self.current_arch = config['arch']
         self.required_pkgs = rlvars['iso_map']['lorax']['required_pkgs']
         self.mock_work_root = config['mock_work_root']
         self.lorax_result_root = config['mock_work_root'] + "/" + "lorax"
         self.mock_isolation = isolation
         self.iso_map = rlvars['iso_map']
-        self.livemap = rlvars['livemap']
+        #self.livemap = rlvars['livemap']
         self.cloudimages = rlvars['cloudimages']
         self.release_candidate = rc
         self.s3 = s3
@@ -885,10 +884,16 @@ class IsoBuild:
             xorriso_template_entry.close()
             opts['graft_points'] = xorriso_template_path
 
-        make_image = '{} {}'.format(self._get_make_image_cmd(opts), log_path_command)
-        isohybrid = self._get_isohybrid_cmd(opts)
-        implantmd5 = self._get_implantisomd5_cmd(opts)
-        make_manifest = self._get_manifest_cmd(opts)
+        make_image = '{} {}'.format(
+                Shared.get_make_image_cmd(
+                        opts,
+                        self.hfs_compat
+                ),
+                log_path_command
+        )
+        isohybrid = Shared.get_isohybrid_cmd(opts)
+        implantmd5 = Shared.get_implantisomd5_cmd(opts)
+        make_manifest = Shared.get_manifest_cmd(opts)
 
         iso_template_output = iso_template.render(
                 extra_iso_mode=self.extra_iso_mode,
@@ -919,7 +924,9 @@ class IsoBuild:
 
     def _extra_iso_local_run(self, arch, image, work_root):
         """
-        Runs the actual local process using mock
+        Runs the actual local process using mock. This is for running in
+        peridot or running on a machine that does not have podman, but does
+        have mock available.
         """
         entries_dir = os.path.join(work_root, "entries")
         extra_iso_cmd = '/bin/bash {}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
@@ -1308,229 +1315,6 @@ class IsoBuild:
         Gets a volume ID
         """
 
-    def _get_boot_options(self, arch, createfrom, efi=True, hfs_compat=False):
-        """
-        Gets boot options based on architecture, the iso commands are not
-        universal.
-        """
-        if arch in ("armhfp",):
-            result = []
-            return result
-
-        if arch in ("aarch64",):
-            result = [
-                    "-eltorito-alt-boot",
-                    "-e",
-                    "images/efiboot.img",
-                    "-no-emul-boot",
-            ]
-            return result
-
-        if arch in ("i386", "i686", "x86_64"):
-            result = [
-                    "-b",
-                    "isolinux/isolinux.bin",
-                    "-c",
-                    "isolinux/boot.cat",
-                    "-no-emul-boot",
-                    "-boot-load-size",
-                    "4",
-                    "-boot-info-table",
-            ]
-
-            # EFI args
-            if arch == "x86_64":
-                result.extend(
-                    [
-                        "-eltorito-alt-boot",
-                        "-e",
-                        "images/efiboot.img",
-                        "-no-emul-boot"
-                    ]
-                )
-            return result
-
-        # need to go double check if this is needed with stream 9
-        if arch == "ppc64le" and hfs_compat:
-            result = [
-                    "-part",
-                    "-hfs",
-                    "-r",
-                    "-l",
-                    "-sysid",
-                    "PPC",
-                    "-no-desktop",
-                    "-allow-multidot",
-                    "-chrp-boot",
-                    "-map",
-                    os.path.join(createfrom, "mapping"),
-                    "-hfs-bless",
-                    "/ppc/mac"
-            ]
-            return result
-
-        if arch == "ppc64le" and not hfs_compat:
-            result = [
-                    "-r",
-                    "-l",
-                    "-sysid",
-                    "PPC",
-                    "-chrp-boot",
-            ]
-            return result
-
-        if arch in ("s390x",):
-            result = [
-                    "-eltorito-boot",
-                    "images/cdboot.img",
-                    "-no-emul-boot",
-            ]
-            return result
-
-        raise ValueError("Architecture %s%s%s is NOT known" % (Color.BOLD, arch, Color.END))
-
-    # ALL COMMANDS #
-    def _get_mkisofs_cmd(
-            self,
-            iso,
-            appid=None,
-            volid=None,
-            volset=None,
-            exclude=None,
-            boot_args=None,
-            input_charset="utf-8",
-            grafts=None,
-            use_xorrisofs=False,
-            iso_level=None
-    ):
-        # I should hardcode this I think
-        #untranslated_filenames = True
-        translation_table = True
-        #joliet = True
-        #joliet_long = True
-        #rock = True
-        cmd = ["/usr/bin/xorrisofs" if use_xorrisofs else "/usr/bin/genisoimage"]
-        if not os.path.exists(cmd[0]):
-            self.log.error('%s was not found. Good bye.' % cmd[0])
-            raise SystemExit("\n\n" + cmd[0] + " was not found.\n\nPlease "
-                    " ensure that you have installed the necessary packages on "
-                    " this system. "
-            )
-
-        if iso_level:
-            cmd.extend(["-iso-level", str(iso_level)])
-
-        if appid:
-            cmd.extend(["-appid", appid])
-
-        #if untranslated_filenames:
-        cmd.append("-untranslated-filenames")
-
-        if volid:
-            cmd.extend(["-volid", volid])
-
-        #if joliet:
-        cmd.append("-J")
-
-        #if joliet_long:
-        cmd.append("-joliet-long")
-
-        if volset:
-            cmd.extend(["-volset", volset])
-
-        #if rock:
-        cmd.append("-rational-rock")
-
-        if not use_xorrisofs and translation_table:
-            cmd.append("-translation-table")
-
-        if input_charset:
-            cmd.extend(["-input-charset", input_charset])
-
-        if exclude:
-            for i in kobo.shortcuts.force_list(exclude):
-                cmd.extend(["-x", i])
-
-        if boot_args:
-            cmd.extend(boot_args)
-
-        cmd.extend(["-o", iso])
-
-        if grafts:
-            cmd.append("-graft-points")
-            cmd.extend(["-path-list", grafts])
-
-        return cmd
-
-    def _get_implantisomd5_cmd(self, opts):
-        """
-        Implants md5 into iso
-        """
-        cmd = ["/usr/bin/implantisomd5", "--supported-iso", opts['iso_name']]
-        returned_cmd = ' '.join(cmd)
-        return returned_cmd
-
-    def _get_manifest_cmd(self, opts):
-        """
-        Gets an ISO manifest
-        """
-        if opts['use_xorrisofs']:
-            return """/usr/bin/xorriso -dev %s --find |
-                tail -n+2 |
-                tr -d "'" |
-                cut -c2-  | sort >> %s.manifest""" % (
-                shlex.quote(opts['iso_name']),
-                shlex.quote(opts['iso_name']),
-            )
-        else:
-            return "/usr/bin/isoinfo -R -f -i %s | grep -v '/TRANS.TBL$' | sort >> %s.manifest" % (
-                shlex.quote(opts['iso_name']),
-                shlex.quote(opts['iso_name']),
-            )
-
-    def _get_isohybrid_cmd(self, opts):
-        cmd = []
-        if not opts['use_xorrisofs']:
-            if opts['arch'] == "x86_64":
-                cmd = ["/usr/bin/isohybrid"]
-                cmd.append("--uefi")
-                cmd.append(opts['iso_name'])
-            returned_cmd = ' '.join(cmd)
-        else:
-            returned_cmd = ''
-
-        return returned_cmd
-
-    def _get_make_image_cmd(self, opts):
-        """
-        Generates the command to actually make the image in the first place
-        """
-        isokwargs = {}
-        isokwargs["boot_args"] = self._get_boot_options(
-                opts['arch'],
-                os.path.join("$TEMPLATE", "config_files/ppc"),
-                hfs_compat=self.hfs_compat,
-        )
-
-        if opts['arch'] in ("ppc64", "ppc64le"):
-            isokwargs["input_charset"] = None
-
-        if opts['use_xorrisofs']:
-            cmd = ['/usr/bin/xorriso', '-dialog', 'on', '<', opts['graft_points']]
-        else:
-            cmd = self._get_mkisofs_cmd(
-                    opts['iso_name'],
-                    volid=opts['volid'],
-                    exclude=["./lost+found"],
-                    grafts=opts['graft_points'],
-                    use_xorrisofs=False,
-                    iso_level=opts['iso_level'],
-                    **isokwargs
-            )
-
-        returned_cmd = ' '.join(cmd)
-        return returned_cmd
-
     def run_pull_generic_images(self):
         """
         Pulls generic images built in peridot and places them where they need
@@ -1614,6 +1398,109 @@ class IsoBuild:
         self.log.info(Color.INFO + 'Image download phase completed')
 
 
+class LiveBuild:
+    """
+    This helps us build the live images for Rocky Linux. The mode is "simple"
+    by default when using mock.
+    """
+    def __init__(
+            self,
+            rlvars,
+            config,
+            major,
+            hfs_compat: bool = False,
+            force_download: bool = False,
+            isolation: str = 'simple',
+            live_iso_mode: str = 'local',
+            compose_dir_is_here: bool = False,
+            image=None,
+            logger=None
+    ):
+
+        self.image = image
+        self.fullname = rlvars['fullname']
+        self.distname = config['distname']
+        self.shortname = config['shortname']
+        self.current_arch = config['arch']
+        # Relevant config items
+        self.major_version = major
+        self.compose_dir_is_here = compose_dir_is_here
+        self.date_stamp = config['date_stamp']
+        self.timestamp = time.strftime("%Y%m%d", time.localtime())
+        self.compose_root = config['compose_root']
+        self.compose_base = config['compose_root'] + "/" + major
+        self.current_arch = config['arch']
+        self.livemap = rlvars['livemap']
+        self.required_pkgs = rlvars['livemap']['required_pkgs']
+        self.mock_work_root = config['mock_work_root']
+        self.live_result_root = config['mock_work_root'] + "/lmc"
+        self.mock_isolation = isolation
+        self.force_download = force_download
+        self.live_iso_mode = live_iso_mode
+        self.checksum = rlvars['checksum']
+        self.profile = rlvars['profile']
+
+        # Relevant major version items
+        self.arch = config['arch']
+        self.arches = rlvars['allowed_arches']
+        self.release = rlvars['revision']
+        self.minor_version = rlvars['minor']
+        self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.rclvl = rlvars['rclvl']
+        self.repos = rlvars['iso_map']['lorax']['repos']
+        self.repo_base_url = config['repo_base_url']
+        self.project_id = rlvars['project_id']
+        self.structure = rlvars['structure']
+        self.bugurl = rlvars['bugurl']
+
+        self.container = config['container']
+        if 'container' in rlvars and len(rlvars['container']) > 0:
+            self.container = rlvars['container']
+
+        # Templates
+        file_loader = FileSystemLoader(f"{_rootdir}/templates")
+        self.tmplenv = Environment(loader=file_loader)
+
+        self.compose_latest_dir = os.path.join(
+                config['compose_root'],
+                major,
+                "latest-{}-{}".format(
+                    self.shortname,
+                    self.profile
+                )
+        )
+
+        self.compose_latest_sync = os.path.join(
+                self.compose_latest_dir,
+                "compose"
+        )
+
+        self.compose_log_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/logs"
+        )
+
+        self.live_work_dir = os.path.join(
+                self.compose_latest_dir,
+                "work/live"
+        )
+
+        # This is temporary for now.
+        if logger is None:
+            self.log = logging.getLogger("iso")
+            self.log.setLevel(logging.INFO)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.INFO)
+            formatter = logging.Formatter(
+                    '%(asctime)s :: %(name)s :: %(message)s',
+                    '%Y-%m-%d %H:%M:%S'
+            )
+            handler.setFormatter(formatter)
+            self.log.addHandler(handler)
+
+        self.log.info('live build init')
+        self.log.info(self.revision)
+
     def run_build_live_iso(self):
         """
         Builds DVD images based on the data created from the initial lorax on
@@ -1623,13 +1510,16 @@ class IsoBuild:
 
         self.log.info(Color.INFO + 'Starting Live ISOs phase')
 
-        # Check that the arch we've assigned is valid...
+        # Check that the arch we're assigned is valid...
+        if self.current_arch not in self.livemap['allowed_arches']:
+            self.log.error(Color.FAIL + 'Running an unsupported architecture.')
+            raise SystemExit()
 
         self._live_iso_build_wrap()
 
         self.log.info('Compose repo directory: %s' % sync_root)
-        self.log.info('ISO result directory: %s/$arch' % self.lorax_work_dir)
-        self.log.info(Color.INFO + 'Extra ISO phase completed.')
+        self.log.info('Live ISO result directory: %s/$arch' % self.live_work_dir)
+        self.log.info(Color.INFO + 'Live ISO phase completed.')
 
     def _live_iso_build_wrap(self):
         """
@@ -1637,8 +1527,64 @@ class IsoBuild:
         we'll either do it on mock in a loop or in podman, just like with the
         extra iso phase.
         """
+        work_root = os.path.join(
+                self.compose_latest_dir,
+                'work'
+        )
 
-class LiveBuild:
-    """
-    This helps us build the live images for Rocky Linux.
-    """
+        images_to_build = list(self.livemap['ksentry'].keys())
+        if self.image:
+            images_to_build = [self.image]
+
+        self.log.info(
+                Color.INFO + 'We are planning to build: ' +
+                ', '.join(images_to_build)
+        )
+
+    def _live_iso_local_config(self, image, work_root):
+        """
+        Live ISO build configuration - This generates both mock and podman
+        entries, regardless of which one is being used.
+        """
+        self.log.info('Generating Live ISO configuration and script')
+
+    def _live_iso_podman_run(self, arch, images, work_root):
+        """
+        Does all the image building in podman containers to parallelize the
+        process. This is a case where you can call this instead of looping mock
+        or not run in peridot. This gives the Release Engineer a little more
+        flexibility if they care enough.
+
+        This honestly assumes you are running this on a machine that has access
+        to the compose directories. It's the same as if you were doing a
+        reposync of the repositories.
+        """
+        cmd = Shared.podman_cmd(self.log)
+        entries_dir = os.path.join(work_root, "entries")
+        isos_dir = self.live_work_dir
+        bad_exit_list = []
+        checksum_list = []
+        for i in images:
+            entry_name_list = []
+            image_name = i
+
+    def _live_iso_local_run(self, arch, image, work_root):
+        """
+        Runs the actual local process using mock. This is for running in
+        peridot or running on a machine that does not have podman, but does
+        have mock available.
+        """
+        entries_dir = os.path.join(work_root, "entries")
+        live_iso_cmd = '/bin/bash {}/liveisobuild-{}-{}.sh'.format(entries_dir, arch, image)
+        self.log.info('Starting mock build...')
+        p = subprocess.call(shlex.split(live_iso_cmd))
+        if p != 0:
+            self.log.error('An error occured during execution.')
+            self.log.error('See the logs for more information.')
+            raise SystemExit()
+
+        self.log.warn(
+                Color.WARN +
+                'If you are looping images, your built image may get overwritten.'
+        )
+

@@ -11,6 +11,7 @@ import boto3
 import xmltodict
 import productmd.treeinfo
 import empanadas
+import kobo.shortcuts
 from empanadas.common import Color
 
 class ArchCheck:
@@ -331,7 +332,7 @@ class Shared:
         if os.path.exists("/usr/bin/podman"):
             cmd = "/usr/bin/podman"
         else:
-            logger.error('/usr/bin/podman was not found. Good bye.')
+            logger.error(Color.FAIL + '/usr/bin/podman was not found. Good bye.')
             raise SystemExit("\n\n/usr/bin/podman was not found.\n\nPlease "
                     " ensure that you have installed the necessary packages on "
                     " this system. " + Color.BOLD + "Note that docker is not "
@@ -352,7 +353,7 @@ class Shared:
         if os.path.exists("/usr/bin/dnf"):
             cmd = "/usr/bin/dnf reposync"
         else:
-            logger('/usr/bin/dnf was not found. Good bye.')
+            logger(Color.FAIL + '/usr/bin/dnf was not found. Good bye.')
             raise SystemExit("/usr/bin/dnf was not found. \n\n/usr/bin/reposync "
                     "is not sufficient and you are likely running on an el7 "
                     "system or a grossly modified EL8+ system, " + Color.BOLD +
@@ -370,8 +371,25 @@ class Shared:
         if os.path.exists("/usr/bin/git"):
             cmd = "/usr/bin/git"
         else:
-            logger.error('/usr/bin/git was not found. Good bye.')
+            logger.error(Color.FAIL + '/usr/bin/git was not found. Good bye.')
             raise SystemExit("\n\n/usr/bin/git was not found.\n\nPlease "
+                    " ensure that you have installed the necessary packages on "
+                    " this system. "
+            )
+        return cmd
+
+    @staticmethod
+    def mock_cmd(logger) -> str:
+        """
+        This generates the mock command. This is when we are building or
+        performing any kind of operation in mock.
+        """
+        cmd = None
+        if os.path.exists("/usr/bin/mock"):
+            cmd = "/usr/bin/mock"
+        else:
+            logger.error(Color.FAIL + '/usr/bin/mock was not found. Good bye.')
+            raise SystemExit("\n\n/usr/bin/mock was not found.\n\nPlease "
                     " ensure that you have installed the necessary packages on "
                     " this system. "
             )
@@ -624,3 +642,232 @@ class Shared:
         except requests.exceptions.RequestException as e:
             logger.error('There was a problem downloading the artifact')
             raise SystemExit(e)
+
+    # ISO related
+    @staticmethod
+    def get_boot_options(arch, createfrom, efi=True, hfs_compat=False):
+        """
+        Gets boot options based on architecture, the iso commands are not
+        universal.
+        """
+        if arch in ("armhfp",):
+            result = []
+            return result
+
+        if arch in ("aarch64",):
+            result = [
+                    "-eltorito-alt-boot",
+                    "-e",
+                    "images/efiboot.img",
+                    "-no-emul-boot",
+            ]
+            return result
+
+        if arch in ("i386", "i686", "x86_64"):
+            result = [
+                    "-b",
+                    "isolinux/isolinux.bin",
+                    "-c",
+                    "isolinux/boot.cat",
+                    "-no-emul-boot",
+                    "-boot-load-size",
+                    "4",
+                    "-boot-info-table",
+            ]
+
+            # EFI args
+            if arch == "x86_64":
+                result.extend(
+                    [
+                        "-eltorito-alt-boot",
+                        "-e",
+                        "images/efiboot.img",
+                        "-no-emul-boot"
+                    ]
+                )
+            return result
+
+        # need to go double check if this is needed with stream 9
+        if arch == "ppc64le" and hfs_compat:
+            result = [
+                    "-part",
+                    "-hfs",
+                    "-r",
+                    "-l",
+                    "-sysid",
+                    "PPC",
+                    "-no-desktop",
+                    "-allow-multidot",
+                    "-chrp-boot",
+                    "-map",
+                    os.path.join(createfrom, "mapping"),
+                    "-hfs-bless",
+                    "/ppc/mac"
+            ]
+            return result
+
+        if arch == "ppc64le" and not hfs_compat:
+            result = [
+                    "-r",
+                    "-l",
+                    "-sysid",
+                    "PPC",
+                    "-chrp-boot",
+            ]
+            return result
+
+        if arch in ("s390x",):
+            result = [
+                    "-eltorito-boot",
+                    "images/cdboot.img",
+                    "-no-emul-boot",
+            ]
+            return result
+
+        raise ValueError("Architecture %s%s%s is NOT known" % (Color.BOLD, arch, Color.END))
+
+    @staticmethod
+    def get_mkisofs_cmd(
+            iso,
+            appid=None,
+            volid=None,
+            volset=None,
+            exclude=None,
+            boot_args=None,
+            input_charset="utf-8",
+            grafts=None,
+            use_xorrisofs=False,
+            iso_level=None,
+    ):
+        # I should hardcode this I think
+        #untranslated_filenames = True
+        translation_table = True
+        #joliet = True
+        #joliet_long = True
+        #rock = True
+        cmd = ["/usr/bin/xorrisofs" if use_xorrisofs else "/usr/bin/genisoimage"]
+        if not os.path.exists(cmd[0]):
+            #logger.error('%s was not found. Good bye.' % cmd[0])
+            raise SystemExit("\n\n" + cmd[0] + " was not found.\n\nPlease "
+                    " ensure that you have installed the necessary packages on "
+                    " this system. "
+            )
+
+        if iso_level:
+            cmd.extend(["-iso-level", str(iso_level)])
+
+        if appid:
+            cmd.extend(["-appid", appid])
+
+        #if untranslated_filenames:
+        cmd.append("-untranslated-filenames")
+
+        if volid:
+            cmd.extend(["-volid", volid])
+
+        #if joliet:
+        cmd.append("-J")
+
+        #if joliet_long:
+        cmd.append("-joliet-long")
+
+        if volset:
+            cmd.extend(["-volset", volset])
+
+        #if rock:
+        cmd.append("-rational-rock")
+
+        if not use_xorrisofs and translation_table:
+            cmd.append("-translation-table")
+
+        if input_charset:
+            cmd.extend(["-input-charset", input_charset])
+
+        if exclude:
+            for i in kobo.shortcuts.force_list(exclude):
+                cmd.extend(["-x", i])
+
+        if boot_args:
+            cmd.extend(boot_args)
+
+        cmd.extend(["-o", iso])
+
+        if grafts:
+            cmd.append("-graft-points")
+            cmd.extend(["-path-list", grafts])
+
+        return cmd
+
+    @staticmethod
+    def get_make_image_cmd(opts, hfs_compat):
+        """
+        Generates the command to actually make the image in the first place
+        """
+        isokwargs = {}
+        isokwargs["boot_args"] = Shared.get_boot_options(
+                opts['arch'],
+                os.path.join("$TEMPLATE", "config_files/ppc"),
+                hfs_compat=hfs_compat,
+        )
+
+        if opts['arch'] in ("ppc64", "ppc64le"):
+            isokwargs["input_charset"] = None
+
+        if opts['use_xorrisofs']:
+            cmd = ['/usr/bin/xorriso', '-dialog', 'on', '<', opts['graft_points']]
+        else:
+            cmd = Shared.get_mkisofs_cmd(
+                    opts['iso_name'],
+                    volid=opts['volid'],
+                    exclude=["./lost+found"],
+                    grafts=opts['graft_points'],
+                    use_xorrisofs=False,
+                    iso_level=opts['iso_level'],
+                    **isokwargs
+            )
+
+        returned_cmd = ' '.join(cmd)
+        return returned_cmd
+
+    @staticmethod
+    def get_isohybrid_cmd(opts):
+        cmd = []
+        if not opts['use_xorrisofs']:
+            if opts['arch'] == "x86_64":
+                cmd = ["/usr/bin/isohybrid"]
+                cmd.append("--uefi")
+                cmd.append(opts['iso_name'])
+            returned_cmd = ' '.join(cmd)
+        else:
+            returned_cmd = ''
+
+        return returned_cmd
+
+    @staticmethod
+    def get_implantisomd5_cmd(opts):
+        """
+        Implants md5 into iso
+        """
+        cmd = ["/usr/bin/implantisomd5", "--supported-iso", opts['iso_name']]
+        returned_cmd = ' '.join(cmd)
+        return returned_cmd
+
+    @staticmethod
+    def get_manifest_cmd(opts):
+        """
+        Gets an ISO manifest
+        """
+        if opts['use_xorrisofs']:
+            return """/usr/bin/xorriso -dev %s --find |
+                tail -n+2 |
+                tr -d "'" |
+                cut -c2-  | sort >> %s.manifest""" % (
+                shlex.quote(opts['iso_name']),
+                shlex.quote(opts['iso_name']),
+            )
+        else:
+            return "/usr/bin/isoinfo -R -f -i %s | grep -v '/TRANS.TBL$' | sort >> %s.manifest" % (
+                shlex.quote(opts['iso_name']),
+                shlex.quote(opts['iso_name']),
+            )
+
