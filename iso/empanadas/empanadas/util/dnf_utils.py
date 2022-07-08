@@ -1499,17 +1499,18 @@ class RepoSync:
         for arch in self.arches:
             iso_arch_root = os.path.join(sync_iso_root, arch)
             iso_arch_checksum = os.path.join(iso_arch_root, 'CHECKSUM')
-            with open(iso_arch_checksum, 'w+', encoding='utf-8') as fp:
-                for check in glob.iglob(iso_arch_root + '/*.CHECKSUM'):
-                    with open(check, 'r', encoding='utf-8') as sum:
-                        for line in sum:
-                            fp.write(line)
-                        sum.close()
-                fp.close()
+            if os.path.exists(iso_arch_root):
+                with open(iso_arch_checksum, 'w+', encoding='utf-8') as fp:
+                    for check in glob.iglob(iso_arch_root + '/*.CHECKSUM'):
+                        with open(check, 'r', encoding='utf-8') as sum:
+                            for line in sum:
+                                fp.write(line)
+                            sum.close()
+                    fp.close()
 
-            if arch == 'x86_64' and os.path.exists(sync_live_root):
-                live_arch_root = os.path.join(sync_live_root, arch)
-                live_arch_checksum = os.path.join(live_arch_root, 'CHECKSUM')
+            live_arch_root = os.path.join(sync_live_root, arch)
+            live_arch_checksum = os.path.join(live_arch_root, 'CHECKSUM')
+            if os.path.exists(live_arch_root):
                 with open(live_arch_checksum, 'w+', encoding='utf-8') as lp:
                     for lcheck in glob.iglob(iso_arch_root + '/*.CHECKSUM'):
                         with open(lcheck, 'r', encoding='utf-8') as sum:
