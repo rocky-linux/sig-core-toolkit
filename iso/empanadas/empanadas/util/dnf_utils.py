@@ -1430,6 +1430,16 @@ class RepoSync:
                 'live'
         )
 
+        images_root = os.path.join(
+                work_root,
+                'images'
+        )
+
+        sync_images_root = os.path.join(
+                sync_root,
+                'images'
+        )
+
         global_work_root = os.path.join(
                 work_root,
                 "global",
@@ -1464,6 +1474,21 @@ class RepoSync:
                 message, ret = Shared.fpsync_method(live_root, sync_live_root, tmp_dir)
             elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
                 message, ret = Shared.rsync_method(live_root, sync_live_root)
+
+            if ret != 0:
+                self.log.error(Color.FAIL + message)
+            else:
+                self.log.info(Color.INFO + message)
+
+        # Sync the cloud images?
+
+        if os.path.exists(images_root):
+            self.log.info(Color.INFO + 'Starting to sync cloud images to compose')
+
+            if os.path.exists('/usr/bin/fpsync'):
+                message, ret = Shared.fpsync_method(images_root, sync_images_root, tmp_dir)
+            elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
+                message, ret = Shared.rsync_method(images_root, sync_images_root)
 
             if ret != 0:
                 self.log.error(Color.FAIL + message)
