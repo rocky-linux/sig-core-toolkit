@@ -43,6 +43,12 @@ RUN dnf install -y \
 
 RUN sed -i -e 's/# memory = 1024/memory = 2048/' /etc/oz/oz.cfg
 
+COPY imagefactory.patch /
+COPY oz.rpm /
+
+RUN dnf -y install /oz.rpm
+RUN (cd /usr/lib/python3.10/site-packages/; patch -p1 </imagefactory.patch)
+
 RUN ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
 RUN dnf clean all
 RUN rm -rf /etc/yum.repos.d/*.repo /get_arch
@@ -52,7 +58,7 @@ RUN rm -rf /etc/yum.repos.d/*.repo /get_arch
 RUN pip install awscli
 
 ENV BRANCH r9
-RUN git clone https://git.rockylinux.org/rocky/kickstarts.git --branch $BRANCH /kickstarts
+RUN git clone https://git.resf.org/sig_core/kickstarts.git --branch $BRANCH /kickstarts
 
 # devel only
 # COPY . /empanadas

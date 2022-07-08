@@ -84,8 +84,7 @@ class ImageBuild:
         if not self.tdl_path:
             exit(2)
         self.type_variant = self.type_variant_name()
-        self.outname = self.output_name()
-        self.outdir = pathlib.Path(f"/tmp/{self.outname}")
+        self.outdir, self.outname = self.output_name()
         self.out_type = self.image_format()
         self.command_args = self._command_args()
         self.package_args = self._package_args()
@@ -94,14 +93,29 @@ class ImageBuild:
 
         self.metadata = pathlib.Path(self.outdir, "metadata.json")
 
-        if self.image_type == "Container":
+        # Yes, this is gross. I'll fix it later.
+        if self.image_type in ["Container"]:
             self.stage_commands = [
                     ["tar", "-C", f"{self.outdir}", "--strip-components=1", "-x", "-f", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", "*/layer.tar"]
             ]
-        if self.image_type in ["GenericCloud", "EC2"]:
+        if self.image_type in ["GenericCloud"]:
             self.stage_commands = [
                     ["qemu-img", "convert", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
             ]
+        if self.image_type in ["EC2"]:
+            self.stage_commands = [
+                    ["qemu-img", "convert", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
+            ]
+        if self.image_type in ["Vagrant"]:
+            _map = {
+                    "VBox": "vmdk",
+                    "Libvirt": "qcow2"
+                    }
+            output = f"{_map[self.variant]}" #type: ignore
+            self.stage_commands = [
+                    ["qemu-img", "convert", "-f", "raw", "-O", output, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"]
+            ]
+
 
         try:
             os.mkdir(self.outdir)
@@ -122,11 +136,14 @@ class ImageBuild:
                 finally:
                     f.flush()
 
-    def output_name(self):
-        return f"Rocky-{self.architecture.major}-{self.type_variant}-{self.architecture.version}-{BUILDTIME.strftime('%Y%m%d')}.{self.release}.{self.architecture.name}"
+    def output_name(self) -> Tuple[pathlib.Path, str]:
+        directory = f"Rocky-{self.architecture.major}-{self.type_variant}-{self.architecture.version}-{BUILDTIME.strftime('%Y%m%d')}.{self.release}"
+        name = f"{directory}.{self.architecture.name}"
+        outdir = pathlib.Path(f"/tmp/", directory)
+        return outdir, name
     
     def type_variant_name(self):
-        return self.image_type if not self.variant else f"{self.image_type}-{self.variant.capitalize()}"
+        return self.image_type if not self.variant else f"{self.image_type}-{self.variant}"
 
     def _command_args(self):
         args_mapping = {
@@ -207,13 +224,17 @@ class ImageBuild:
 
     def copy_command(self) -> List[str]:
 
-        copy_command = ["aws", "s3", "cp", "--recursive", f"{self.outdir}/", f"s3://resf-empanadas/buildimage-{ self.outname }/{ BUILDTIME.strftime('%s') }/"]
+        copy_command = ["aws", "s3", "cp", "--recursive", f"{self.outdir}/", 
+                f"s3://resf-empanadas/buildimage-{self.architecture.version}-{self.architecture.name}/{ self.outname }/{ BUILDTIME.strftime('%s') }/"
+                ]
 
         return copy_command
 
     def build(self) -> int:
         if self.base_uuid:
             return 0
+
+        self.fix_ks()
 
         ret, out, err, uuid = self.runCmd(self.build_command()) 
         if uuid:
@@ -238,11 +259,11 @@ class ImageBuild:
 
     def stage(self) -> int:
         """ Stage the artifacst from wherever they are (unpacking and converting if needed)"""
-        if not self.stage_commands:
+        if not hasattr(self,'stage_commands'):
             return 0
 
         returns = []
-        for command in self.stage_commands:
+        for command in self.stage_commands: #type: ignore
             ret, out, err, _ = self.runCmd(command, search=False)
             returns.append(ret)
 
@@ -317,6 +338,9 @@ class ImageBuild:
             log_lines("Command STDOUT", stdout)
         if stderr:
             log_lines("Command STDERR", stderr)
+
+    def fix_ks(self):
+        self.runCmd(["sed", "-i", f"s,$basearch,{self.architecture.name},", self.kickstart_arg[-1]])
 
     def render_kubernetes_job(self):
         commands = [self.build_command(), self.package_command(), self.copy_command()]

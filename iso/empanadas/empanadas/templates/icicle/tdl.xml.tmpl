@@ -7,10 +7,11 @@
             <install type='url'>
               <url>https://dl.rockylinux.org/stg/rocky/{{major}}/BaseOS/{{architecture}}/{{installdir}}</url>
             </install>
-        <icicle>
+            <icicle>
                 <extra_command>rpm -qa --qf '%{NAME},%{VERSION},%{RELEASE},%{ARCH},%{EPOCH},%{SIZE},%{SIGMD5},%{BUILDTIME}
 '</extra_command>
             </icicle>
+            <kernelparam>console=tty0 inst.usefbx</kernelparam>
         </os>
         <description>Rocky-{{major}}-{{type}}-{{version_variant}}.{{iso8601date}}.{{release}}.{{architecture}} Generated on {{utcnow}}</description>
     <disk>
