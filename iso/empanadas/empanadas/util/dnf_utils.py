@@ -1521,7 +1521,7 @@ class RepoSync:
                     lp.close()
 
             images_arch_root = os.path.join(sync_images_root, arch)
-            images_arch_checksum = os.path.join(sync_images_root, arch)
+            images_arch_checksum = os.path.join(sync_images_root, 'CHECKSUM')
             if os.path.exists(images_arch_root):
                 with open(images_arch_checksum, 'w+', encoding='utf-8') as ip:
                     for icheck in glob.iglob(images_arch_root + '/*.CHECKSUM'):
