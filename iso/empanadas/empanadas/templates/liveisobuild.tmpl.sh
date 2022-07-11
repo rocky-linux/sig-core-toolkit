@@ -16,9 +16,9 @@ IMAGE_ISO="{{ isoname }}"
 ISOLATION="{{ isolation }}"
 BUILDDIR="{{ builddir }}"
 
-if [ -f "/usr/sbin/setenforce" ]; then
-  sudo setenforce 0
-fi
+#if [ -f "/usr/sbin/setenforce" ]; then
+#  sudo setenforce 0
+#fi
 
 # Init the container
 mock \
@@ -53,6 +53,6 @@ else
 fi
 
 # Clean up?
-if [ -f "/usr/sbin/setenforce" ]; then
-  sudo setenforce 1
-fi
+#if [ -f "/usr/sbin/setenforce" ]; then
+#  sudo setenforce 1
+#fi
