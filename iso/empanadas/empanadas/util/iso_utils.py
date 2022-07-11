@@ -1867,7 +1867,7 @@ class LiveBuild:
         )
 
         if self.justcopyit:
-            if os.path.exists(os.path.join(live_res_dir, isoname)):
+            if os.path.exists(os.path.join(live_dir_arch, isoname)):
                 self.log.warn(Color.WARN + 'Image already exists.')
                 if self.force_build:
                     self.log.warn(Color.WARN + 'Building anyway.')
