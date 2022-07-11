@@ -10,6 +10,7 @@ import requests
 import boto3
 import xmltodict
 import productmd.treeinfo
+import productmd.composeinfo
 import empanadas
 import kobo.shortcuts
 from empanadas.common import Color
@@ -871,3 +872,46 @@ class Shared:
                 shlex.quote(opts['iso_name']),
             )
 
+    @staticmethod
+    def build_repo_list(
+            repo_base_url,
+            repos,
+            project_id,
+            current_arch,
+            compose_latest_sync,
+            compose_dir_is_here: bool = False,
+            hashed: bool = False,
+        ):
+        """
+        Builds the repo dictionary
+        """
+        repolist = []
+        prehashed = ''
+        if hashed:
+            prehashed = 'hashed-'
+
+        for name in repos:
+            if not compose_dir_is_here:
+                constructed_url = '{}/{}/repo/{}{}/{}'.format(
+                        repo_base_url,
+                        project_id,
+                        prehashed,
+                        name,
+                        current_arch
+                )
+            else:
+                constructed_url = 'file://{}/{}/{}/os'.format(
+                        compose_latest_sync,
+                        name,
+                        current_arch
+                )
+
+
+            repodata = {
+                'name': name,
+                'url': constructed_url
+            }
+
+            repolist.append(repodata)
+
+        return repolist

@@ -60,6 +60,7 @@ class IsoBuild:
             extra_iso=None,
             extra_iso_mode: str = 'local',
             compose_dir_is_here: bool = False,
+            hashed: bool = False,
             image=None,
             logger=None
     ):
@@ -91,6 +92,7 @@ class IsoBuild:
         self.extra_iso_mode = extra_iso_mode
         self.checksum = rlvars['checksum']
         self.profile = rlvars['profile']
+        self.hashed = hashed
 
         # Relevant major version items
         self.arch = arch
@@ -185,7 +187,15 @@ class IsoBuild:
             self.log.addHandler(handler)
 
         self.log.info('iso build init')
-        self.repolist = self.build_repo_list()
+        self.repolist = Shared.build_repo_list(
+                self.repo_base_url,
+                self.repos,
+                self.project_id,
+                self.current_arch,
+                self.compose_latest_sync,
+                self.compose_dir_is_here,
+                self.hashed
+        )
         self.log.info(self.revision)
 
     def run(self):
@@ -207,36 +217,6 @@ class IsoBuild:
             self.shortname.lower(), self.major_version, self.current_arch)
         )
         self.log.info('ISO Build completed.')
-
-    def build_repo_list(self):
-        """
-        Builds the repo dictionary
-        """
-        repolist = []
-        for name in self.repos:
-            if not self.compose_dir_is_here:
-                constructed_url = '{}/{}/repo/hashed-{}/{}'.format(
-                        self.repo_base_url,
-                        self.project_id,
-                        name,
-                        self.current_arch
-                )
-            else:
-                constructed_url = 'file://{}/{}/{}/os'.format(
-                        self.compose_latest_sync,
-                        name,
-                        self.current_arch
-                )
-
-
-            repodata = {
-                'name': name,
-                'url': constructed_url
-            }
-
-            repolist.append(repodata)
-
-        return repolist
 
     def iso_build(self):
         """
@@ -761,7 +741,7 @@ class IsoBuild:
                 elif self.extra_iso_mode == 'podman':
                     continue
                 else:
-                    self.log.info(Color.FAIL + 'Mode specified is not valid.')
+                    self.log.error(Color.FAIL + 'Mode specified is not valid.')
                     raise SystemExit()
 
         if self.extra_iso_mode == 'podman':
@@ -1409,6 +1389,22 @@ class IsoBuild:
                     c.write(checksum)
                     c.close()
 
+                self.log.info('Creating a symlink to latest image...')
+                latest_name = '{}/{}-{}-{}.latest.{}.{}'.format(
+                        image_arch_dir,
+                        self.shortname,
+                        self.major_version,
+                        imagename,
+                        arch,
+                        formattype
+                )
+                # For some reason python doesn't have a "yeah just change this
+                # link" part of the function
+                if os.path.exists(latest_name):
+                    os.remove(latest_name)
+
+                os.symlink(drop_name, latest_name)
+
         self.log.info(Color.INFO + 'Image download phase completed')
 
 
@@ -1427,6 +1423,7 @@ class LiveBuild:
             isolation: str = 'simple',
             live_iso_mode: str = 'local',
             compose_dir_is_here: bool = False,
+            hashed: bool = False,
             image=None,
             logger=None
     ):
@@ -1440,7 +1437,7 @@ class LiveBuild:
         self.major_version = major
         self.compose_dir_is_here = compose_dir_is_here
         self.date_stamp = config['date_stamp']
-        self.timestamp = time.strftime("%Y%m%d", time.localtime())
+        self.date = time.strftime("%Y%m%d", time.localtime())
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
         self.current_arch = config['arch']
@@ -1453,6 +1450,7 @@ class LiveBuild:
         self.live_iso_mode = live_iso_mode
         self.checksum = rlvars['checksum']
         self.profile = rlvars['profile']
+        self.hashed = hashed
 
         # Relevant major version items
         self.arch = config['arch']
@@ -1461,6 +1459,7 @@ class LiveBuild:
         self.minor_version = rlvars['minor']
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
         self.rclvl = rlvars['rclvl']
+        self.disttag = config['dist']
         self.repos = rlvars['iso_map']['lorax']['repos']
         self.repo_base_url = config['repo_base_url']
         self.project_id = rlvars['project_id']
@@ -1513,6 +1512,15 @@ class LiveBuild:
             self.log.addHandler(handler)
 
         self.log.info('live build init')
+        self.repolist = Shared.build_repo_list(
+                self.repo_base_url,
+                self.repos,
+                self.project_id,
+                self.current_arch,
+                self.compose_latest_sync,
+                self.compose_dir_is_here,
+                self.hashed
+        )
         self.log.info(self.revision)
 
     def run_build_live_iso(self):
@@ -1555,12 +1563,148 @@ class LiveBuild:
                 ', '.join(images_to_build)
         )
 
+        for i in images_to_build:
+            self._live_iso_local_config(i, work_root)
+
+            if self.live_iso_mode == 'local':
+                self._live_iso_local_run(self.current_arch, i, work_root)
+            elif self.live_iso_mode == 'podman':
+                continue
+            else:
+                self.log.error(Color.FAIL + 'Mode specified is not valid.')
+                raise SystemExit()
+
+        if self.live_iso_mode == 'podman':
+            self._live_iso_podman_run(self.current_arch, images_to_build, work_root)
+
     def _live_iso_local_config(self, image, work_root):
         """
         Live ISO build configuration - This generates both mock and podman
         entries, regardless of which one is being used.
         """
         self.log.info('Generating Live ISO configuration and script')
+
+        entries_dir = os.path.join(work_root, "entries")
+        mock_iso_template = self.tmplenv.get_template('isomock.tmpl.cfg')
+        mock_sh_template = self.tmplenv.get_template('liveisobuild.tmpl.sh')
+        iso_template = self.tmplenv.get_template('buildLiveImage.tmpl.sh')
+
+        mock_iso_path = '/var/tmp/live-{}.cfg'.format(self.major_version)
+        mock_sh_path = '{}/liveisobuild-{}-{}.sh'.format(
+                entries_dir,
+                self.current_arch,
+                image
+        )
+        iso_template_path = '{}/buildLiveImage-{}-{}.sh'.format(
+                entries_dir,
+                self.current_arch,
+                image
+        )
+
+        log_root = os.path.join(
+                work_root,
+                "logs",
+                self.date_stamp
+        )
+
+        ks_start = self.livemap['ksentry'][image]
+
+        if not os.path.exists(log_root):
+            os.makedirs(log_root, exist_ok=True)
+
+        log_path_command = '| tee -a {}/{}-{}.log'.format(
+                log_root,
+                self.current_arch,
+                image
+        )
+        required_pkgs = self.livemap['required_pkgs']
+
+        volid = '{}-{}-{}'.format(
+                self.shortname,
+                image,
+                self.release
+        )
+
+        isoname = '{}-{}-{}-{}-{}.iso'.format(
+                self.shortname,
+                image,
+                self.release,
+                self.current_arch,
+                self.date
+        )
+
+        live_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
+                ' '.join(required_pkgs),
+                log_path_command
+        )
+
+        git_clone_cmd = '/usr/bin/git clone {} -b {} /builddir/ks {}'.format(
+                self.livemap['git_repo'],
+                self.livemap['branch'],
+                log_path_command
+        )
+
+        make_image_cmd = ('/usr/sbin/livemedia-creator --ks {} --no-virt '
+                '--resultdir /builddir/lmc --project="{}" --make-iso --volid {} '
+                '--iso-only --iso-name {} --releasever={} --nomacboot {}').format(
+                        '/builddir/ks.cfg',
+                        self.distname,
+                        volid,
+                        isoname,
+                        self.release,
+                        log_path_command
+        )
+
+        mock_iso_template_output = mock_iso_template.render(
+                arch=self.current_arch,
+                major=self.major_version,
+                fullname=self.fullname,
+                shortname=self.shortname,
+                required_pkgs=required_pkgs,
+                dist=self.disttag,
+                repos=self.repolist,
+                compose_dir_is_here=True,
+                user_agent='{{ user_agent }}',
+                compose_dir=self.compose_root,
+        )
+
+        mock_sh_template_output = mock_sh_template.render(
+                arch=self.current_arch,
+                major=self.major_version,
+                isolation=self.mock_isolation,
+                builddir=self.mock_work_root,
+                shortname=self.shortname,
+                isoname=isoname,
+                entries_dir=entries_dir,
+                image=image,
+        )
+
+        iso_template_output = iso_template.render(
+                live_iso_mode=self.live_iso_mode,
+                arch=self.current_arch,
+                compose_live_work_dir=self.live_work_dir,
+                make_image=make_image_cmd,
+                live_pkg_cmd=live_pkg_cmd,
+                isoname=isoname,
+                major=self.major_version,
+                git_clone=git_clone_cmd,
+                ks_file=ks_start,
+        )
+
+        with open(mock_iso_path, "w+") as mip:
+            mip.write(mock_iso_template_output)
+            mip.close()
+
+        with open(mock_sh_path, "w+") as msp:
+            msp.write(mock_sh_template_output)
+            msp.close()
+
+        with open(iso_template_path, "w+") as itp:
+            itp.write(iso_template_output)
+            itp.close()
+
+        os.chmod(mock_sh_path, 0o755)
+        os.chmod(iso_template_path, 0o755)
 
     def _live_iso_podman_run(self, arch, images, work_root):
         """
@@ -1578,9 +1722,112 @@ class LiveBuild:
         isos_dir = self.live_work_dir
         bad_exit_list = []
         checksum_list = []
+        entry_name_list = []
         for i in images:
-            entry_name_list = []
             image_name = i
+            entry_name = 'buildLiveImage-{}-{}.sh'.format(arch, i)
+            entry_name_list.append(entry_name)
+
+            isoname = '{}/{}-{}-{}-{}-{}.iso'.format(
+                    arch,
+                    self.shortname,
+                    i,
+                    self.major_version,
+                    arch,
+                    self.date
+            )
+
+            checksum_list.append(isoname)
+
+        print(entry_name_list, cmd, entries_dir)
+        for pod in entry_name_list:
+            podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                    cmd,
+                    self.compose_root,
+                    self.compose_root,
+                    entries_dir,
+                    entries_dir,
+                    pod,
+                    entries_dir,
+                    pod,
+                    self.container
+            )
+
+            process = subprocess.call(
+                    shlex.split(podman_cmd_entry),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+            )
+
+        join_all_pods = ' '.join(entry_name_list)
+        time.sleep(3)
+        self.log.info(Color.INFO + 'Building requested live images ...')
+
+        pod_watcher = '{} wait {}'.format(
+                cmd,
+                join_all_pods
+        )
+
+        watch_man = subprocess.call(
+                shlex.split(pod_watcher),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+        )
+
+        # After the above is done, we'll check each pod process for an exit
+        # code.
+        pattern = "Exited (0)"
+        for pod in entry_name_list:
+            checkcmd = '{} ps -f status=exited -f name={}'.format(
+                    cmd,
+                    pod
+            )
+            podcheck = subprocess.Popen(
+                    checkcmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=True
+            )
+
+            output, errors = podcheck.communicate()
+            if 'Exited (0)' not in output.decode():
+                self.log.error(Color.FAIL + pod)
+                bad_exit_list.append(pod)
+
+        rmcmd = '{} rm {}'.format(
+                cmd,
+                join_all_pods
+        )
+
+        rmpod = subprocess.Popen(
+                rmcmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                shell=True
+        )
+
+        entry_name_list.clear()
+        for p in checksum_list:
+            path = os.path.join(isos_dir, p)
+            if os.path.exists(path):
+                self.log.info(Color.INFO + 'Performing checksum for ' + p)
+                checksum = Shared.get_checksum(path, self.checksum, self.log)
+                if not checksum:
+                    self.log.error(Color.FAIL + path + ' not found! Are you sure it was built?')
+                with open(path + '.CHECKSUM', "w+") as c:
+                    c.write(checksum)
+                    c.close()
+
+        self.log.info(Color.INFO + 'Building live images completed')
+
+        if len(bad_exit_list) == 0:
+            self.log.info(Color.INFO + 'Copying ISOs over to compose directory...')
+        else:
+            self.log.error(
+                    Color.FAIL +
+                    'There were issues with the work done. As a result, ' +
+                    'the ISOs will not be copied.'
+            )
 
     def _live_iso_local_run(self, arch, image, work_root):
         """
@@ -1598,7 +1845,11 @@ class LiveBuild:
             raise SystemExit()
 
         self.log.warn(
-                Color.WARN +
-                'If you are looping images, your built image may get overwritten.'
+                Color.WARN + 'This is meant for builds done in peridot or ' +
+                'locally for an end user.'
         )
-
+        self.log.warn(
+                Color.WARN +
+                'If you are looping images, your built image WILL get ' +
+                'overwritten.'
+        )

@@ -18,3 +18,4 @@ def run():
     print(rlvars.keys())
     print(rlvars)
     print(empanadas.__version__)
+    print(a.hashed)

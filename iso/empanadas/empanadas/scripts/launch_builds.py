@@ -31,7 +31,7 @@ def run():
     elif results.env == "all":
         arches = EKSARCH+EXTARCH
 
-    command = ["build-iso", "--release", f"{results.release}", "--isolation", "simple"]
+    command = ["build-iso", "--release", f"{results.release}", "--isolation", "simple", "--hashed"]
     if results.rc:
         command += ["--rc"]
 
