@@ -319,6 +319,10 @@ class Shared:
         logger.info('Creating compose directory %s' % compose_base_dir)
         if not os.path.exists(compose_base_dir):
             os.makedirs(compose_base_dir)
+            os.makedirs(compose_base_dir + '/work')
+            os.makedirs(compose_base_dir + '/work/entries')
+            os.makedirs(compose_base_dir + '/work/logs')
+            os.makedirs(compose_base_dir + '/compose')
 
         return compose_base_dir
 

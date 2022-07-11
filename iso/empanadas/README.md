@@ -41,6 +41,8 @@ Changes to the poetry.lock should be commited if dependencies are added or updat
 * finalize_compose     -> Finalizes a compose with metadata and checksums, as well as copies images
 * launch-builds        -> Creates a kube config to run build-iso
 * build-image          -> Runs build-iso
+* generate_compose     -> Creates a compose directory right away and optionally links it as latest
+                          (You should only use this if you are running into errors with images)
 ```
 
 ## wrappers

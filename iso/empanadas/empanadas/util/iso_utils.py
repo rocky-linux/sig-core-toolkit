@@ -1039,12 +1039,12 @@ class IsoBuild:
             self.log.info(Color.INFO + 'Building ' + i + ' completed')
 
             if len(bad_exit_list) == 0:
-                self.log.info(Color.INFO + 'Copying ISOs over to compose directory...')
+                self.log.info(Color.INFO + 'Images built successfully.')
             else:
                 self.log.error(
                         Color.FAIL +
                         'There were issues with the work done. As a result, ' +
-                        'the ISOs will not be copied.'
+                        'some/all ISOs may not exist.'
                 )
 
 
@@ -1425,10 +1425,12 @@ class LiveBuild:
             compose_dir_is_here: bool = False,
             hashed: bool = False,
             image=None,
+            justcopyit: bool = False,
             logger=None
     ):
 
         self.image = image
+        self.justcopyit = justcopyit
         self.fullname = rlvars['fullname']
         self.distname = config['distname']
         self.shortname = config['shortname']
@@ -1523,6 +1525,14 @@ class LiveBuild:
         )
         self.log.info(self.revision)
 
+        if not os.path.exists(self.compose_latest_dir):
+            self.log.warn(Color.WARN + 'A compose directory was not found ' +
+                    'here. If there is a failure, it may be due to it ' +
+                    'missing. You may want to generate a fake compose if ' +
+                    'you are simply making your own live images and you run ' +
+                    'into any errors beyond this point.'
+            )
+
     def run_build_live_iso(self):
         """
         Builds DVD images based on the data created from the initial lorax on
@@ -1575,7 +1585,10 @@ class LiveBuild:
                 raise SystemExit()
 
         if self.live_iso_mode == 'podman':
-            self._live_iso_podman_run(self.current_arch, images_to_build, work_root)
+            #self._live_iso_podman_run(self.current_arch, images_to_build, work_root)
+            self.log.error(Color.FAIL + 'At this time, live images cannot be ' +
+                    'built in podman.')
+            raise SystemExit()
 
     def _live_iso_local_config(self, image, work_root):
         """
@@ -1723,6 +1736,7 @@ class LiveBuild:
         bad_exit_list = []
         checksum_list = []
         entry_name_list = []
+        self.log.warn(Color.WARN + 'This mode does not work properly. It will fail.')
         for i in images:
             image_name = i
             entry_name = 'buildLiveImage-{}-{}.sh'.format(arch, i)
@@ -1821,12 +1835,12 @@ class LiveBuild:
         self.log.info(Color.INFO + 'Building live images completed')
 
         if len(bad_exit_list) == 0:
-            self.log.info(Color.INFO + 'Copying ISOs over to compose directory...')
+            self.log.info(Color.INFO + 'Live images completed successfully.')
         else:
             self.log.error(
                     Color.FAIL +
                     'There were issues with the work done. As a result, ' +
-                    'the ISOs will not be copied.'
+                    'some or all ISOs may not be copied later.'
             )
 
     def _live_iso_local_run(self, arch, image, work_root):
@@ -1836,6 +1850,19 @@ class LiveBuild:
         have mock available.
         """
         entries_dir = os.path.join(work_root, "entries")
+        live_dir_arch = os.path.join(self.live_work_dir, arch)
+        isoname = '{}-{}-{}-{}-{}.iso'.format(
+                self.shortname,
+                image,
+                self.release,
+                arch,
+                self.date
+        )
+        live_res_dir = '/var/lib/mock/{}-{}-{}/result'.format(
+                self.shortname,
+                self.major_version,
+                arch
+        )
         live_iso_cmd = '/bin/bash {}/liveisobuild-{}-{}.sh'.format(entries_dir, arch, image)
         self.log.info('Starting mock build...')
         p = subprocess.call(shlex.split(live_iso_cmd))
@@ -1850,6 +1877,21 @@ class LiveBuild:
         )
         self.log.warn(
                 Color.WARN +
-                'If you are looping images, your built image WILL get ' +
-                'overwritten.'
+                'If you are looping images, your built image may get ' +
+                'overwritten. Ensure you have justcopyit enabled to avoid this.'
         )
+
+        if self.justcopyit:
+            self.log.info(Color.INFO + 'Copying image to work directory')
+            source_path = os.path.join(live_res_dir, isoname)
+            dest_path = os.path.join(live_dir_arch, isoname)
+            os.makedirs(live_dir_arch, exist_ok=True)
+            shutil.copy2(source_path, dest_path)
+            self.log.info(Color.INFO + 'Generating checksum')
+            checksum = Shared.get_checksum(dest_path, self.checksum, self.log)
+            if not checksum:
+                self.log.error(Color.FAIL + dest_path + ' not found. Did we copy it?')
+                return
+            with open(dest_path + '.CHECKSUM', "w+") as c:
+                c.write(checksum)
+                c.close()
