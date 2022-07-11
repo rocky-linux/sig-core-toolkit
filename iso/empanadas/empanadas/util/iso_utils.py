@@ -530,7 +530,7 @@ class IsoBuild:
             rclevel = '-' + self.rclvl
 
         discname = '{}-{}.{}{}-{}-{}.iso'.format(
-                self.shortname,
+                self.shortname.lower(),
                 self.major_version,
                 self.minor_version,
                 rclevel,
