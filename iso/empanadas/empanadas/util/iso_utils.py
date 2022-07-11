@@ -530,7 +530,7 @@ class IsoBuild:
             rclevel = '-' + self.rclvl
 
         discname = '{}-{}.{}{}-{}-{}.iso'.format(
-                self.shortname.lower(),
+                self.shortname,
                 self.major_version,
                 self.minor_version,
                 rclevel,
@@ -1859,7 +1859,7 @@ class LiveBuild:
                 self.date
         )
         live_res_dir = '/var/lib/mock/{}-{}-{}/result'.format(
-                self.shortname,
+                self.shortname.lower(),
                 self.major_version,
                 arch
         )
