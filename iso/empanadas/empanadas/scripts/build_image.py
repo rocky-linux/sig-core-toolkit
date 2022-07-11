@@ -100,7 +100,7 @@ class ImageBuild:
             ]
         if self.image_type in ["GenericCloud"]:
             self.stage_commands = [
-                    ["qemu-img", "convert", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
+                    ["qemu-img", "convert", "-c", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
             ]
         if self.image_type in ["EC2"]:
             self.stage_commands = [
@@ -120,7 +120,7 @@ class ImageBuild:
                     }
             output = f"{_map[self.variant]}" #type: ignore
             self.stage_commands = [
-                    ["qemu-img", "convert", "-f", "raw", "-O", output, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"]
+                    ["qemu-img", "convert", "-c", "-f", "raw", "-O", output, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"]
             ]
 
 
@@ -174,7 +174,7 @@ class ImageBuild:
         args = []
         if self.image_type == "Container":
             args = ["--parameter", "offline_icicle", "true"]
-        if self.image_type in ["GenericCloud", "EC2"]:
+        if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure"]:
             args = ["--parameter", "generate_icicle", "false"]
         return args
 
@@ -354,7 +354,7 @@ class ImageBuild:
             log_lines("Command STDERR", stderr)
 
     def fix_ks(self):
-        self.runCmd(["sed", "-i", f"s,$basearch,{self.architecture.name},", self.kickstart_arg[-1]])
+        self.runCmd(["sed", "-i", f"s,$basearch,{self.architecture.name},", self.kickstart_arg[-1]], search=False)
 
     def render_kubernetes_job(self):
         commands = [self.build_command(), self.package_command(), self.copy_command()]
