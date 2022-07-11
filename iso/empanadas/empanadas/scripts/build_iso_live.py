@@ -16,6 +16,7 @@ parser.add_argument('--logger', type=str)
 parser.add_argument('--live-iso-mode', type=str, default='local')
 parser.add_argument('--hashed', action='store_true')
 parser.add_argument('--just-copy-it', action='store_true', help="Just copy the images to the compose dir")
+parser.add_argument('--force-build', action='store_true', help="Just build and overwrite the images")
 results = parser.parse_args()
 rlvars = rldict[results.release]
 major = rlvars['major']
@@ -30,6 +31,7 @@ a = LiveBuild(
         compose_dir_is_here=results.local_compose,
         hashed=results.hashed,
         justcopyit=results.just_copy_it,
+        force_build=results.force_build,
         logger=results.logger
 )
 

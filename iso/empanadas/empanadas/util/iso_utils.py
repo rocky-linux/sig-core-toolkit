@@ -1426,6 +1426,7 @@ class LiveBuild:
             hashed: bool = False,
             image=None,
             justcopyit: bool = False,
+            force_build: bool = False,
             logger=None
     ):
 
@@ -1449,6 +1450,7 @@ class LiveBuild:
         self.live_result_root = config['mock_work_root'] + "/lmc"
         self.mock_isolation = isolation
         self.force_download = force_download
+        self.force_build = force_build
         self.live_iso_mode = live_iso_mode
         self.checksum = rlvars['checksum']
         self.profile = rlvars['profile']
@@ -1863,6 +1865,16 @@ class LiveBuild:
                 self.major_version,
                 arch
         )
+
+        if self.justcopyit:
+            if os.path.exists(os.path.join(live_res_dir, isoname)):
+                self.log.warn(Color.WARN + 'Image already exists.')
+                if self.force_build:
+                    self.log.warn(Color.WARN + 'Building anyway.')
+                else:
+                    self.log.warn(Color.WARN + 'Skipping.')
+                    return
+
         live_iso_cmd = '/bin/bash {}/liveisobuild-{}-{}.sh'.format(entries_dir, arch, image)
         self.log.info('Starting mock build...')
         p = subprocess.call(shlex.split(live_iso_cmd))
