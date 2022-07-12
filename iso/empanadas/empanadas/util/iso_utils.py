@@ -1660,10 +1660,11 @@ class LiveBuild:
         )
 
         make_image_cmd = ('/usr/sbin/livemedia-creator --ks {} --no-virt '
-                '--resultdir /builddir/lmc --project="{}" --make-iso --volid {} '
+                '--resultdir /builddir/lmc --project="{} {}" --make-iso --volid {} '
                 '--iso-only --iso-name {} --releasever={} --nomacboot {}').format(
                         '/builddir/ks.cfg',
                         self.distname,
+                        image,
                         volid,
                         isoname,
                         self.release,
