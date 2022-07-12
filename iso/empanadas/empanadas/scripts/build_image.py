@@ -96,7 +96,8 @@ class ImageBuild:
         # Yes, this is gross. I'll fix it later.
         if self.image_type in ["Container"]:
             self.stage_commands = [
-                    ["tar", "-C", f"{self.outdir}", "--strip-components=1", "-x", "-f", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", "*/layer.tar"]
+                    ["tar", "-C", f"{self.outdir}", "--strip-components=1", "-x", "-f", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", "*/layer.tar"],
+                    ["xz",  f"{self.outdir}/layer.tar"]
             ]
         if self.image_type in ["GenericCloud"]:
             self.stage_commands = [
@@ -123,6 +124,9 @@ class ImageBuild:
                     ["qemu-img", "convert", "-c", "-f", "raw", "-O", output, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"]
             ]
 
+
+        if self.stage_commands:
+            self.stage_commands += ["cp", "-v",  lambda: f"{STORAGE_DIR}/{self.target_uuid}.meta", f"{self.outdir}/build.meta"]
 
         try:
             os.mkdir(self.outdir)
