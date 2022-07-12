@@ -4,7 +4,8 @@ sig-core-toolkit
 Release Engineering toolkit for repeatable operations or functionality testing.
 
 Currently mirrored at our [github](https://github.com/rocky-linux), and the
-[RESF Git Service](https://git.resf.org). Changes will typically occur at GitHub.
+[RESF Git Service](https://git.resf.org). Changes will typically occur at the
+RESF Git Service.
 
 What does this have?
 --------------------
@@ -12,7 +13,7 @@ What does this have?
 * analyze -> Analysis utilities (such as download stats)
 * chat -> mattermost related utilities
 * func -> (mostly defunct) testing scripts and tools to test base functionality
-* iso -> ISO and Compose related utilities, primarily for Rocky Linux 9+
+* iso -> ISO, Compose, and Sync related utilities, primarily for Rocky Linux 9+
 * live -> Live image related utilities
 * mangle -> Manglers and other misc stuff
 * sync -> Sync tools, primarily for Rocky Linux 8 and will eventually be deprecated
