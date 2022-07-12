@@ -962,6 +962,17 @@ class RepoSync:
                 metadata_dir + '/metadata'
         )
 
+        # TODO: Add in each repo and their corresponding arch.
+        productmd_date = self.date_stamp.split('.')[0]
+        Shared.composeinfo_write(
+                metadata_dir + '/composeinfo',
+                self.distname,
+                self.shortname,
+                self.fullversion,
+                'updates',
+                productmd_date
+        )
+
         self.log.info(Color.INFO + 'Metadata files phase completed.')
 
         # Deploy README to metadata directory

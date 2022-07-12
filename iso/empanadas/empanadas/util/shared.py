@@ -919,3 +919,43 @@ class Shared:
             repolist.append(repodata)
 
         return repolist
+
+    @staticmethod
+    def composeinfo_write(
+            file_path,
+            distname,
+            shortname,
+            release,
+            release_type,
+            datestamp,
+            arches: list = [],
+            repos: list = []
+        ):
+        """
+        Write compose info similar to pungi.
+
+        arches and repos may be better suited for a dictionary. that is a
+        future thing we will work on for 0.3.0.
+        """
+        cijson = file_path + '.json'
+        ciyaml = file_path + '.yaml'
+        ci = productmd.composeinfo.ComposeInfo()
+        ci.release.name = distname
+        ci.release.short = shortname
+        ci.release.version = release
+        ci.release.type = release_type
+
+        ci.compose.id = '{}-{}-{}'.format(shortname, release, datestamp)
+        ci.compose.type = "production"
+        ci.compose.date = datestamp
+        ci.compose.respin = 0
+
+        ci.dump(cijson)
+
+        with open(cijson, 'r') as cidump:
+            jsonData = json.load(cidump)
+            cidump.close()
+
+        with open(ciyaml, 'w+') as ymdump:
+            yaml.dump(jsonData, ymdump)
+            ymdump.close()
