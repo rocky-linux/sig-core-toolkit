@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 
 # All of our options
 parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
+parser.add_argument('--symlink', action='store_true', help="symlink")
 parser.add_argument('--logger', type=str)
 
 # Parse them
