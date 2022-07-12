@@ -13,7 +13,7 @@ ret_val=$?
 if [ $ret_val -eq "0" ]; then
   TARGET="${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV:0:3}"
   mkdir -p "${TARGET}"
-  sudo -l && fpsync -o '-av --numeric-ids --no-compress --chown=10004:10005' -n 18 -t /mnt/compose/partitions "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/" "${TARGET}/"
+  sudo -l && time fpsync -o '-av --numeric-ids --no-compress --chown=10004:10005' -n 18 -t /mnt/compose/partitions "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/" "${TARGET}/"
 
   # Full file list update
   cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
