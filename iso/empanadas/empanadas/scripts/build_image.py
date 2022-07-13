@@ -116,7 +116,7 @@ class ImageBuild:
             #         ["qemu-img", "convert", "-f", "raw", "-o", "subformat=fixed,force_size" ,"-O", "vpc", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.vhd"]
         if self.image_type in ["Vagrant"]:
             _map = {
-                    "VBox": "vmdk",
+                    "Vbox": "vmdk",
                     "Libvirt": "qcow2"
                     }
             output = f"{_map[self.variant]}" #type: ignore
@@ -126,7 +126,7 @@ class ImageBuild:
 
 
         if self.stage_commands:
-            self.stage_commands += ["cp", "-v",  lambda: f"{STORAGE_DIR}/{self.target_uuid}.meta", f"{self.outdir}/build.meta"]
+            self.stage_commands.append(["cp", "-v",  lambda: f"{STORAGE_DIR}/{self.target_uuid}.meta", f"{self.outdir}/build.meta"])
 
         try:
             os.mkdir(self.outdir)
@@ -263,7 +263,7 @@ class ImageBuild:
     def package(self) -> int: 
         # Some build types don't need to be packaged by imagefactory
         # @TODO remove business logic if possible
-        if self.image_type in ["GenericCloud", "EC2", "Azure"]:
+        if self.image_type in ["GenericCloud", "EC2", "Azure", "Vagrant"]:
             self.target_uuid = self.base_uuid if hasattr(self, 'base_uuid') else ""
 
         if self.target_uuid:
