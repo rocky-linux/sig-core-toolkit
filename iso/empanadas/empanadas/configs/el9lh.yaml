@@ -50,6 +50,7 @@
         isoskip: True
         repos:
           - 'minimal'
+          - 'BaseOS'
         variant: 'minimal'
       BaseOS:
         disc: False
