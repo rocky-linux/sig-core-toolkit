@@ -3,6 +3,7 @@
 # To be sourced by scripts as needed
 
 # The mirrorlist url
-MIRRORLIST_BASE="http://mirrors.rockylinux.org/mirrorlist"
+LIST=${LIST:-mirrorlist}
+MIRRORLIST_BASE="http://mirrors.rockylinux.org/${LIST}"
 
 MIRROR_DISPLAY_COUNT=1
