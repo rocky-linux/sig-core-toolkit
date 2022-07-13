@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+### 
+# Use RLVER=9 for rocky 9
+
 # Source mangle vars
 # shellcheck source=./common disable=SC1091,1090
-source "$(dirname "$0")/common"
+source "$(dirname "${BASH_SOURCE[0]}")/common"
 # Source sync / migrate vars for repository information
 # shellcheck source=../sync/common disable=SC1091,1090
-source "$(dirname "$0")/../sync/common"
+source "$(dirname "${BASH_SOURCE[0]}")/../sync/common"
 
 # How many 
 ARG1=${1}
@@ -30,12 +33,16 @@ cleanup_repo () {
         repo="${repo^^}"
     fi
 
-    # Everything has an 8 appended to it
-    repo="${repo}-8"
+    # Append the major version from sync/common to support 8 and 9
+    repo="${repo}-${MAJOR}"
     return 0
 }
 
-for repo in "${ALL_REPOS[@]}"; do 
+# Sort the array
+IFS=$'\n' sorted=($(sort <<<"${ALL_REPOS[*]}"))
+unset IFS
+
+for repo in "${sorted[@]}"; do 
 
     # Business logic must be done, sometimes...
     cleanup_repo "${repo}"
@@ -52,8 +59,8 @@ for repo in "${ALL_REPOS[@]}"; do
         result=$(curl -s "${MIRRORLIST_BASE}?repo=${repo}&arch=${arch}&time&country=global")
         print_result
 
-        # x86 and a64 have 'debug' types, as well
-        if [[ "${arch}" =~ ^(x86_|aarch)64$ ]]; then
+        # x86 and a64 have 'debug' types, as well ("arch" != "source")
+        if [[ "${arch}" =~ ^(x86_|aarch)64|(s390x|ppc64le)$ ]]; then
             result=$(curl -s "${MIRRORLIST_BASE}?repo=${repo}-debug&arch=${arch}&time&country=global")
             print_result
         fi

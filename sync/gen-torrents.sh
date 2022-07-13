@@ -3,7 +3,7 @@
 
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
-source "$(dirname "$0")/common"
+source "$(dirname "${BASH_SOURCE[0]}")/common"
 
 NAME=gen-torrents
 
