@@ -518,6 +518,8 @@ class Shared:
             message = 'Path synced does not seem to exist for some reason.'
             retval = 1
 
+        #shutil.rmtree(tmp_dir)
+
         return message, retval
 
     @staticmethod

@@ -164,7 +164,6 @@ class RepoSync:
 
         self.log.info('reposync init')
         self.log.info(self.revision)
-        self.dnf_config = self.generate_conf()
 
         # The repo name should be valid
         if self.repo is not None:
@@ -234,6 +233,9 @@ class RepoSync:
                 work_root,
                 "global",
         )
+
+        #self.dnf_config = self.generate_conf(dest_path=global_work_root)
+        self.dnf_config = self.generate_conf()
 
         if self.dryrun:
             self.log.error('Dry Runs are not supported just yet. Sorry!')
@@ -436,7 +438,8 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=sync_cmd,
-                        sync_log=sync_log
+                        sync_log=sync_log,
+                        download_path=os_sync_path
                 )
 
                 debug_sync_template = self.tmplenv.get_template('reposync.tmpl')
@@ -445,7 +448,8 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=debug_sync_cmd,
-                        sync_log=debug_sync_log
+                        sync_log=debug_sync_log,
+                        download_path=debug_sync_path
                 )
 
                 entry_point_open = open(entry_point_sh, "w+")
@@ -555,7 +559,7 @@ class RepoSync:
 
             #print(entry_name_list)
             for pod in entry_name_list:
-                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,
@@ -668,6 +672,10 @@ class RepoSync:
                 dest_path,
                 "{}-{}-config.repo".format(self.shortname, self.major_version)
         )
+        pname = os.path.join(
+                '/var/tmp',
+                "{}-{}-config.repo".format(self.shortname, self.major_version)
+        )
         self.log.info('Generating the repo configuration: %s' % fname)
 
         if self.repo_base_url.startswith("/"):
@@ -711,6 +719,7 @@ class RepoSync:
         config_file.write(output)
 
         config_file.close()
+        #return (fname, pname)
         return fname
 
     def repoclosure_work(self, sync_root, work_root, log_root):
@@ -795,7 +804,7 @@ class RepoSync:
 
             self.log.info('Spawning pods for %s' % repo)
             for pod in repoclosure_entry_name_list:
-                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,
