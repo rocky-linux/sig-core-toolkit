@@ -52,6 +52,7 @@
           - 'minimal'
           - 'BaseOS'
         variant: 'minimal'
+        volname: 'dvd'
       BaseOS:
         disc: False
         isoskip: True

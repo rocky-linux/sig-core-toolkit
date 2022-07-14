@@ -718,6 +718,15 @@ class IsoBuild:
                 self.log.info(Color.WARN + 'Skipping ' + y + ' image')
                 continue
 
+            # Kind of hacky, but if we decide to have more than boot/dvd iso's,
+            # we need to make sure volname matches the initial lorax image,
+            # which the volid contains "dvd". AKA, file name doesn't always
+            # equate to volume ID
+            if 'volname' in self.iso_map['images'][y]:
+                volname = self.iso_map['images'][y]['volname']
+            else:
+                volname = y
+
             for a in arches_to_build:
                 lorax_path = os.path.join(self.lorax_work_dir, a, 'lorax', '.treeinfo')
                 image_path = os.path.join(self.lorax_work_dir, a, y, '.treeinfo')
@@ -734,7 +743,7 @@ class IsoBuild:
                         y,
                         self.iso_map['images'][y]['repos'],
                 )
-                self._extra_iso_local_config(a, y, grafts, work_root)
+                self._extra_iso_local_config(a, y, grafts, work_root, volname)
 
                 if self.extra_iso_mode == 'local':
                     self._extra_iso_local_run(a, y, work_root)
@@ -747,7 +756,7 @@ class IsoBuild:
         if self.extra_iso_mode == 'podman':
             self._extra_iso_podman_run(arches_to_build, images_to_build, work_root)
 
-    def _extra_iso_local_config(self, arch, image, grafts, work_root):
+    def _extra_iso_local_config(self, arch, image, grafts, work_root, volname):
         """
         Local ISO build configuration - This generates the configuration for
         both mock and podman entries
@@ -798,7 +807,7 @@ class IsoBuild:
                 self.minor_version,
                 rclevel,
                 arch,
-                image
+                volname
         )
 
         isoname = '{}-{}.{}{}-{}-{}.iso'.format(
