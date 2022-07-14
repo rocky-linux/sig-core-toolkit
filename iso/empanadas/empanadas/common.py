@@ -8,6 +8,24 @@ import yaml
 import logging
 import hashlib
 
+
+from collections import defaultdict
+from typing import Tuple
+
+# An implementation from the Fabric python library
+class AttributeDict(defaultdict):
+    def __init__(self):
+        super(AttributeDict, self).__init__(AttributeDict)
+
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
 # These are a bunch of colors we may use in terminal output
 class Color:
     RED = '\033[91m'
@@ -20,10 +38,14 @@ class Color:
     UNDERLINE = '\033[4m'
     BOLD = '\033[1m'
     END = '\033[0m'
+    INFO = '[' + BOLD + GREEN + 'INFO' + END + '] '
+    WARN = '[' + BOLD + YELLOW + 'WARN' + END + '] '
+    FAIL = '[' + BOLD + RED + 'FAIL' + END + '] '
+    STAT = '[' + BOLD + CYAN + 'STAT' + END + '] '
 
 # vars and additional checks
-rldict = {}
-sigdict = {}
+rldict = AttributeDict()
+sigdict = AttributeDict()
 config = {
     "rlmacro": rpm.expandMacro('%rhel'),
     "dist": 'el' + rpm.expandMacro('%rhel'),
@@ -77,3 +99,40 @@ for conf in glob.iglob(f"{_rootdir}/sig/*.yaml"):
 #rlvars = rldict[rlver]
 #rlvars = rldict[rlmacro]
 #COMPOSE_ISO_WORKDIR = COMPOSE_ROOT + "work/" + arch + "/" + date_stamp
+
+
+ALLOWED_TYPE_VARIANTS = {
+        "Azure": None,
+        "Container": ["Base", "Minimal", "UBI"],
+        "EC2": None,
+        "GenericCloud": None,
+        "Vagrant": ["Libvirt", "Vbox"]
+}
+def valid_type_variant(_type: str, variant: str="") -> bool:
+    if _type not in ALLOWED_TYPE_VARIANTS:
+        raise Exception(f"Type is invalid: ({_type}, {variant})")
+    if ALLOWED_TYPE_VARIANTS[_type] == None:
+        if variant is not None:
+            raise Exception(f"{_type} Type expects no variant type.")
+        return True
+    if variant not in ALLOWED_TYPE_VARIANTS[_type]:
+        if variant.capitalize() in ALLOWED_TYPE_VARIANTS[_type]:
+            raise Exception(f"Capitalization mismatch. Found: ({_type}, {variant}). Expected: ({_type}, {variant.capitalize()})")
+        raise Exception(f"Type/Variant Combination is not allowed: ({_type}, {variant})")
+    return True
+
+from attrs import define, field
+@define(kw_only=True)
+class Architecture:
+    name: str = field()
+    version: str = field()
+    major: int = field(converter=int)
+    minor: int = field(converter=int)
+
+    @classmethod
+    def from_version(cls, architecture: str, version: str):
+        major, minor = str.split(version, ".")
+        if architecture not in rldict[major]["allowed_arches"]:
+            print("Invalid architecture/version combo, skipping")
+            exit()
+        return cls(name=architecture, version=version, major=major, minor=minor)

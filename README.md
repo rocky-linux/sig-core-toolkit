@@ -3,10 +3,9 @@ sig-core-toolkit
 
 Release Engineering toolkit for repeatable operations or functionality testing.
 
-Currently mirrored at our [github](https://github.com/rocky-linux),
-[Rocky Linux Git Service](https://git.rockylinux.org), and the
-[RESF Git Service](https://git.resf.org). Changes either occur at the Rocky
-Linux Git Service or RESF Git Service.
+Currently mirrored at our [github](https://github.com/rocky-linux), and the
+[RESF Git Service](https://git.resf.org). Changes will typically occur at the
+RESF Git Service.
 
 What does this have?
 --------------------
@@ -14,10 +13,10 @@ What does this have?
 * analyze -> Analysis utilities (such as download stats)
 * chat -> mattermost related utilities
 * func -> (mostly defunct) testing scripts and tools to test base functionality
-* iso -> ISO related utilities
+* iso -> ISO, Compose, and Sync related utilities, primarily for Rocky Linux 9+
 * live -> Live image related utilities
 * mangle -> Manglers and other misc stuff
-* sync -> Sync tools, primarily for Rocky Linux 8
+* sync -> Sync tools, primarily for Rocky Linux 8 and will eventually be deprecated
 
 How can I help?
 ---------------
@@ -28,7 +27,7 @@ when you make changes:
 * Have pre-commit installed
 * Have shellcheck installed
 * Shell Scripts: These must pass a shellcheck test!
-* Python scripts: Try your best to follow PEP8 guidelines
+* Python scripts: Try your best to follow PEP8 guidelines (even the best linters get things wrong)
 
 Your PR should be against the devel branch at all times. PR's against the main
 branch will be closed.

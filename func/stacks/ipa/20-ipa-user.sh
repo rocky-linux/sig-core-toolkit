@@ -13,42 +13,43 @@ kdestroy &> /dev/null
 klist 2>&1 | grep -E "(No credentials|Credentials cache .* not found)" &> /dev/null
 r_checkExitStatus $?
 
-expect -f - <<EOF
-set send_human {.1 .3 1 .05 2}
-spawn kinit admin
-sleep 1
-expect "Password for admin@RLIPA.LOCAL:"
-send -h "b1U3OnyX!\r"
-sleep 5
-close
-EOF
+echo "b1U3OnyX!" | kinit admin@RLIPA.LOCAL
 
 klist | grep "admin@RLIPA.LOCAL" &> /dev/null
 r_checkExitStatus $?
 
 r_log "ipa" "Test adding a user"
-userDetails="$(ipa user-add --first=test --last=user --random ipatestuser)"
-echo "$userDetails" | grep -q 'Added user "ipatestuser"'
-r_checkExitStatus $?
+ipa user-add --first=test --last=user --random ipatestuser > /tmp/ipatestuser
+grep -q 'Added user "ipatestuser"' /tmp/ipatestuser
 
-echo "$userDetails" | grep -q 'First name: test'
+ret_val=$?
+if [ "$ret_val" -ne 0 ]; then
+  r_log "ipa" "User was not created, this is considered fatal"
+  r_checkExitStatus 1
+  exit 1
+fi
+
+sed -i 's|^  ||g' /tmp/ipatestuser
+grep -q 'First name: test' /tmp/ipatestuser
 r_checkExitStatus $?
-echo "$userDetails" | grep -q 'Last name: user'
+grep -q 'Last name: user' /tmp/ipatestuser
 r_checkExitStatus $?
-echo "$userDetails" | grep -q 'Full name: test user'
+grep -q 'Full name: test user' /tmp/ipatestuser
 r_checkExitStatus $?
-echo "$userDetails" | grep -q 'Home directory: /home/ipatestuser'
+grep -q 'Home directory: /home/ipatestuser' /tmp/ipatestuser
 r_checkExitStatus $?
 
 r_log "ipa" "Changing password of the user"
 kdestroy &> /dev/null
+userPassword="$(awk '/Random password/ { print $3 }' /tmp/ipatestuser)"
+/bin/rm /tmp/ipatestuser
 
 expect -f -  <<EOF
 set send_human {.1 .3 1 .05 2}
 spawn kinit ipatestuser
 sleep 1
 expect "Password for ipatestuser@RLIPA.LOCAL: "
-send -h -- "$(echo "$userDetails" | awk '$0 ~ /Random password/ {print $3}')\r"
+send -h -- "$(echo "$userPassword")\r"
 sleep 1
 expect "Enter new password: "
 send -h -- "gr@YAm3thy5st!\r"

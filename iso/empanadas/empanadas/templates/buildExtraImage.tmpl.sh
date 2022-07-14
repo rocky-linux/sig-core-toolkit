@@ -5,7 +5,7 @@ set -ex
 {{ lorax_pkg_cmd }}
 mkdir -p {{ compose_work_iso_dir }}/{{ arch }}
 cd  {{ compose_work_iso_dir }}/{{ arch }}
-test -f {{ isoname }} || { echo "!! ISO ALREDY EXISTS !!"; exit 1;  }
+test -f {{ isoname }} && { echo "ERROR: ISO ALREDY EXISTS!"; exit 1; }
 {% else %}
 cd /builddir
 

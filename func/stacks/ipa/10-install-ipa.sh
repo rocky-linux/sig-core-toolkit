@@ -11,4 +11,4 @@ if [ "$RL_VER" -eq 8 ]; then
   p_enableModule idm:DL1/{client,common,dns,server}
 fi
 
-p_installPackageNormal ipa-server ipa-server-dns
+p_installPackageNormal ipa-server ipa-server-dns expect

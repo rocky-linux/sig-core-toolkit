@@ -32,7 +32,7 @@ ARCHES=(x86_64 aarch64)
 
 # Source Major common
 # Override: Not Allowed
-test -f "$(dirname "$0")/common_${RLVER}" && source "$(dirname "$0")/common_${RLVER}"
+test -f "$(dirname "${BASH_SOURCE[0]}")/common_${RLVER}" && source "$(dirname "${BASH_SOURCE[0]}")/common_${RLVER}"
 if [ "$?" -ne 0 ]; then
   echo "Could not source common_${RLVER}"
   exit 1

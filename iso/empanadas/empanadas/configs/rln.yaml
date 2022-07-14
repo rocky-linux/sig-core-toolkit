@@ -40,18 +40,19 @@
     iso_level: False
     images:
       dvd:
-        discnum: '1'
+        disc: True
         variant: 'AppStream'
         repos:
           - 'BaseOS'
           - 'AppStream'
       minimal:
-        discnum: '1'
+        disc: True
         isoskip: True
         repos:
           - 'minimal'
         variant: 'minimal'
       BaseOS:
+        disc: False
         isoskip: True
         variant: 'BaseOS'
         repos:
@@ -66,10 +67,32 @@
         - 'libreport-rhel-anaconda-bugzilla'
       required_pkgs:
         - 'lorax'
+        - 'genisoimage'
         - 'isomd5sum'
         - 'lorax-templates-rhel'
         - 'lorax-templates-generic'
         - 'xorriso'
+  cloudimages:
+    images:
+      EC2:
+        format: raw
+      GenericCloud:
+        format: qcow2
+  livemap:
+    git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
+    branch: 'rln'
+    ksentry:
+      Workstation: rocky-live-workstation.ks
+      Workstation-Lite: rocky-live-workstation-lite.ks
+      XFCE: rocky-live-xfce.ks
+      KDE: rocky-live-kde.ks
+    allowed_arches:
+      - x86_64
+    required_pkgs:
+      - 'lorax-lmc-novirt'
+      - 'vim-minimal'
+      - 'pykickstart'
+      - 'git'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'

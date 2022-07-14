@@ -2,6 +2,7 @@
 
 import argparse
 
+import empanadas
 from empanadas.common import *
 from empanadas.util import Checks
 from empanadas.util import RepoSync
@@ -16,3 +17,5 @@ a = RepoSync(rlvars, config, major="9", repo="BaseOS", parallel=True, ignore_deb
 def run():
     print(rlvars.keys())
     print(rlvars)
+    print(empanadas.__version__)
+    print(a.hashed)

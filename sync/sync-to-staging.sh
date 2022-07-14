@@ -25,4 +25,14 @@ if [ $ret_val -eq "0" ]; then
   # shellcheck disable=SC2035
   sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
       {} "${TARGET}"
+
+  # This is temporary until we implement rsync into empanadas
+  if [ -f "COMPOSE_ID" ]; then
+    cp COMPOSE_ID "${TARGET}"
+    chown 10004:10005 "${TARGET}/COMPOSE_ID"
+  fi
+
+  if [ -d "metadata" ]; then
+    rsync -av --chown=10004:10005 --progress --relative --human-readable metadata "${TARGET}"
+  fi
 fi

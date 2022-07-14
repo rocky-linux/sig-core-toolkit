@@ -1,0 +1,35 @@
+These set of repositories (or "compose") is for {{ fullname }} and was generated
+using Empanadas {{ version }} from the SIG/Core Toolkit.
+
+As this is not a traditional compose (via pungi), there will be things that you
+might be expecting and do not see, or not expecting and do see. While we
+attempted to recreate a lot of those elements, it's not perfect and we don't
+expect that it ever will be. With that being said, in the future, we do plan on
+having more metadata and providing client libraries that can ingest this type of
+metadata that we produce for easy consumption, on top of extending what our
+metadata provides.
+
+# Notes #
+
+## Checksums ##
+
+CHECKSUM Validation: https://github.com/rocky-linux/checksums
+                     https://git.resf.org/rocky-linux/checksums (mirror)
+
+Traditionally, we would "sign" the checksum files with the current GPG key of a
+major release. However, due to how the new build system operates and for
+ensuring strong security within the new build ecosystem as it pertains the
+signing keys, this is no longer a viable approach. It was determined by SIG/Core
+(or Release Engineering) to instead provide verified signed commits using our
+keys with RESF/Rocky Linux email domain names to a proper git repository. Our
+signing keys are attached to our GitHub and RESF Git Service profiles.
+
+If you are looking for "verification" of the ISO checksums and were expecting a
+`CHECKSUM.sig`, it is highly recommended to visit the link above instead.
+
+To verify our signature, click on "commits" and click the green "Verified"
+button where you will see a GPG key ID. You can then search for this ID at the
+any of the following:
+
+https://keys.openpgp.org/
+https://keyserver.ubuntu.com

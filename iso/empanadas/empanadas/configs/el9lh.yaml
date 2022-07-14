@@ -50,6 +50,7 @@
         isoskip: True
         repos:
           - 'minimal'
+          - 'BaseOS'
         variant: 'minimal'
       BaseOS:
         disc: False
@@ -72,6 +73,31 @@
         - 'lorax-templates-rhel'
         - 'lorax-templates-generic'
         - 'xorriso'
+  cloudimages:
+    images:
+      EC2:
+        format: raw
+      GenericCloud:
+        format: qcow2
+  livemap:
+    git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
+    branch: 'r9lh'
+    ksentry:
+      Workstation: rocky-live-workstation.ks
+      Workstation-Lite: rocky-live-workstation-lite.ks
+      XFCE: rocky-live-xfce.ks
+      KDE: rocky-live-kde.ks
+    allowed_arches:
+      - x86_64
+    required_pkgs:
+      - 'lorax-lmc-novirt'
+      - 'vim-minimal'
+      - 'pykickstart'
+      - 'git'
+  variantmap:
+    git_repo: 'https://git.rockylinux.org/rocky/pungi-rocky.git'
+    branch: 'r9lh'
+    git_raw_path: 'https://git.rockylinux.org/rocky/pungi-rocky/-/raw/r9lh/'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'

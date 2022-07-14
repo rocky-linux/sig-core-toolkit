@@ -22,7 +22,27 @@ if [ $ret_val -eq "0" ]; then
   sudo -l && find ** -maxdepth 0 -type l | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
       {} "${TARGET}"
 
-  # Full file list update
+  # Temporary until empanadas has this support
+  if [ -f "COMPOSE_ID" ]; then
+    cp COMPOSE_ID "${TARGET}"
+    chown 10004:10005 "${TARGET}/COMPOSE_ID"
+  fi
+
+  if [ -d "metadata" ]; then
+    rsync -av --chown=10004:10005 --progress --relative --human-readable metadata "${TARGET}"
+  fi
+
+  # Full file list update for production root
+  cd "${PRODUCTION_ROOT}/" || echo { echo "Failed to change directory"; exit 1; }
+  find . > fullfilelist
+  if [[ -f /usr/local/bin/create-filelist ]]; then
+    # We're already here, but Justin Case wanted this
+    cd "${PRODUCTION_ROOT}/" || { echo "Failed to change directory"; exit 1; }
+    /bin/cp fullfiletimelist-rocky fullfiletimelist-rocky-old
+    /usr/local/bin/create-filelist > fullfiletimelist-rocky
+    cp fullfiletimelist-rocky fullfiletimelist
+  fi
+  # Full file list update for rocky linux itself
   cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
   # Hardlink everything except xml files
   hardlink -x '.*\.xml.*' "${REVISION}"

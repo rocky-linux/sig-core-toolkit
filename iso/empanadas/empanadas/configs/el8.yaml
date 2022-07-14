@@ -44,64 +44,78 @@
   has_modules:
     - 'AppStream'
     - 'PowerTools'
-  iso_map:
-    hosts:
-      x86_64: ''
-      aarch64: ''
-      ppc64le: ''
-      s390x: ''
-    images:
-      - dvd1
-      - minimal
-      - boot
-    repos:
-      - 'BaseOS'
-      - 'AppStream'
-    variant: 'BaseOS'
-    lorax_removes:
-      - 'libreport-rhel-anaconda-bugzilla'
-    required_packages:
-      - 'lorax'
-      - 'genisoimage'
-      - 'isomd5sum'
-      - 'lorax-templates-rhel'
-      - 'lorax-templates-generic'
   structure:
     packages: 'os/Packages'
     repodata: 'os/repodata'
   iso_map:
     xorrisofs: False
     iso_level: False
-    hosts:
-      x86_64: ''
-      aarch64: ''
     images:
       dvd:
+        disc: True
+        variant: 'AppStream'
         repos:
           - 'BaseOS'
           - 'AppStream'
-    lorax_variants:
-      - dvd
-      - minimal
-      - BaseOS
-    repos:
-      - 'BaseOS'
-      - 'AppStream'
-    variant: 'BaseOS'
-    lorax_removes:
-      - 'libreport-rhel-anaconda-bugzilla'
+      minimal:
+        disc: True
+        isoskip: True
+        repos:
+          - 'minimal'
+          - 'BaseOS'
+        variant: 'minimal'
+      BaseOS:
+        disc: False
+        isoskip: True
+        variant: 'BaseOS'
+        repos:
+          - 'BaseOS'
+          - 'AppStream'
+    lorax:
+      repos:
+        - 'BaseOS'
+        - 'AppStream'
+      variant: 'BaseOS'
+      lorax_removes:
+        - 'libreport-rhel-anaconda-bugzilla'
+      required_pkgs:
+        - 'lorax'
+        - 'genisoimage'
+        - 'isomd5sum'
+        - 'lorax-templates-rhel'
+        - 'lorax-templates-generic'
+        - 'xorriso'
+  cloudimages:
+    images:
+      EC2:
+        format: raw
+      GenericCloud:
+        format: qcow2
+  livemap:
+    git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
+    branch: 'r9'
+    ksentry:
+      Workstation: rocky-live-workstation.ks
+      Workstation-Lite: rocky-live-workstation-lite.ks
+      XFCE: rocky-live-xfce.ks
+      KDE: rocky-live-kde.ks
+    allowed_arches:
+      - x86_64
     required_pkgs:
-      - 'lorax'
-      - 'genisoimage'
-      - 'isomd5sum'
-      - 'lorax-templates-rhel'
-      - 'lorax-templates-generic'
+      - 'lorax-lmc-novirt'
+      - 'vim-minimal'
+      - 'pykickstart'
+      - 'git'
+  variantmap:
+    git_repo: 'https://git.rockylinux.org/rocky/pungi-rocky.git'
+    branch: 'r8'
+    git_raw_path: 'https://git.rockylinux.org/rocky/pungi-rocky/-/raw/r8/'
   repoclosure_map:
     arches:
-      x86_64: '--arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
-      aarch64: '--arch=aarch64 --arch=noarch'
-      ppc64le: '--arch=ppc64le --arch=noarch'
-      s390x: '--arch=s390x --arch=noarch'
+      x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
+      aarch64: '--forcearch=aarch64 --arch=aarch64 --arch=noarch'
+      ppc64le: '--forcearch=ppc64le --arch=ppc64le --arch=noarch'
+      s390x: '--forcearch=s390x --arch=s390x --arch=noarch'
     repos:
       BaseOS: []
       AppStream:

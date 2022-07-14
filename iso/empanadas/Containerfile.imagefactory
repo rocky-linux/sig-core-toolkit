@@ -1,0 +1,70 @@
+FROM docker.io/fedora:36
+
+ADD images/get_arch /get_arch
+
+ENV TINI_VERSION v0.19.0
+RUN curl -o /tini -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-$(/get_arch)"
+RUN chmod +x /tini
+
+RUN dnf install -y \
+    bash \
+    bzip2 \
+    cpio \
+    diffutils \
+    findutils \
+    gawk \
+    gcc \
+    gcc-c++ \
+    git \
+    grep \
+    gzip \
+    info \
+    make \
+    patch \
+    python3 \
+    redhat-rpm-config \
+    rpm-build \
+    scl-utils-build \
+    sed \
+    shadow-utils \
+    tar \
+    unzip \
+    util-linux \
+    which \
+    xz \
+    dnf-plugins-core \
+    createrepo_c \
+    rpm-sign \
+    sudo \
+    mock \
+    python-pip \
+    imagefactory \
+    imagefactory-plugins*
+
+RUN sed -i -e 's/# memory = 1024/memory = 2048/' /etc/oz/oz.cfg
+
+COPY imagefactory.patch /
+COPY oz.rpm /
+
+RUN dnf -y install /oz.rpm
+RUN (cd /usr/lib/python3.10/site-packages/; patch -p1 </imagefactory.patch)
+
+RUN ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
+RUN dnf clean all
+RUN rm -rf /etc/yum.repos.d/*.repo /get_arch
+# RUN useradd -o -d /var/peridot -u 1002 peridotbuilder && usermod -a -G mock peridotbuilder
+# RUN chown -R peridotbuilder:mock /etc/dnf && chown -R peridotbuilder:mock /etc/rpm && chown -R peridotbuilder:mock /etc/yum.repos.d && chown -R peridotbuilder:mock /var/lib/imagefactory/storage
+
+RUN pip install awscli
+
+ARG BRANCH r9
+RUN git clone https://git.resf.org/sig_core/kickstarts.git --branch $BRANCH /kickstarts
+
+RUN pip install 'git+https://git.resf.org/sig_core/toolkit.git@devel#egg=empanadas&subdirectory=iso/empanadas'
+
+ENV LIBGUESTFS_BACKEND direct
+
+COPY prep-azure.sh /prep-azure.sh
+RUN chmod +x /prep-azure.sh
+
+ENTRYPOINT ["/tini", "--"]

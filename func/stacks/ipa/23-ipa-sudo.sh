@@ -9,19 +9,51 @@ if [ "$IPAINSTALLED" -eq 1 ]; then
   r_checkExitStatus 1
 fi
 
-kdestroy &> /dev/null
-klist 2>&1  | grep -E "(No credentials|Credentials cache .* not found)" &> /dev/null
+kdestroy -A
+klist 2>&1 | grep -E "(No credentials|Credentials cache .* not found)"
 r_checkExitStatus $?
 
-expect -f - <<EOF
-set send_human {.1 .3 1 .05 2}
-spawn kinit admin
-sleep 1
-expect "Password for admin@RLIPA.LOCAL:"
-send -h "b1U3OnyX!\r"
-sleep 5
-close
-EOF
+echo "b1U3OnyX!" | kinit admin@RLIPA.LOCAL
 
-klist | grep "admin@RLIPA.LOCAL" &> /dev/null
+klist | grep -q "admin@RLIPA.LOCAL"
+r_checkExitStatus $?
+
+r_log "ipa" "Creating a test sudo rule"
+ipa sudorule-add testrule --desc="Test rule in IPA" --hostcat=all --cmdcat=all --runasusercat=all --runasgroupcat=all &> /dev/null
+r_checkExitStatus $?
+
+r_log "ipa" "Adding user to test sudo rule"
+ipa sudorule-add-user testrule --users="ipatestuser" &> /dev/null
+r_checkExitStatus $?
+
+r_log "ipa" "Verifying rule..."
+ipa sudorule-show testrule > /tmp/testrule
+grep -q 'Rule name: testrule' /tmp/testrule
+r_checkExitStatus $?
+grep -q 'Description: Test rule in IPA' /tmp/testrule
+r_checkExitStatus $?
+grep -q 'Enabled: TRUE' /tmp/testrule
+r_checkExitStatus $?
+grep -q 'Host category: all' /tmp/testrule
+r_checkExitStatus $?
+grep -q 'Command category: all' /tmp/testrule
+r_checkExitStatus $?
+grep -q 'RunAs User category: all' /tmp/testrule
+r_checkExitStatus $?
+grep -q 'RunAs Group category: all' /tmp/testrule
+r_checkExitStatus $?
+grep -q 'Users: ipatestuser' /tmp/testrule
+r_checkExitStatus $?
+
+m_serviceCycler sssd stop
+rm -rf /var/lib/sss/db/*
+m_serviceCycler sssd start
+
+sleep 5
+
+r_log "ipa" "Verifying sudo abilities"
+sudo -l -U ipatestuser > /tmp/sudooutput
+grep -q 'ipatestuser may run the following commands' /tmp/sudooutput
+r_checkExitStatus $?
+grep -q 'ALL) ALL' /tmp/sudooutput
 r_checkExitStatus $?
