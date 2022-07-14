@@ -26,7 +26,7 @@ if [ $ret_val -eq "0" ]; then
   # shellcheck disable=SC2035
   #sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
   #    {} "${TARGET}"
-  sudo -l && time fpsync -o '-av --numeric-ids --no-compress --chown=10004:10005' -n 18 -t /mnt/compose/partitions "/mnt/compose/${MAJ}/latest-${SHORT}-${MAJ}${PROFILE}/compose/" "${TARGET}/"
+  sudo -l && time fpsync -o '-av --numeric-ids --no-compress --chown=10004:10005' -n 24 -t /mnt/compose/partitions "/mnt/compose/${MAJ}/latest-${SHORT}-${MAJ}${PROFILE}/compose/" "${TARGET}/"
 
   # This is temporary until we implement rsync into empanadas
   #if [ -f "COMPOSE_ID" ]; then
