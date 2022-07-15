@@ -22,6 +22,7 @@ PRODUCTION_ROOT="/mnt/repos-production"
 # Override: Not Allowed
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
+SIG_CATEGORY_STUB="mirror/pub/sig"
 
 # Override: Required
 #RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"

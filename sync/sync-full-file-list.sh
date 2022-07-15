@@ -24,7 +24,7 @@ if [ $ret_val -eq "0" ]; then
   # Full file list update for rocky linux itself
   cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
   # Hardlink everything except xml files
-  hardlink -x '.*\.xml.*' "${REVISION}"
+  #hardlink -x '.*\.xml.*' "${REVISION}"
   find . > fullfilelist
   if [[ -f /usr/local/bin/create-filelist ]]; then
     # We're already here, but Justin Case wanted this
@@ -32,6 +32,7 @@ if [ $ret_val -eq "0" ]; then
     /bin/cp fullfiletimelist-rocky fullfiletimelist-rocky-old
     /usr/local/bin/create-filelist > fullfiletimelist-rocky
     cp fullfiletimelist-rocky fullfiletimelist
+    cp fullfiletimelist-rocky fullfiletimelist-rocky-linux
   fi
   chown 10004:10005 fullfilelist fullfiletimelist-rocky fullfiletimelist
 fi
