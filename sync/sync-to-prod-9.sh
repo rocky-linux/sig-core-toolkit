@@ -14,7 +14,7 @@ if [ $ret_val -eq "0" ]; then
   TARGET="${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV:0:3}"
   mkdir -p "${TARGET}"
   echo "Syncing ${REVISION}"
-  sudo -l && time fpsync -n 24 -o '-av --numeric-ids --no-compress --chown=10004:10005' -t /mnt/compose/partitions "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/" "${TARGET}/"
+  sudo -l && time fpsync -n 24 -o '-a --numeric-ids --no-compress --chown=10004:10005' -t /mnt/compose/partitions "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/" "${TARGET}/"
 
   # Full file list update for production root
   cd "${PRODUCTION_ROOT}/" || { echo "Failed to change directory"; exit 1; }

@@ -1,0 +1,57 @@
+# This is specifically for secondary/tertiary architectures
+---
+'9altarch':
+  fullname: 'Rocky Linux 9.0'
+  revision: '9.0'
+  rclvl: 'RC2'
+  major: '9'
+  minor: '0'
+  profile: '9'
+  bugurl: 'https://bugs.rockylinux.org'
+  checksum: 'sha256'
+  allowed_arches:
+    - armhfp
+    - riscv64
+  provide_multilib: False
+  project_id: ''
+  renames:
+    all: 'devel'
+  all_repos:
+    - 'all'
+    - 'BaseOS'
+    - 'AppStream'
+    - 'CRB'
+    - 'extras'
+    - 'plus'
+  structure:
+    packages: 'os/Packages'
+    repodata: 'os/repodata'
+  iso_map: {}
+  livemap: {}
+  repoclosure_map:
+    arches:
+      armhfp: '--forcearch=armhfp --arch=noarch'
+      riscv64: '--forcearch=riscv64 --arch=noarch'
+    repos:
+      devel: []
+      BaseOS: []
+      AppStream:
+        - BaseOS
+      CRB:
+        - BaseOS
+        - AppStream
+  extra_files:
+    git_repo: 'https://git.rockylinux.org/staging/src/rocky-release.git'
+    git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/r9/'
+    branch: 'r9'
+    gpg:
+      stable: 'SOURCES/RPM-GPG-KEY-Rocky-9'
+      testing: 'SOURCES/RPM-GPG-KEY-Rocky-9-Testing'
+    list:
+      - 'SOURCES/Contributors'
+      - 'SOURCES/COMMUNITY-CHARTER'
+      - 'SOURCES/EULA'
+      - 'SOURCES/LICENSE'
+      - 'SOURCES/RPM-GPG-KEY-Rocky-9'
+      - 'SOURCES/RPM-GPG-KEY-Rocky-9-Testing'
+...

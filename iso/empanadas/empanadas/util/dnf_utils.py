@@ -58,6 +58,7 @@ class RepoSync:
             nofail: bool = False,
             gpgkey: str = 'stable',
             rlmode: str = 'stable',
+            just_pull_everything: bool = False,
             logger=None
         ):
         self.nofail = nofail
@@ -73,6 +74,9 @@ class RepoSync:
         self.refresh_treeinfo = refresh_treeinfo
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
+        # This makes it so every repo is synced at the same time.
+        # This is EXTREMELY dangerous.
+        self.just_pull_everything = just_pull_everything
         # Relevant config items
         self.major_version = major
         self.date_stamp = config['date_stamp']
@@ -234,8 +238,18 @@ class RepoSync:
                 "global",
         )
 
-        #self.dnf_config = self.generate_conf(dest_path=global_work_root)
-        self.dnf_config = self.generate_conf()
+        self.dnf_config = Shared.generate_conf(
+                self.shortname,
+                self.major_version,
+                self.repos,
+                self.repo_base_url,
+                self.project_id,
+                self.hashed,
+                self.extra_files,
+                self.gpgkey,
+                self.tmplenv,
+                self.log
+        )
 
         if self.dryrun:
             self.log.error('Dry Runs are not supported just yet. Sorry!')
@@ -346,12 +360,9 @@ class RepoSync:
             if r in self.repo_renames:
                 repo_name = self.repo_renames[r]
 
-
+            # Sync all if arch is x86_64 and multilib is true
             if 'all' in r and 'x86_64' in arches_to_sync and self.multilib:
                 arch_sync.append('i686')
-
-            # There should be a check here that if it's "all" and multilib
-            # is on, i686 should get synced too.
 
             for a in arch_sync:
                 entry_name = '{}-{}'.format(r, a)
@@ -657,70 +668,6 @@ class RepoSync:
 
         self.log.info('Symlinking to latest-{}-{}...'.format(self.shortname, self.major_version))
         os.symlink(generated_dir, self.compose_latest_dir)
-
-    def generate_conf(self, dest_path='/var/tmp') -> str:
-        """
-        Generates the necessary repo conf file for the operation. This repo
-        file should be temporary in nature. This will generate a repo file
-        with all repos by default. If a repo is chosen for sync, that will be
-        the only one synced.
-
-        :param dest_path: The destination where the temporary conf goes
-        :param repo: The repo object to create a file for
-        """
-        fname = os.path.join(
-                dest_path,
-                "{}-{}-config.repo".format(self.shortname, self.major_version)
-        )
-        pname = os.path.join(
-                '/var/tmp',
-                "{}-{}-config.repo".format(self.shortname, self.major_version)
-        )
-        self.log.info('Generating the repo configuration: %s' % fname)
-
-        if self.repo_base_url.startswith("/"):
-            self.log.error("Local file syncs are not supported.")
-            raise SystemExit(Color.BOLD + "Local file syncs are not "
-                "supported." + Color.END)
-
-        prehashed = ''
-        if self.hashed:
-            prehashed = "hashed-"
-        # create dest_path
-        if not os.path.exists(dest_path):
-            os.makedirs(dest_path, exist_ok=True)
-        config_file = open(fname, "w+")
-        repolist = []
-        for repo in self.repos:
-            constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
-                    self.repo_base_url,
-                    self.project_id,
-                    prehashed,
-                    repo,
-            )
-
-            constructed_url_src = '{}/{}/repo/{}{}/src'.format(
-                    self.repo_base_url,
-                    self.project_id,
-                    prehashed,
-                    repo,
-            )
-
-            repodata = {
-                    'name': repo,
-                    'baseurl': constructed_url,
-                    'srcbaseurl': constructed_url_src,
-                    'gpgkey': self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
-            }
-            repolist.append(repodata)
-
-        template = self.tmplenv.get_template('repoconfig.tmpl')
-        output = template.render(repos=repolist)
-        config_file.write(output)
-
-        config_file.close()
-        #return (fname, pname)
-        return fname
 
     def repoclosure_work(self, sync_root, work_root, log_root):
         """

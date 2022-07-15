@@ -401,7 +401,19 @@ class Shared:
         return cmd
 
     @staticmethod
-    def generate_conf(data, logger, dest_path='/var/tmp') -> str:
+    def generate_conf(
+            shortname,
+            major_version,
+            repos,
+            repo_base_url,
+            project_id,
+            hashed,
+            extra_files,
+            gpgkey,
+            templates,
+            logger,
+            dest_path='/var/tmp'
+        ) -> str:
         """
         Generates the necessary repo conf file for the operation. This repo
         file should be temporary in nature. This will generate a repo file
@@ -413,35 +425,35 @@ class Shared:
         """
         fname = os.path.join(
                 dest_path,
-                "{}-{}-config.repo".format(data.shortname, data.major_version)
+                "{}-{}-config.repo".format(shortname, major_version)
         )
-        data.log.info('Generating the repo configuration: %s' % fname)
+        logger.info('Generating the repo configuration: %s' % fname)
 
-        if data.repo_base_url.startswith("/"):
+        if repo_base_url.startswith("/"):
             logger.error("Local file syncs are not supported.")
             raise SystemExit(Color.BOLD + "Local file syncs are not "
                 "supported." + Color.END)
 
         prehashed = ''
-        if data.hashed:
+        if hashed:
             prehashed = "hashed-"
         # create dest_path
         if not os.path.exists(dest_path):
             os.makedirs(dest_path, exist_ok=True)
         config_file = open(fname, "w+")
         repolist = []
-        for repo in data.repos:
+        for repo in repos:
 
             constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
-                    data.repo_base_url,
-                    data.project_id,
+                    repo_base_url,
+                    project_id,
                     prehashed,
                     repo,
             )
 
             constructed_url_src = '{}/{}/repo/{}{}/src'.format(
-                    data.repo_base_url,
-                    data.project_id,
+                    repo_base_url,
+                    project_id,
                     prehashed,
                     repo,
             )
@@ -450,11 +462,11 @@ class Shared:
                     'name': repo,
                     'baseurl': constructed_url,
                     'srcbaseurl': constructed_url_src,
-                    'gpgkey': data.extra_files['git_raw_path'] + data.extra_files['gpg'][data.gpgkey]
+                    'gpgkey': extra_files['git_raw_path'] + extra_files['gpg'][gpgkey]
             }
             repolist.append(repodata)
 
-        template = data.tmplenv.get_template('repoconfig.tmpl')
+        template = templates.get_template('repoconfig.tmpl')
         output = template.render(repos=repolist)
         config_file.write(output)
 
