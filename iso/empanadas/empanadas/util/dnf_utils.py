@@ -422,7 +422,7 @@ class RepoSync:
                 )
 
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
-                        "--repoid={} -p {} --forcearch {} --norepopath "
+                        "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
                         "--gpgcheck --assumeyes 2>&1").format(
                         self.dnf_config,
                         a,
@@ -433,7 +433,7 @@ class RepoSync:
 
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--gpgcheck --norepopath --assumeyes 2>&1").format(
+                        "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
@@ -495,7 +495,7 @@ class RepoSync:
 
                     ks_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                             "--repoid={} -p {} --forcearch {} --norepopath "
-                            "--gpgcheck --assumeyes 2>&1").format(
+                            "--gpgcheck --assumeyes --remote-time 2>&1").format(
                             self.dnf_config,
                             a,
                             r,
@@ -546,7 +546,7 @@ class RepoSync:
 
                 source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
                         "--download-metadata --repoid={}-source -p {} "
-                        "--gpgcheck --norepopath --assumeyes 2>&1").format(
+                        "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
                         self.dnf_config,
                         r,
                         source_sync_path
@@ -593,6 +593,7 @@ class RepoSync:
             join_all_pods = ' '.join(entry_name_list)
             time.sleep(3)
             self.log.info(Color.INFO + 'Syncing ' + r + ' ...')
+            self.log.info(Color.INFO + 'Arches: ' + ' '.join(arch_sync))
             pod_watcher = '{} wait {}'.format(
                     cmd,
                     join_all_pods
