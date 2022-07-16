@@ -421,6 +421,14 @@ class RepoSync:
                         a
                 )
 
+                metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
+                        "--forcearch {} --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        a
+                )
+
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                         "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
                         "--gpgcheck --assumeyes 2>&1").format(
@@ -430,6 +438,15 @@ class RepoSync:
                         os_sync_path,
                         a
                 )
+
+                debug_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={}-debug "
+                        "--forcearch {} --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        a
+                )
+
 
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
@@ -449,6 +466,7 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=sync_cmd,
+                        metadata_cmd=metadata_cmd,
                         sync_log=sync_log,
                         download_path=os_sync_path
                 )
@@ -459,6 +477,7 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=debug_sync_cmd,
+                        metadata_cmd=debug_metadata_cmd,
                         sync_log=debug_sync_log,
                         download_path=debug_sync_path
                 )
@@ -493,6 +512,14 @@ class RepoSync:
                             'kickstart'
                     )
 
+                    ks_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
+                            "--forcearch {} --assumeyes 2>&1").format(
+                            self.dnf_config,
+                            a,
+                            r,
+                            a
+                    )
+
                     ks_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                             "--repoid={} -p {} --forcearch {} --norepopath "
                             "--gpgcheck --assumeyes --remote-time 2>&1").format(
@@ -515,6 +542,7 @@ class RepoSync:
                             arch_force_cp=arch_force_cp,
                             dnf_plugin_cmd=dnf_plugin_cmd,
                             sync_cmd=ks_sync_cmd,
+                            metadata_cmd=ks_metadata_cmd,
                             sync_log=ks_sync_log
                     )
                     ks_entry_point_open = open(ks_point_sh, "w+")
@@ -544,6 +572,12 @@ class RepoSync:
                         repo_name
                 )
 
+                source_metadata_cmd = ("/usr/bin/dnf makecache -c {} --repoid={}-source "
+                        "--assumeyes 2>&1").format(
+                        self.dnf_config,
+                        r
+                )
+
                 source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
                         "--download-metadata --repoid={}-source -p {} "
                         "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
@@ -557,6 +591,7 @@ class RepoSync:
                         import_gpg_cmd=import_gpg_cmd,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=source_sync_cmd,
+                        metadata_cmd=source_metadata_cmd,
                         sync_log=source_sync_log
                 )
 
