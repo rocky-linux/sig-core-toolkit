@@ -27,20 +27,25 @@ if [ $ret_val -eq "0" ]; then
     # We're already here, but Justin Case wanted this
     cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
     /bin/cp fullfiletimelist-rocky fullfiletimelist-rocky-old
-    /usr/local/bin/create-filelist > fullfiletimelist-rocky
-    cp fullfiletimelist-rocky fullfiletimelist
-    cp fullfiletimelist-rocky fullfiletimelist-rocky-linux
-  fi
-  chown 10004:10005 fullfilelist fullfiletimelist-rocky fullfiletimelist fullfiletimelist-rocky-linux
+    /usr/local/bin/create-filelist > fullfiletimelist-rocky & CREALIPID=$!
 
-  if [[ -f /usr/local/bin/create-filelist ]]; then
     # We're already here, but Justin Case wanted this
     cd "${PRODUCTION_ROOT}/" || { echo "Failed to change directory"; exit 1; }
     /bin/cp fullfiletimelist-rocky fullfiletimelist-rocky-old
-    /usr/local/bin/create-filelist > fullfiletimelist-rocky
+    /usr/local/bin/create-filelist > fullfiletimelist-rocky & ROOTLIPID=$!
+
+    wait $CREALIPID
+    wait $ROOTLIPID
+
+    cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
+    chown 10004:10005 fullfilelist fullfiletimelist-rocky fullfiletimelist fullfiletimelist-rocky-linux
+    cp fullfiletimelist-rocky fullfiletimelist
+    cp fullfiletimelist-rocky fullfiletimelist-rocky-linux
+
+    cd "${PRODUCTION_ROOT}/" || { echo "Failed to change directory"; exit 1; }
+    chown 10004:10005 fullfilelist fullfiletimelist-rocky fullfiletimelist
     cp fullfiletimelist-rocky fullfiletimelist
   fi
-  chown 10004:10005 fullfilelist fullfiletimelist-rocky fullfiletimelist
 
 fi
 
