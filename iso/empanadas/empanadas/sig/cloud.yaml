@@ -21,7 +21,7 @@ cloud:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Cloud'
   '9':
     profile: 'cloud'
-    project_id: ''
+    project_id: '15016370-1410-4459-a1a2-a1576041fd19'
     cloud-kernel:
       allowed_arches:
         - aarch64
