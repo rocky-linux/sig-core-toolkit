@@ -1,17 +1,41 @@
 ---
 altarch:
   '8':
-    rockyrpi:
-      allowed_arches:
-        - aarch64
-      project_id: ''
-      additional_dirs:
-        - 'images'
+    project_id: ''
+    repo:
+      common:
+        allowed_arches:
+          - aarch64
+      rockyrpi:
+        allowed_arches:
+          - aarch64
+        additional_dirs:
+          - 'images'
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-altarch.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-altarch/-/raw/r8/'
+      branch: 'r8'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
   '9':
-    rockyrpi:
-      allowed_arches:
-        - aarch64
-      project_id: ''
-      additional_dirs:
-        - 'images'
+    project_id: ''
+    repo:
+      common:
+        allowed_arches:
+          - aarch64
+      rockyrpi:
+        allowed_arches:
+          - aarch64
+        additional_dirs:
+          - 'images'
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-altarch.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-altarch/-/raw/r9/'
+      branch: 'r9'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
 ...

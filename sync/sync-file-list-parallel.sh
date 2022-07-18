@@ -16,7 +16,7 @@ if [ $ret_val -eq "0" ]; then
   cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
   find . > "${PRODUCTION_ROOT}/${CATEGORY_STUB}/fullfilelist" & CATEPID=$!
   echo "Starting full file list for root"
-  cd "${PRODUCTION_ROOT}/" || echo { echo "Failed to change directory"; exit 1; }
+  cd "${PRODUCTION_ROOT}/" || { echo "Failed to change directory"; exit 1; }
   find . > "${PRODUCTION_ROOT}/fullfilelist" & ROOTPID=$!
 
   wait $CATEPID

@@ -3,14 +3,16 @@ cloud:
   '8':
     profile: 'cloud'
     project_id: 'f91da90d-5bdb-4cf2-80ea-e07f8dae5a5c'
-    cloud-kernel:
-      allowed_arches:
-        - aarch64
-        - x86_64
-    cloud-common:
-      allowed_arches:
-        - aarch64
-        - x86_64
+    addtional_dirs: []
+    repo:
+      cloud-kernel:
+        allowed_arches:
+          - aarch64
+          - x86_64
+      cloud-common:
+        allowed_arches:
+          - aarch64
+          - x86_64
     extra_files:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-cloud.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-cloud/-/raw/r8/'
@@ -22,16 +24,26 @@ cloud:
   '9':
     profile: 'cloud'
     project_id: '15016370-1410-4459-a1a2-a1576041fd19'
-    cloud-kernel:
-      allowed_arches:
-        - aarch64
-        - x86_64
-        - ppc64le
-        - s390x
-    cloud-common:
-      allowed_arches:
-        - aarch64
-        - x86_64
-        - ppc64le
-        - s390x
+    addtional_dirs: []
+    repo:
+      cloud-kernel:
+        allowed_arches:
+          - aarch64
+          - x86_64
+          - ppc64le
+          - s390x
+      cloud-common:
+        allowed_arches:
+          - aarch64
+          - x86_64
+          - ppc64le
+          - s390x
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-cloud.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-cloud/-/raw/r9/'
+      branch: 'r9'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Cloud'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Cloud'
 ...
