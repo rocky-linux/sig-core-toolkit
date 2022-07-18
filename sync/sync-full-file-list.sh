@@ -15,7 +15,9 @@ if [ $ret_val -eq "0" ]; then
   cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
   # Hardlink everything except xml files
   #hardlink -x '.*\.xml.*' "${REVISION}"
+  echo "Starting full file list for category"
   find . > fullfilelist
+  echo "Generating filelist for quick-fedora-mirror users"
   if [[ -f /usr/local/bin/create-filelist ]]; then
     # We're already here, but Justin Case wanted this
     cd "${PRODUCTION_ROOT}/${CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }

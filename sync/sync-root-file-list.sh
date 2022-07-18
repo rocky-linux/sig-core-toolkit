@@ -13,7 +13,9 @@ ret_val=$?
 if [ $ret_val -eq "0" ]; then
   # Full file list update for production root
   cd "${PRODUCTION_ROOT}/" || echo { echo "Failed to change directory"; exit 1; }
+  echo "Starting full file list for root"
   find . > fullfilelist
+  echo "Generating filelist for quick-fedora-mirror users"
   if [[ -f /usr/local/bin/create-filelist ]]; then
     # We're already here, but Justin Case wanted this
     cd "${PRODUCTION_ROOT}/" || { echo "Failed to change directory"; exit 1; }
