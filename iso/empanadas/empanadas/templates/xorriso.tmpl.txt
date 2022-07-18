@@ -1,7 +1,7 @@
 -indev {{ boot_iso }}
 -outdev {{ isoname }}
 -boot_image any replay
--joliet
+-joliet on
 -compliance joliet_long_names
 -volid {{ volid }}
 {{ graft }}
