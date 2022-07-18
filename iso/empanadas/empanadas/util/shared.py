@@ -833,7 +833,13 @@ class Shared:
             isokwargs["input_charset"] = None
 
         if opts['use_xorrisofs']:
-            cmd = ['/usr/bin/xorriso', '-dialog', 'on', '<', opts['graft_points']]
+            cmd = [
+                    '/usr/bin/xorriso',
+                    '-dialog',
+                    'on',
+                    '<',
+                    opts['graft_points']
+            ]
         else:
             cmd = Shared.get_mkisofs_cmd(
                     opts['iso_name'],
