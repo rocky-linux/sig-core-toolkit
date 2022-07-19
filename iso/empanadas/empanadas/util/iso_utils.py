@@ -1358,6 +1358,7 @@ class IsoBuild:
 
                 source_path = latest_artifacts[arch]
                 drop_name = source_path.split('/')[-1]
+                checksum_name = drop_name + '.CHECKSUM'
                 full_drop = '{}/{}'.format(
                         image_arch_dir,
                         drop_name
@@ -1407,12 +1408,32 @@ class IsoBuild:
                         arch,
                         formattype
                 )
+                latest_path = latest_name.split('/')[-1]
+                latest_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
+                        image_arch_dir,
+                        self.shortname,
+                        self.major_version,
+                        imagename,
+                        arch,
+                        formattype
+                )
                 # For some reason python doesn't have a "yeah just change this
                 # link" part of the function
                 if os.path.exists(latest_name):
                     os.remove(latest_name)
 
                 os.symlink(drop_name, latest_name)
+
+                self.log.info('Creating checksum for latest symlinked image...')
+                shutil.copy2(checksum_drop, latest_checksum)
+                with open(latest_checksum, 'r') as link:
+                    checkdata = link.read()
+
+                checkdata = checkdata.replace(drop_name, latest_path)
+
+                with open(latest_checksum, 'w+') as link:
+                    link.write(checkdata)
+                    link.close()
 
         self.log.info(Color.INFO + 'Image download phase completed')
 
