@@ -123,12 +123,6 @@ class RepoSync:
         if 'repoclosure_map' in rlvars and len(rlvars['repoclosure_map']) > 0:
             self.repoclosure_map = rlvars['repoclosure_map']
 
-        self.staging_dir = os.path.join(
-                    config['staging_root'],
-                    config['category_stub'],
-                    self.revision
-        )
-
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
@@ -261,7 +255,7 @@ class RepoSync:
         self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
 
         if self.fullrun:
-            self.deploy_extra_files(sync_root, global_work_root)
+            Shared.deploy_extra_files(self.extra_files, sync_root, global_work_root, self.log)
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
             self.tweak_treeinfo(self.repo, sync_root, self.arch)
             self.symlink_to_latest(generated_dir)
@@ -270,7 +264,7 @@ class RepoSync:
             self.repoclosure_work(sync_root, work_root, log_root)
 
         if self.refresh_extra_files and not self.fullrun:
-            self.deploy_extra_files(sync_root, global_work_root)
+            Shared.deploy_extra_files(self.extra_files, sync_root, global_work_root, self.log)
 
         # deploy_treeinfo does NOT overwrite any treeinfo files. However,
         # tweak_treeinfo calls out to a method that does. This should not
@@ -601,7 +595,7 @@ class RepoSync:
                 os.chmod(source_entry_point_sh, 0o755)
 
             # Spawn up all podman processes for repo
-            self.log.info('Starting podman processes for %s ...' % r)
+            self.log.info(Color.INFO + 'Starting podman processes for %s ...' % r)
 
             #print(entry_name_list)
             for pod in entry_name_list:
@@ -860,66 +854,6 @@ class RepoSync:
             )
             for issue in bad_exit_list:
                 self.log.error(issue)
-
-    def deploy_extra_files(self, sync_root, global_work_root):
-        """
-        deploys extra files based on info of rlvars including a
-        extra_files.json
-
-        might also deploy COMPOSE_ID and maybe in the future a metadata dir with
-        a bunch of compose-esque stuff.
-        """
-        self.log.info(Color.INFO + 'Deploying treeinfo, discinfo, and media.repo')
-
-        cmd = Shared.git_cmd(self.log)
-        tmpclone = '/tmp/clone'
-        extra_files_dir = os.path.join(
-                global_work_root,
-                'extra-files'
-        )
-        metadata_dir = os.path.join(
-                sync_root,
-                "metadata"
-        )
-        if not os.path.exists(extra_files_dir):
-            os.makedirs(extra_files_dir, exist_ok=True)
-
-        if not os.path.exists(metadata_dir):
-            os.makedirs(metadata_dir, exist_ok=True)
-
-        clonecmd = '{} clone {} -b {} -q {}'.format(
-                cmd,
-                self.extra_files['git_repo'],
-                self.extra_files['branch'],
-                tmpclone
-        )
-
-        git_clone = subprocess.call(
-                shlex.split(clonecmd),
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-        )
-
-        self.log.info(Color.INFO + 'Deploying extra files to work and metadata directories ...')
-
-        # Copy files to work root
-        for extra in self.extra_files['list']:
-            src = '/tmp/clone/' + extra
-            # Copy extra files to root of compose here also - The extra files
-            # are meant to be picked up by our ISO creation process and also
-            # exist on our mirrors.
-            try:
-                shutil.copy2(src, extra_files_dir)
-                shutil.copy2(src, metadata_dir)
-            except:
-                self.log.warn(Color.WARN + 'Extra file not copied: ' + src)
-
-        try:
-            shutil.rmtree(tmpclone)
-        except OSError as e:
-            self.log.error(Color.FAIL + 'Directory ' + tmpclone +
-                    ' could not be removed: ' + e.strerror
-            )
 
     def deploy_metadata(self, sync_root):
         """
@@ -1524,7 +1458,7 @@ class RepoSync:
                     lp.close()
 
             images_arch_root = os.path.join(sync_images_root, arch)
-            images_arch_checksum = os.path.join(sync_images_root, 'CHECKSUM')
+            images_arch_checksum = os.path.join(images_arch_root, 'CHECKSUM')
             if os.path.exists(images_arch_root):
                 with open(images_arch_checksum, 'w+', encoding='utf-8') as ip:
                     for icheck in glob.iglob(images_arch_root + '/*.CHECKSUM'):
@@ -1560,6 +1494,7 @@ class SigRepoSync:
             dryrun: bool = False,
             fullrun: bool = False,
             nofail: bool = False,
+            gpgkey: str = 'stable',
             logger=None
         ):
         self.nofail = nofail
@@ -1587,13 +1522,19 @@ class SigRepoSync:
         self.distname = config['distname']
         self.fullname = rlvars['fullname']
         self.shortname = config['shortname']
+        self.fullversion = rlvars['revision']
+        self.sigrepo = repo
+        self.checksum = rlvars['checksum']
 
         # Relevant major version items
         self.sigvars = sigvars
-        self.sigrepos = sigvars.keys()
+        self.sigrepos = sigvars['repo'].keys()
+        self.extra_files = sigvars['extra_files']
+        self.gpgkey = gpgkey
         #self.arches = sigvars['allowed_arches']
-        #self.project_id = sigvars['project_id']
-        self.sigrepo = repo
+        self.project_id = sigvars['project_id']
+        if 'additional_vars' in sigvars:
+            self.additional_dirs = sigvars['additional_dirs']
 
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
@@ -1617,10 +1558,9 @@ class SigRepoSync:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-{}-{}-SIG-{}".format(
-                    self.shortname,
+                "latest-SIG-{}-{}".format(
+                    self.sigprofile,
                     major,
-                    self.sigprofile
                 )
         )
 
@@ -1654,10 +1594,94 @@ class SigRepoSync:
 
         self.log.info('sig reposync init')
         self.log.info(major)
-        #self.dnf_config = Shared.generate_conf()
+
+        # The repo name should be valid
+        if self.sigrepo is not None:
+            if self.sigrepo not in self.sigrepos:
+                self.log.error(
+                        Color.FAIL +
+                        'Invalid SIG repository: ' +
+                        self.profile +
+                        ' ' +
+                        self.sigrepo
+                )
 
     def run(self):
         """
         This runs the sig sync.
         """
-        pass
+        if self.fullrun and self.sigrepo:
+            self.log.error('WARNING: repo ignored when doing a full sync')
+        if self.fullrun and self.dryrun:
+            self.log.error('A full and dry run is currently not supported.')
+            raise SystemExit('\nA full and dry run is currently not supported.')
+
+        # This should create the initial compose dir and set the path.
+        # Otherwise, just use the latest link.
+        if self.fullrun:
+            simplename = 'SIG-' + self.sigprofile
+            generated_dir = Shared.generate_compose_dirs(
+                    self.compose_base,
+                    simplename,
+                    self.fullversion,
+                    self.date_stamp,
+                    self.log
+            )
+            work_root = os.path.join(
+                    generated_dir,
+                    'work'
+            )
+            sync_root = os.path.join(
+                    generated_dir,
+                    'compose'
+            )
+        else:
+            # Put in a verification here.
+            work_root = os.path.join(
+                    self.compose_latest_dir,
+                    'work'
+            )
+            sync_root = self.compose_latest_sync
+
+            # Verify if the link even exists
+            if not os.path.exists(self.compose_latest_dir):
+                self.log.error('!! Latest compose link is broken does not exist: %s' % self.compose_latest_dir)
+                self.log.error('!! Please perform a full run if you have not done so.')
+                raise SystemExit()
+
+        log_root = os.path.join(
+                work_root,
+                "logs",
+                self.date_stamp
+        )
+
+        global_work_root = os.path.join(
+                work_root,
+                "global",
+        )
+
+        sig_sync_root = os.path.join(
+                sync_root,
+                self.sigprofile
+        )
+
+        # dnf config here
+        if self.dryrun:
+            self.log.error('Dry Runs are not supported just yet. Sorry!')
+            raise SystemExit()
+
+        if self.fullrun and self.refresh_extra_files:
+            self.log.warn(Color.WARN + 'A full run implies extra files are also deployed.')
+
+        #self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
+
+        if self.fullrun:
+            Shared.deploy_extra_files(self.extra_files, sig_sync_root, global_work_root, self.log)
+            Shared.symlink_to_latest(simplename, self.major_version,
+                    generated_dir, self.compose_latest_dir, self.log)
+            print()
+
+        if self.refresh_extra_files and not self.fullrun:
+            Shared.deploy_extra_files(self.extra_files, sig_sync_root, global_work_root, self.log)
+            print()
+

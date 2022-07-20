@@ -14,7 +14,8 @@ parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 
 # All of our options
 parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
-parser.add_argument('--symlink', action='store_true', help="symlink")
+parser.add_argument('--sig', type=str, help="SIG Name if applicable")
+parser.add_argument('--symlink', action='store_true', help="symlink to latest")
 parser.add_argument('--logger', type=str)
 
 # Parse them
@@ -47,6 +48,9 @@ def run():
     date_stamp = config['date_stamp']
     profile = rlvars['profile']
     logger = log
+
+    if results.sig is not None:
+        shortname = 'SIG-' + results.sig
 
     generated_dir = Shared.generate_compose_dirs(
             compose_base,

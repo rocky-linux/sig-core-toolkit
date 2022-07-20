@@ -1,12 +1,13 @@
 ---
 altarch:
   '8':
+    profile: 'altarch'
     project_id: ''
     repo:
-      common:
+      altarch-common:
         allowed_arches:
           - aarch64
-      rockyrpi:
+      altarch-rockyrpi:
         allowed_arches:
           - aarch64
         additional_dirs:
@@ -20,12 +21,13 @@ altarch:
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
   '9':
+    profile: 'altarch'
     project_id: ''
     repo:
-      common:
+      altarch-common:
         allowed_arches:
           - aarch64
-      rockyrpi:
+      altarch-rockyrpi:
         allowed_arches:
           - aarch64
         additional_dirs:

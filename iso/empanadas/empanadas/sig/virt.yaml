@@ -1,0 +1,38 @@
+---
+virt:
+  '8':
+    profile: 'virt'
+    project_id: 'd911867a-658e-4f41-8343-5ceac6c41f67'
+    addtional_dirs: []
+    repo:
+      virt-common:
+        allowed_arches:
+          - x86_64
+          - aarch64
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-virt.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-virt/-/raw/r8/'
+      branch: 'r8'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Virt'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Virt'
+  '9':
+    profile: 'virt'
+    project_id: '925ceece-47ce-4f51-90f7-ff8689e4fe5e'
+    addtional_dirs: []
+    repo:
+      virt-common:
+        allowed_arches:
+          - x86_64
+          - aarch64
+          - ppc64le
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-virt.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-virt/-/raw/r9/'
+      branch: 'r9'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Virt'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Virt'
+...

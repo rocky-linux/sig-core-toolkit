@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 # All of our options
 parser.add_argument('--release', type=str, help="Major Release Version", required=True)
 parser.add_argument('--repo', type=str, help="Repository name")
-parser.add_argument('--sig', type=str, help="SIG name")
+parser.add_argument('--sig', type=str, help="SIG name", required=True)
 parser.add_argument('--arch', type=str, help="Architecture")
 parser.add_argument('--ignore-debug', action='store_true')
 parser.add_argument('--ignore-source', action='store_true')
@@ -25,6 +25,7 @@ parser.add_argument('--hashed', action='store_true')
 parser.add_argument('--dry-run', action='store_true')
 parser.add_argument('--full-run', action='store_true')
 parser.add_argument('--no-fail', action='store_true')
+parser.add_argument('--refresh-extra-files', action='store_true')
 # I am aware this is confusing, I want podman to be the default option
 parser.add_argument('--simple', action='store_false')
 parser.add_argument('--logger', type=str)
@@ -46,6 +47,7 @@ a = SigRepoSync(
         repo=results.repo,
         arch=results.arch,
         ignore_source=results.ignore_source,
+        ignore_debug=results.ignore_debug,
         repoclosure=results.repoclosure,
         skip_all=results.skip_all,
         hashed=results.hashed,
