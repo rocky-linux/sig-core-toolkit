@@ -839,7 +839,8 @@ class Shared:
                     '-dialog',
                     'on',
                     '<',
-                    opts['graft_points']
+                    opts['graft_points'],
+                    '2>&1'
             ]
         else:
             cmd = Shared.get_mkisofs_cmd(
