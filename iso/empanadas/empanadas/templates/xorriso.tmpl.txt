@@ -3,6 +3,7 @@
 -boot_image any replay
 -joliet on
 -compliance joliet_long_names
+{{ '-compliance untranslated_names' if arch == 'ppc64le' }}
 -volid {{ volid }}
 {{ graft }}
 -end

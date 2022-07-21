@@ -867,6 +867,7 @@ class IsoBuild:
                     isoname=isoname,
                     volid=volid,
                     graft=xorpoint,
+                    arch=arch,
             )
             xorriso_template_entry = open(xorriso_template_path, "w+")
             xorriso_template_entry.write(xorriso_template_output)
