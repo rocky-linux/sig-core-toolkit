@@ -252,7 +252,8 @@ class RepoSync:
         if self.fullrun and self.refresh_extra_files:
             self.log.warn(Color.WARN + 'A full run implies extra files are also deployed.')
 
-        self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
+        if not self.skip_all:
+            self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
 
         if self.fullrun:
             Shared.deploy_extra_files(self.extra_files, sync_root, global_work_root, self.log)

@@ -581,6 +581,13 @@ class IsoBuild:
                 'os'
         )
 
+        kspathway = os.path.join(
+                self.compose_latest_sync,
+                repo,
+                arch,
+                'kickstart'
+        )
+
         src_to_image = os.path.join(
                 self.lorax_work_dir,
                 arch,
@@ -614,6 +621,7 @@ class IsoBuild:
 
         try:
             shutil.copytree(src_to_image, pathway, copy_function=shutil.copy2, dirs_exist_ok=True)
+            shutil.copytree(src_to_image, kspathway, copy_function=shutil.copy2, dirs_exist_ok=True)
         except:
             self.log.error('%s already exists??' % repo)
 
