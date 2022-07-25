@@ -317,6 +317,7 @@ class RepoSync:
         bad_exit_list = []
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
+        gpg_key_url = self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
 
@@ -384,10 +385,7 @@ class RepoSync:
                         'debug/tree'
                 )
 
-                import_gpg_cmd = ("/usr/bin/rpm --import {}{}").format(
-                        self.extra_files['git_raw_path'],
-                        self.extra_files['gpg'][self.gpgkey]
-                )
+                import_gpg_cmd = ("/usr/bin/rpm --import {}").format(gpg_key_url)
 
                 arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
                     a,
@@ -1736,6 +1734,7 @@ class SigRepoSync:
         bad_exit_list = []
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
+        gpg_key_url = self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
 
@@ -1795,10 +1794,7 @@ class SigRepoSync:
                         r + '-debug'
                 )
 
-                import_gpg_cmd = ("/usr/bin/rpm --import {}{}").format(
-                        self.extra_files['git_raw_path'],
-                        self.extra_files['gpg'][self.gpgkey]
-                )
+                import_gpg_cmd = ("/usr/bin/rpm --import {}").format(gpg_key_url)
 
                 arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
                     a,
@@ -1866,7 +1862,9 @@ class SigRepoSync:
                         sync_cmd=sync_cmd,
                         metadata_cmd=metadata_cmd,
                         sync_log=sync_log,
-                        download_path=os_sync_path
+                        download_path=os_sync_path,
+                        gpg_key_url=gpg_key_url,
+                        deploy_extra_files=True
                 )
 
                 debug_sync_template = self.tmplenv.get_template('reposync.tmpl')
@@ -1877,7 +1875,9 @@ class SigRepoSync:
                         sync_cmd=debug_sync_cmd,
                         metadata_cmd=debug_metadata_cmd,
                         sync_log=debug_sync_log,
-                        download_path=debug_sync_path
+                        download_path=debug_sync_path,
+                        gpg_key_url=gpg_key_url,
+                        deploy_extra_files=True
                 )
 
                 entry_point_open = open(entry_point_sh, "w+")
@@ -1936,7 +1936,10 @@ class SigRepoSync:
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=source_sync_cmd,
                         metadata_cmd=source_metadata_cmd,
-                        sync_log=source_sync_log
+                        sync_log=source_sync_log,
+                        download_path=debug_sync_path,
+                        gpg_key_url=gpg_key_url,
+                        deploy_extra_files=True
                 )
 
                 source_entry_point_open = open(source_entry_point_sh, "w+")

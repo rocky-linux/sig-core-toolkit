@@ -1007,7 +1007,7 @@ class Shared:
         might also deploy COMPOSE_ID and maybe in the future a metadata dir with
         a bunch of compose-esque stuff.
         """
-        logger.info(Color.INFO + 'Deploying treeinfo, discinfo, and media.repo')
+        #logger.info(Color.INFO + 'Deploying treeinfo, discinfo, and media.repo')
 
         cmd = Shared.git_cmd(logger)
         tmpclone = '/tmp/clone'

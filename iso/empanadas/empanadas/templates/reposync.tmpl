@@ -26,6 +26,11 @@ if [ "$ret_val" -eq 0 ]; then
     #  echo "Repository is empty." | tee -a {{ sync_log }}
     #  rm -rf {{ download_path }}
     #fi
+{% if deploy_extra_files %}
+    pushd {{ download_path }}
+    curl -RO {{ gpg_key_url }}
+    popd
+{% endif %}
     exit 0
   fi
 fi
