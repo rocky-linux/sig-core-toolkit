@@ -292,15 +292,7 @@ class RepoSync:
         if self.parallel:
             self.podman_sync(repo, sync_root, work_root, log_root, global_work_root, arch)
         else:
-            self.dnf_sync(repo, sync_root, work_root, arch)
-
-    def dnf_sync(self, repo, sync_root, work_root, arch):
-        """
-        This is for normal dnf syncs. This is very slow.
-        """
-        self.log.error('DNF syncing has been removed.')
-        self.log.error('Please install podman and enable parallel')
-        raise SystemExit()
+            Shared.dnf_sync(repo, sync_root, work_root, arch, self.log)
 
     def podman_sync(
             self,
@@ -1516,7 +1508,7 @@ class SigRepoSync:
         self.repo_base_url = config['repo_base_url']
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
-        self.profile = rlvars['profile']
+        self.profile = sigvars['profile']
         self.sigprofile = sigvars['profile']
         self.iso_map = rlvars['iso_map']
         self.distname = config['distname']
@@ -1535,6 +1527,12 @@ class SigRepoSync:
         self.project_id = sigvars['project_id']
         if 'additional_vars' in sigvars:
             self.additional_dirs = sigvars['additional_dirs']
+
+        self.compose_id = '{}-{}-{}'.format(
+                self.profile,
+                self.major_version,
+                config['date_stamp']
+        )
 
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
@@ -1593,7 +1591,7 @@ class SigRepoSync:
             self.log.addHandler(handler)
 
         self.log.info('sig reposync init')
-        self.log.info(major)
+        self.log.info(self.profile + ' ' + self.major_version)
 
         # The repo name should be valid
         if self.sigrepo is not None:
@@ -1662,7 +1660,21 @@ class SigRepoSync:
 
         sig_sync_root = os.path.join(
                 sync_root,
+                self.major_version,
                 self.sigprofile
+        )
+
+        self.dnf_config = Shared.generate_conf(
+                self.profile,
+                self.major_version,
+                self.sigrepos,
+                self.repo_base_url,
+                self.project_id,
+                self.hashed,
+                self.extra_files,
+                self.gpgkey,
+                self.tmplenv,
+                self.log
         )
 
         # dnf config here
@@ -1673,15 +1685,395 @@ class SigRepoSync:
         if self.fullrun and self.refresh_extra_files:
             self.log.warn(Color.WARN + 'A full run implies extra files are also deployed.')
 
-        #self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
+        self.sync(self.sigrepo, sync_root, work_root, log_root, global_work_root, self.arch)
 
         if self.fullrun:
             Shared.deploy_extra_files(self.extra_files, sig_sync_root, global_work_root, self.log)
             Shared.symlink_to_latest(simplename, self.major_version,
                     generated_dir, self.compose_latest_dir, self.log)
-            print()
 
         if self.refresh_extra_files and not self.fullrun:
             Shared.deploy_extra_files(self.extra_files, sig_sync_root, global_work_root, self.log)
-            print()
 
+    def sync(self, repo, sync_root, work_root, log_root, global_work_root, arch=None):
+        """
+        Calls out syncing of the repos. We generally sync each component of a
+        repo:
+            * each arch
+            * each arch debug
+            * each source
+
+        If paralel is true, we will run in podman.
+        """
+        # I think we need to do a bit of leg work here, there is a chance that
+        # a sig may have repos that have repos that are not applicable to all
+        # arches...
+        if self.parallel:
+            self.podman_sync(repo, sync_root, work_root, log_root, global_work_root, arch)
+        else:
+            Shared.dnf_sync(repo, sync_root, work_root, arch, self.log)
+
+
+    def podman_sync(
+            self,
+            repo,
+            sync_root,
+            work_root,
+            log_root,
+            global_work_root,
+            arch
+        ):
+        """
+        This is for podman syncs
+
+        Create sync/root/work/entries
+        Generate scripts as needed into dir
+        Each container runs their own script
+        wait till all is finished
+        """
+        cmd = Shared.podman_cmd(self.log)
+        bad_exit_list = []
+        self.log.info('Generating container entries')
+        entries_dir = os.path.join(work_root, "entries")
+        if not os.path.exists(entries_dir):
+            os.makedirs(entries_dir, exist_ok=True)
+
+        # yeah, I know.
+        if not os.path.exists(global_work_root):
+            os.makedirs(global_work_root, exist_ok=True)
+
+        if not os.path.exists(log_root):
+            os.makedirs(log_root, exist_ok=True)
+
+        repos_to_sync = self.sigrepos
+        if repo and not self.fullrun:
+            repos_to_sync = [repo]
+
+        for r in repos_to_sync:
+            entry_name_list = []
+            repo_name = r
+            # Each repo can have specific allowed arches, based on the request
+            # of the SIG. What we also want to make sure is that if an arch was
+            # asked for but a repo (regardless if we are choosing a repo or not)
+            # we have to pass it with a warning.
+            arch_sync = self.sigvars['repo'][r]['allowed_arches'].copy()
+            if arch:
+                arch_sync = [arch]
+
+            for a in arch_sync:
+                entry_name = '{}-{}'.format(r, a)
+                debug_entry_name = '{}-debug-{}'.format(r, a)
+
+                entry_name_list.append(entry_name)
+                if not self.ignore_debug and not a == 'source':
+                    entry_name_list.append(debug_entry_name)
+
+                entry_point_sh = os.path.join(
+                        entries_dir,
+                        entry_name
+                )
+
+                debug_entry_point_sh = os.path.join(
+                        entries_dir,
+                        debug_entry_name
+                )
+
+                os_sync_path = os.path.join(
+                        sync_root,
+                        self.major_version,
+                        self.profile,
+                        a,
+                        r
+                )
+
+                debug_sync_path = os.path.join(
+                        sync_root,
+                        self.major_version,
+                        self.profile,
+                        a,
+                        r + '-debug'
+                )
+
+                import_gpg_cmd = ("/usr/bin/rpm --import {}{}").format(
+                        self.extra_files['git_raw_path'],
+                        self.extra_files['gpg'][self.gpgkey]
+                )
+
+                arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
+                    a,
+                    self.dnf_config,
+                    self.dnf_config,
+                    a
+                ))
+
+                sync_log = ("{}/{}-{}.log").format(
+                        log_root,
+                        repo_name,
+                        a
+                )
+
+                debug_sync_log = ("{}/{}-{}-debug.log").format(
+                        log_root,
+                        repo_name,
+                        a
+                )
+
+                metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
+                        "--forcearch {} --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        a
+                )
+
+                sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
+                        "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
+                        "--gpgcheck --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        os_sync_path,
+                        a
+                )
+
+                debug_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={}-debug "
+                        "--forcearch {} --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        a
+                )
+
+
+                debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
+                        "--download-metadata --repoid={}-debug -p {} --forcearch {} "
+                        "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        debug_sync_path,
+                        a
+                )
+
+                dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
+
+                sync_template = self.tmplenv.get_template('reposync.tmpl')
+                sync_output = sync_template.render(
+                        import_gpg_cmd=import_gpg_cmd,
+                        arch_force_cp=arch_force_cp,
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=sync_cmd,
+                        metadata_cmd=metadata_cmd,
+                        sync_log=sync_log,
+                        download_path=os_sync_path
+                )
+
+                debug_sync_template = self.tmplenv.get_template('reposync.tmpl')
+                debug_sync_output = debug_sync_template.render(
+                        import_gpg_cmd=import_gpg_cmd,
+                        arch_force_cp=arch_force_cp,
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=debug_sync_cmd,
+                        metadata_cmd=debug_metadata_cmd,
+                        sync_log=debug_sync_log,
+                        download_path=debug_sync_path
+                )
+
+                entry_point_open = open(entry_point_sh, "w+")
+                debug_entry_point_open = open(debug_entry_point_sh, "w+")
+
+                entry_point_open.write(sync_output)
+                debug_entry_point_open.write(debug_sync_output)
+
+                entry_point_open.close()
+                debug_entry_point_open.close()
+
+                os.chmod(entry_point_sh, 0o755)
+                os.chmod(debug_entry_point_sh, 0o755)
+
+            # We ignoring sources?
+            if (not self.ignore_source and not arch) or (
+                    not self.ignore_source and arch == 'source'):
+                source_entry_name = '{}-source'.format(r)
+                entry_name_list.append(source_entry_name)
+
+                source_entry_point_sh = os.path.join(
+                        entries_dir,
+                        source_entry_name
+                )
+
+                source_sync_path = os.path.join(
+                        sync_root,
+                        self.major_version,
+                        self.profile,
+                        'source',
+                        r
+                )
+
+                source_sync_log = ("{}/{}-source.log").format(
+                        log_root,
+                        repo_name
+                )
+
+                source_metadata_cmd = ("/usr/bin/dnf makecache -c {} --repoid={}-source "
+                        "--assumeyes 2>&1").format(
+                        self.dnf_config,
+                        r
+                )
+
+                source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
+                        "--download-metadata --repoid={}-source -p {} "
+                        "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        r,
+                        source_sync_path
+                )
+
+                source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
+                source_sync_output = source_sync_template.render(
+                        import_gpg_cmd=import_gpg_cmd,
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=source_sync_cmd,
+                        metadata_cmd=source_metadata_cmd,
+                        sync_log=source_sync_log
+                )
+
+                source_entry_point_open = open(source_entry_point_sh, "w+")
+                source_entry_point_open.write(source_sync_output)
+                source_entry_point_open.close()
+                os.chmod(source_entry_point_sh, 0o755)
+
+            # Spawn up all podman processes for repo
+            self.log.info(Color.INFO + 'Starting podman processes for %s ...' % r)
+
+            #print(entry_name_list)
+            for pod in entry_name_list:
+                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                        cmd,
+                        self.compose_root,
+                        self.compose_root,
+                        self.dnf_config,
+                        self.dnf_config,
+                        entries_dir,
+                        entries_dir,
+                        pod,
+                        entries_dir,
+                        pod,
+                        self.container
+                )
+                #print(podman_cmd_entry)
+                process = subprocess.call(
+                        shlex.split(podman_cmd_entry),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+            join_all_pods = ' '.join(entry_name_list)
+            time.sleep(3)
+            self.log.info(Color.INFO + 'Syncing ' + r + ' ...')
+            self.log.info(Color.INFO + 'Arches: ' + ' '.join(arch_sync))
+            pod_watcher = '{} wait {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            #print(pod_watcher)
+            watch_man = subprocess.call(
+                    shlex.split(pod_watcher),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+            )
+
+            # After the above is done, we'll check each pod process for an exit
+            # code.
+            pattern = "Exited (0)"
+            for pod in entry_name_list:
+                checkcmd = '{} ps -f status=exited -f name={}'.format(
+                        cmd,
+                        pod
+                )
+                podcheck = subprocess.Popen(
+                        checkcmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True
+                )
+
+                output, errors = podcheck.communicate()
+                if 'Exited (0)' not in output.decode():
+                    self.log.error(Color.FAIL + pod)
+                    bad_exit_list.append(pod)
+
+            rmcmd = '{} rm {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            rmpod = subprocess.Popen(
+                    rmcmd,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    shell=True
+            )
+
+            entry_name_list.clear()
+            self.log.info(Color.INFO + 'Syncing ' + r + ' completed')
+
+        if len(bad_exit_list) > 0:
+            self.log.error(
+                    Color.BOLD + Color.RED + 'There were issues syncing these '
+                    'repositories:' + Color.END
+            )
+            for issue in bad_exit_list:
+                self.log.error(issue)
+        else:
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + ' OK ' + Color.END + '] '
+                    'No issues detected.'
+            )
+
+    def deploy_metadata(self, sync_root):
+        """
+        Deploys metadata that defines information about the compose. Some data
+        will be close to how pungi produces it, but it won't be exact nor a
+        perfect replica.
+        """
+        self.log.info(Color.INFO + 'Deploying metadata for this compose')
+        # Create metadata here
+        # Create COMPOSE_ID here (this doesn't necessarily match anything, it's
+        # just an indicator)
+        metadata_dir = os.path.join(
+                sync_root,
+                "metadata"
+        )
+
+        # It should already exist from a full run or refresh. This is just in
+        # case and it doesn't hurt.
+        if not os.path.exists(metadata_dir):
+            os.makedirs(metadata_dir, exist_ok=True)
+
+        with open(metadata_dir + '/COMPOSE_ID', "w+") as f:
+            f.write(self.compose_id)
+            f.close()
+
+        Shared.write_metadata(
+                self.timestamp,
+                self.date_stamp,
+                self.distname,
+                self.fullversion,
+                self.compose_id,
+                metadata_dir + '/metadata'
+        )
+
+        # TODO: Add in each repo and their corresponding arch.
+        productmd_date = self.date_stamp.split('.')[0]
+        Shared.composeinfo_write(
+                metadata_dir + '/composeinfo',
+                self.distname,
+                self.shortname,
+                self.fullversion,
+                'updates',
+                productmd_date
+        )
+
+        self.log.info(Color.INFO + 'Metadata files phase completed.')

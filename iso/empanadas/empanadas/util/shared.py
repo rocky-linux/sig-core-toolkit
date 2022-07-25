@@ -1058,3 +1058,13 @@ class Shared:
             logger.error(Color.FAIL + 'Directory ' + tmpclone +
                     ' could not be removed: ' + e.strerror
             )
+
+    @staticmethod
+    def dnf_sync(repo, sync_root, work_root, arch, logger):
+        """
+        This is for normal dnf syncs. This is very slow.
+        """
+        logger.error('DNF syncing has been removed.')
+        logger.error('Please install podman and enable parallel')
+        raise SystemExit()
+

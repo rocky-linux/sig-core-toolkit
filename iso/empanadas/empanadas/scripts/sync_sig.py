@@ -55,6 +55,7 @@ a = SigRepoSync(
         dryrun=results.dry_run,
         fullrun=results.full_run,
         nofail=results.no_fail,
+        refresh_extra_files=results.refresh_extra_files,
         logger=results.logger
 )
 
