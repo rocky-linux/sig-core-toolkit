@@ -1286,25 +1286,25 @@ class RepoSync:
                     self.log.error(Color.FAIL + 'There was an error writing os treeinfo.')
                     self.log.error(e)
 
-                if self.fullrun:
-                    ksimage = os.path.join(sync_root, v, a, 'kickstart')
-                    ksdata = {
-                            'arch': a,
-                            'variant': v,
-                            'variant_path': ksimage,
-                            'checksum': self.checksum,
-                            'distname': self.distname,
-                            'fullname': self.fullname,
-                            'shortname': self.shortname,
-                            'release': self.fullversion,
-                            'timestamp': self.timestamp,
-                    }
+                #if self.fullrun:
+                ksimage = os.path.join(sync_root, v, a, 'kickstart')
+                ksdata = {
+                        'arch': a,
+                        'variant': v,
+                        'variant_path': ksimage,
+                        'checksum': self.checksum,
+                        'distname': self.distname,
+                        'fullname': self.fullname,
+                        'shortname': self.shortname,
+                        'release': self.fullversion,
+                        'timestamp': self.timestamp,
+                }
 
-                    try:
-                        Shared.treeinfo_modify_write(ksdata, imagemap, self.log)
-                    except Exception as e:
-                        self.log.error(Color.FAIL + 'There was an error writing kickstart treeinfo.')
-                        self.log.error(e)
+                try:
+                    Shared.treeinfo_modify_write(ksdata, imagemap, self.log)
+                except Exception as e:
+                    self.log.error(Color.FAIL + 'There was an error writing kickstart treeinfo.')
+                    self.log.error(e)
 
     def run_compose_closeout(self):
         """
