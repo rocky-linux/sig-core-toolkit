@@ -10,7 +10,7 @@
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   allowed_arches:
-    - armhfp
+    - armv7hl
     - riscv64
   provide_multilib: False
   project_id: ''
@@ -30,7 +30,7 @@
   livemap: {}
   repoclosure_map:
     arches:
-      armhfp: '--forcearch=armhfp --arch=noarch'
+      armv7hl: '--forcearch=armv7hl --arch=noarch'
       riscv64: '--forcearch=riscv64 --arch=noarch'
     repos:
       devel: []
