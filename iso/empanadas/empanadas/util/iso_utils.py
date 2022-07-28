@@ -61,6 +61,8 @@ class IsoBuild:
             extra_iso_mode: str = 'local',
             compose_dir_is_here: bool = False,
             hashed: bool = False,
+            updated_image: bool = False,
+            image_increment: str = '0',
             image=None,
             logger=None
     ):
@@ -93,6 +95,10 @@ class IsoBuild:
         self.checksum = rlvars['checksum']
         self.profile = rlvars['profile']
         self.hashed = hashed
+        self.updated_image = updated_image
+        self.updated_image_increment = "." + image_increment
+        self.updated_image_date = (time.strftime("%Y%m%d", time.localtime())
+                                   + self.updated_image_increment)
 
         # Relevant major version items
         self.arch = arch
@@ -808,6 +814,10 @@ class IsoBuild:
         rclevel = ''
         if self.release_candidate:
             rclevel = '-' + self.rclvl
+
+        datestamp = ''
+        if self.updated_image:
+            datestamp = '-' + self.updated_image_date.copy()
 
         volid = '{}-{}-{}{}-{}-{}'.format(
                 self.shortname,

@@ -411,6 +411,8 @@ class Shared:
             hashed,
             extra_files,
             gpgkey,
+            gpg_check,
+            repo_gpg_check,
             templates,
             logger,
             dest_path='/var/tmp'
@@ -468,7 +470,11 @@ class Shared:
             repolist.append(repodata)
 
         template = templates.get_template('repoconfig.tmpl')
-        output = template.render(repos=repolist)
+        output = template.render(
+                repos=repolist,
+                gpg_check=gpg_check,
+                repo_gpg_check=repo_gpg_check
+        )
         config_file.write(output)
 
         config_file.close()

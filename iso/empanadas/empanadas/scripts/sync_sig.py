@@ -29,6 +29,8 @@ parser.add_argument('--refresh-extra-files', action='store_true')
 # I am aware this is confusing, I want podman to be the default option
 parser.add_argument('--simple', action='store_false')
 parser.add_argument('--logger', type=str)
+parser.add_argument('--disable-gpg-check', action='store_false')
+parser.add_argument('--disable-repo-gpg-check', action='store_false')
 
 # Parse them
 results = parser.parse_args()
@@ -56,7 +58,9 @@ a = SigRepoSync(
         fullrun=results.full_run,
         nofail=results.no_fail,
         refresh_extra_files=results.refresh_extra_files,
-        logger=results.logger
+        logger=results.logger,
+        gpg_check=results.disable_gpg_check,
+        repo_gpg_check=results.disable_repo_gpg_check,
 )
 
 

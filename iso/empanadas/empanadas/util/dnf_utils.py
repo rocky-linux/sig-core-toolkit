@@ -57,6 +57,8 @@ class RepoSync:
             fullrun: bool = False,
             nofail: bool = False,
             gpgkey: str = 'stable',
+            gpg_check: bool = True,
+            repo_gpg_check: bool = True,
             rlmode: str = 'stable',
             just_pull_everything: bool = False,
             logger=None
@@ -103,6 +105,8 @@ class RepoSync:
         self.extra_files = rlvars['extra_files']
         self.gpgkey = gpgkey
         self.checksum = rlvars['checksum']
+        self.gpg_check = gpg_check
+        self.repo_gpg_check = repo_gpg_check
 
         self.compose_id = '{}-{}-{}'.format(
                 config['shortname'],
@@ -241,6 +245,8 @@ class RepoSync:
                 self.hashed,
                 self.extra_files,
                 self.gpgkey,
+                self.gpg_check,
+                self.repo_gpg_check,
                 self.tmplenv,
                 self.log
         )
@@ -1486,6 +1492,8 @@ class SigRepoSync:
             fullrun: bool = False,
             nofail: bool = False,
             gpgkey: str = 'stable',
+            gpg_check: bool = True,
+            repo_gpg_check: bool = True,
             logger=None
         ):
         self.nofail = nofail
@@ -1516,6 +1524,8 @@ class SigRepoSync:
         self.fullversion = rlvars['revision']
         self.sigrepo = repo
         self.checksum = rlvars['checksum']
+        self.gpg_check = gpg_check
+        self.repo_gpg_check = repo_gpg_check
 
         # Relevant major version items
         self.sigvars = sigvars
@@ -1672,6 +1682,8 @@ class SigRepoSync:
                 self.hashed,
                 self.extra_files,
                 self.gpgkey,
+                self.gpg_check,
+                self.repo_gpg_check,
                 self.tmplenv,
                 self.log
         )
