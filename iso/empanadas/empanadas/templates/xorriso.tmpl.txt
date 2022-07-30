@@ -2,6 +2,7 @@
 -outdev {{ isoname }}
 -boot_image any replay
 -joliet on
+-system_id LINUX
 -compliance joliet_long_names
 {{ '-compliance untranslated_names' if arch == 'ppc64le' }}
 -volid {{ volid }}
