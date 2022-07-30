@@ -1683,16 +1683,17 @@ class LiveBuild:
         )
         required_pkgs = self.livemap['required_pkgs']
 
-        volid = '{}-{}-{}'.format(
+        volid = '{}-{}-{}-{}'.format(
                 self.shortname,
-                image,
-                self.release
+                self.major_version,
+                self.minor_version,
+                image
         )
 
         isoname = '{}-{}-{}-{}-{}.iso'.format(
                 self.shortname,
-                image,
                 self.release,
+                image,
                 self.current_arch,
                 self.date
         )
@@ -1905,8 +1906,8 @@ class LiveBuild:
         live_dir_arch = os.path.join(self.live_work_dir, arch)
         isoname = '{}-{}-{}-{}-{}.iso'.format(
                 self.shortname,
-                image,
                 self.release,
+                image,
                 arch,
                 self.date
         )
