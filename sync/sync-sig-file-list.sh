@@ -18,7 +18,7 @@ if [ $ret_val -eq "0" ]; then
   echo "Generating filelist for quick-fedora-mirror users"
   if [[ -f /usr/local/bin/create-filelist ]]; then
     # We're already here, but Justin Case wanted this
-    cd "${PRODUCTION_ROOT}/" || { echo "Failed to change directory"; exit 1; }
+    cd "${PRODUCTION_ROOT}/${SIG_CATEGORY_STUB}" || { echo "Failed to change directory"; exit 1; }
     /bin/cp fullfiletimelist-sig fullfiletimelist-sig-old
     /usr/local/bin/create-filelist > fullfiletimelist-sig
     cp fullfiletimelist-sig fullfiletimelist
