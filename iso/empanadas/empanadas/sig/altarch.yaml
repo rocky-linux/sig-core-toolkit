@@ -2,7 +2,7 @@
 altarch:
   '8':
     profile: 'altarch'
-    project_id: ''
+    project_id: 'a1aac235-dd66-4d5b-8ff0-87467732f322'
     repo:
       altarch-common:
         allowed_arches:
@@ -22,7 +22,7 @@ altarch:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
   '9':
     profile: 'altarch'
-    project_id: ''
+    project_id: '6047887d-a395-4bc7-a0bd-fc1873b5d13d'
     repo:
       altarch-common:
         allowed_arches:
