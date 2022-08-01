@@ -4,9 +4,9 @@
 # shellcheck disable=SC2046,1091,1090
 source "$(dirname "$0")/common"
 
-if [[ $# -eq 0 ]] || [[ $# -eq 1 ]]; then
+if [[ $# -eq 0 ]]; then
   echo "Not enough information."
-  echo "You must use: shortname sig"
+  echo "You must use: sig"
   exit 1
 fi
 
