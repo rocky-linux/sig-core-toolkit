@@ -12,7 +12,7 @@ ret_val=$?
 
 if [ $ret_val -eq "0" ]; then
   # Full file list update for production root
-  cd "${PRODUCTION_ROOT}/${SIG_CATEGORY_STUB}" || echo { echo "Failed to change directory"; exit 1; }
+  cd "${PRODUCTION_ROOT}/${SIG_CATEGORY_STUB}" || { echo "Failed to change directory"; exit 1; }
   echo "Starting full file list for root"
   find . > fullfilelist
   echo "Generating filelist for quick-fedora-mirror users"
