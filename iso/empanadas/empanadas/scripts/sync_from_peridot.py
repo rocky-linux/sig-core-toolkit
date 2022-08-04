@@ -28,6 +28,7 @@ parser.add_argument('--simple', action='store_false')
 parser.add_argument('--logger', type=str)
 parser.add_argument('--disable-gpg-check', action='store_false')
 parser.add_argument('--disable-repo-gpg-check', action='store_false')
+parser.add_argument('--clean-old-packages', action='store_true')
 
 # Parse them
 results = parser.parse_args()
@@ -58,6 +59,7 @@ a = RepoSync(
         refresh_treeinfo=results.refresh_treeinfo,
         gpg_check=results.disable_gpg_check,
         repo_gpg_check=results.disable_repo_gpg_check,
+        reposync_clean_old=results.clean_old_packages,
 )
 
 def run():

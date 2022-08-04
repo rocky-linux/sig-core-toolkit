@@ -61,6 +61,8 @@ class RepoSync:
             repo_gpg_check: bool = True,
             rlmode: str = 'stable',
             just_pull_everything: bool = False,
+            extra_dnf_args=None,
+            reposync_clean_old: bool = False,
             logger=None
         ):
         self.nofail = nofail
@@ -117,6 +119,17 @@ class RepoSync:
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
         self.tmplenv = Environment(loader=file_loader)
+
+        # dnf args
+        dnf_args_to_add = []
+        if extra_dnf_args:
+            if '--delete' in extra_dnf_args:
+                raise SystemExit('Please use the --reposync-clean option instead.')
+
+            dnf_args_to_add.extend(extra_dnf_args.split(' '))
+
+        self.extra_dnf_args = dnf_args_to_add.copy()
+        self.reposync_clean_old = reposync_clean_old
 
         # each el can have its own designated container to run stuff in,
         # otherwise we'll just default to the default config.
@@ -321,6 +334,8 @@ class RepoSync:
         cmd = Shared.podman_cmd(self.log)
         contrunlist = []
         bad_exit_list = []
+        extra_dnf_args = ' '.join(self.extra_dnf_args.copy())
+        reposync_delete = '--delete' if self.reposync_clean_old else ''
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
         gpg_key_url = self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
@@ -422,12 +437,13 @@ class RepoSync:
 
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                         "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
-                        "--gpgcheck --assumeyes 2>&1").format(
+                        "--gpgcheck --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
                         os_sync_path,
-                        a
+                        a,
+                        reposync_delete
                 )
 
                 debug_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={}-debug "
@@ -441,12 +457,13 @@ class RepoSync:
 
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
+                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
                         debug_sync_path,
-                        a
+                        a,
+                        reposync_delete
                 )
 
                 dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
@@ -571,10 +588,11 @@ class RepoSync:
 
                 source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
                         "--download-metadata --repoid={}-source -p {} "
-                        "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
+                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         r,
-                        source_sync_path
+                        source_sync_path,
+                        reposync_delete
                 )
 
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
@@ -1494,6 +1512,8 @@ class SigRepoSync:
             gpgkey: str = 'stable',
             gpg_check: bool = True,
             repo_gpg_check: bool = True,
+            extra_dnf_args=None,
+            reposync_clean_old: bool = False,
             logger=None
         ):
         self.nofail = nofail
@@ -1534,7 +1554,7 @@ class SigRepoSync:
         self.gpgkey = gpgkey
         #self.arches = sigvars['allowed_arches']
         self.project_id = sigvars['project_id']
-        if 'additional_vars' in sigvars:
+        if 'additional_dirs' in sigvars:
             self.additional_dirs = sigvars['additional_dirs']
 
         self.compose_id = '{}-{}-{}'.format(
@@ -1546,6 +1566,17 @@ class SigRepoSync:
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
         self.tmplenv = Environment(loader=file_loader)
+
+        # dnf args
+        dnf_args_to_add = []
+        if extra_dnf_args:
+            if '--delete' in extra_dnf_args:
+                raise SystemExit('Please use the --reposync-clean option instead.')
+
+            dnf_args_to_add.extend(extra_dnf_args.split(' '))
+
+        self.extra_dnf_args = dnf_args_to_add.copy()
+        self.reposync_clean_old = reposync_clean_old
 
         # each el can have its own designated container to run stuff in,
         # otherwise we'll just default to the default config.
@@ -1724,6 +1755,7 @@ class SigRepoSync:
         else:
             Shared.dnf_sync(repo, sync_root, work_root, arch, self.log)
 
+        self.create_additional_dirs(sync_root)
 
     def podman_sync(
             self,
@@ -1744,6 +1776,8 @@ class SigRepoSync:
         """
         cmd = Shared.podman_cmd(self.log)
         bad_exit_list = []
+        extra_dnf_args = ' '.join(self.extra_dnf_args.copy())
+        reposync_delete = '--delete' if self.reposync_clean_old else ''
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
         gpg_key_url = self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
@@ -1837,12 +1871,13 @@ class SigRepoSync:
 
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                         "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
-                        "--gpgcheck --assumeyes 2>&1").format(
+                        "--gpgcheck --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
                         os_sync_path,
-                        a
+                        a,
+                        reposync_delete
                 )
 
                 debug_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={}-debug "
@@ -1856,12 +1891,13 @@ class SigRepoSync:
 
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
+                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
                         debug_sync_path,
-                        a
+                        a,
+                        reposync_delete
                 )
 
                 dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
@@ -1936,10 +1972,11 @@ class SigRepoSync:
 
                 source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
                         "--download-metadata --repoid={}-source -p {} "
-                        "--gpgcheck --norepopath --remote-time --assumeyes 2>&1").format(
+                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         r,
-                        source_sync_path
+                        source_sync_path,
+                        reposync_delete
                 )
 
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
@@ -2093,3 +2130,9 @@ class SigRepoSync:
         )
 
         self.log.info(Color.INFO + 'Metadata files phase completed.')
+
+    def create_additional_dirs(self, sync_root):
+        """
+        Creates additional directories
+        """
+        self.log.info(Color.INFO + 'Ensuring additional directories exist')

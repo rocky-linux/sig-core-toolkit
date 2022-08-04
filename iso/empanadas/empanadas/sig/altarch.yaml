@@ -10,8 +10,8 @@ altarch:
       altarch-rockyrpi:
         allowed_arches:
           - aarch64
-        additional_dirs:
-          - 'images'
+    additional_dirs:
+      - 'images'
     extra_files:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-altarch.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-altarch/-/raw/r8/'
@@ -30,8 +30,8 @@ altarch:
       altarch-rockyrpi:
         allowed_arches:
           - aarch64
-        additional_dirs:
-          - 'images'
+    additional_dirs:
+      - 'images'
     extra_files:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-altarch.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-altarch/-/raw/r9/'

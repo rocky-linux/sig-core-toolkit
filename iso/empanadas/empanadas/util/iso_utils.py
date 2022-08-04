@@ -508,6 +508,7 @@ class IsoBuild:
             self.log.info('Removing boot.iso from %s' % image)
             try:
                 os.remove(path_to_image + '/images/boot.iso')
+                os.remove(path_to_image + '/images/boot.iso.manifest')
             except:
                 self.log.error(
                             '[' + Color.BOLD + Color.YELLOW + 'FAIL' + Color.END + '] ' +
