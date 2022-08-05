@@ -566,13 +566,13 @@ class IsoBuild:
             c.write(checksum)
             c.close()
 
-        #linksum = Shared.get_checksum(linkbootpath, self.checksum, self.log)
-        #if not linksum:
-        #    self.log.error(Color.FAIL + linkbootpath + ' not found! Did we actually make the symlink?')
-        #    return
-        #with open(linkbootpath + '.CHECKSUM', "w+") as l:
-        #    l.write(linksum)
-        #    l.close()
+        linksum = Shared.get_checksum(linkbootpath, self.checksum, self.log)
+        if not linksum:
+            self.log.error(Color.FAIL + linkbootpath + ' not found! Did we actually make the symlink?')
+            return
+        with open(linkbootpath + '.CHECKSUM', "w+") as l:
+            l.write(linksum)
+            l.close()
 
     def _copy_nondisc_to_repo(self, force_unpack, arch, repo):
         """
@@ -1932,6 +1932,13 @@ class LiveBuild:
                 arch,
                 self.date
         )
+        isolink = '{}-{}-{}-{}-{}.iso'.format(
+                self.shortname,
+                self.major_version,
+                image,
+                arch,
+                'latest'
+        )
         live_res_dir = '/var/lib/mock/{}-{}-{}/result'.format(
                 self.shortname.lower(),
                 self.major_version,
@@ -1969,8 +1976,17 @@ class LiveBuild:
             self.log.info(Color.INFO + 'Copying image to work directory')
             source_path = os.path.join(live_res_dir, isoname)
             dest_path = os.path.join(live_dir_arch, isoname)
+            link_path = os.path.join(live_dir_arch, isolink)
             os.makedirs(live_dir_arch, exist_ok=True)
-            shutil.copy2(source_path, dest_path)
+            try:
+                shutil.copy2(source_path, dest_path)
+                if os.path.exists(link_path):
+                    os.remove(link_path)
+                os.symlink(isoname, link_path)
+            except:
+                self.log.error(Color.FAIL + 'We could not copy the image or create a symlink.')
+                return
+
             self.log.info(Color.INFO + 'Generating checksum')
             checksum = Shared.get_checksum(dest_path, self.checksum, self.log)
             if not checksum:
