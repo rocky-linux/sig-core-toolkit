@@ -96,7 +96,8 @@ class RepoSync:
 
         # Relevant major version items
         self.shortname = config['shortname']
-        self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.revision_level = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.revision = rlvars['revision']
         self.fullversion = rlvars['revision']
         self.arches = rlvars['allowed_arches']
         self.project_id = rlvars['project_id']
@@ -178,7 +179,7 @@ class RepoSync:
             self.log.addHandler(handler)
 
         self.log.info('reposync init')
-        self.log.info(self.revision)
+        self.log.info(self.revision_level)
 
         # The repo name should be valid
         if self.repo is not None:
