@@ -1995,3 +1995,11 @@ class LiveBuild:
             with open(dest_path + '.CHECKSUM', "w+") as c:
                 c.write(checksum)
                 c.close()
+
+            linksum = Shared.get_checksum(link_path, self.checksum, self.log)
+            if not linksum:
+                self.log.error(Color.FAIL + link_path + ' not found. Did we copy it?')
+                return
+            with open(link_path + '.CHECKSUM', "w+") as c:
+                c.write(linksum)
+                c.close()
