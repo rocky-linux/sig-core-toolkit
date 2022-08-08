@@ -1,0 +1,23 @@
+#!/bin/bash
+source common
+
+if [ ! -f "/usr/bin/pungi-koji" ]; then
+  echo "You must have pungi installed."
+  exit 1
+fi
+
+if [[ $# -eq 0  ]]; then
+  echo "You must provide a major version."
+  exit 1
+fi
+
+VER="${1}"
+BRANCH="r${VER}"
+REPO="${GIT_URL}/rocky/pungi-rocky.git"
+
+CMD="/usr/bin/pungi-koji --production --no-latest-link --just-phase init --config rocky.conf --compose-dir /var/tmp/composes/ --label RC-${VER}"
+
+git clone ${REPO} -b ${BRANCH} /var/tmp/pungi
+pushd /var/tmp/pungi
+${CMD}
+popd
