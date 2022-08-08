@@ -1,0 +1,35 @@
+This directory contains ISO's for the {{ arch }} architecture. You will see
+multiple types of ISO's, including accompanying manifests and CHECKSUM files
+that match the given ISO. You will see the following formats:
+
+* Rocky-X.Y-ARCH-TYPE       (ISO File)
+* Rocky-X.Y-DATE-ARCH-TYPE  (ISO File)
+* Rocky-ARCH-TYPE           (Symlink)
+
+X will be the major release.
+Y will be the minor release.
+ARCH is the given architecture.
+DATE will be the date the ISO was built (if applicable)
+TYPE will be the type of ISO (boot, dvd, minimal)
+
+The third format in the list is a symlink to the "latest" ISO. Currently, this
+is not advertised on the main site, but there may be potential for this in
+the future.
+
+This is "unversioned" ISO symlink is for these cases:
+
+* A pre-determined download location for users/mirrors/service providers who
+  want an always available and deterministic download location, which can be
+  easier to script
+
+* osinfo database / libvirt use where if a user selects Rocky Linux X, it
+  should be aware of and be able to download from that location. This should
+  be fully supported in Rocky Linux 8.7 and 9.1, and future Fedora versions.
+
+If you have any questions, please reach out to us:
+
+* https://chat.rockylinux.org ~Development, ~Infrastructure, ~General
+* https://forums.rockylinux.org
+* https://lists.resf.org/mailman3/lists/rocky.lists.resf.org/        - Rocky General Mail List
+* https://lists.resf.org/mailman3/lists/rocky-mirror.lists.resf.org/ - Mirror Mail List
+
