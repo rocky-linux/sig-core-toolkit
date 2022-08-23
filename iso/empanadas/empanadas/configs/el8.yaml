@@ -28,12 +28,10 @@
     - 'extras'
     - 'devel'
     - 'plus'
-    - 'rockyrpi'
   no_comps_or_groups:
     - 'extras'
     - 'devel'
     - 'plus'
-    - 'rockyrpi'
   comps_or_groups:
     - 'BaseOS'
     - 'AppStream'
