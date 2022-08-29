@@ -1,0 +1,21 @@
+<template>
+  <name>Rocky-{{major}}-{{type}}-{{version_variant}}.{{iso8601date}}.{{release}}.{{architecture}}</name>
+        <os>
+            <name>Fedora</name>
+            <version>{{fedora_major}}</version>
+            <arch>{{architecture}}</arch>
+            <install type='url'>
+              <url>https://download.rockylinux.org/stg/rocky/{{major}}/BaseOS/{{architecture}}/{{installdir}}</url>
+            </install>
+            <icicle>
+                <extra_command>rpm -qa --qf '%{NAME},%{VERSION},%{RELEASE},%{ARCH},%{EPOCH},%{SIZE},%{SIGMD5},%{BUILDTIME}\n'</extra_command>
+            </icicle>
+            <kernelparam>console=tty0 inst.usefbx</kernelparam>
+        </os>
+        <description>Rocky-{{major}}-{{type}}-{{version_variant}}.{{iso8601date}}.{{release}}.{{architecture}} Generated on {{utcnow}}</description>
+    <disk>
+      <size>{{size}}</size>
+    </disk>
+</template>
+
+

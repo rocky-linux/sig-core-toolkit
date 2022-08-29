@@ -9,6 +9,7 @@
   profile: '9'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
+  fedora_major: '20'
   allowed_arches:
     - armv7hl
     - riscv64
