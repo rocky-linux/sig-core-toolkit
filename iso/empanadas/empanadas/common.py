@@ -65,7 +65,8 @@ config = {
         "x86_64": "amd64",
         "aarch64": "arm64",
         "ppc64le": "ppc64le",
-        "s390x": "s390x"
+        "s390x": "s390x",
+        "i686": "386"
     },
     "aws_region": "us-east-2",
     "bucket": "resf-empanadas",
