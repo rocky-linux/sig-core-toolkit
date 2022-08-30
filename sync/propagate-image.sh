@@ -21,7 +21,8 @@ SOURCE_AMI_NAME=$(aws --profile resf-ami ec2 describe-images \
 
 # Enforce a name structure
 # Rocky-8-ec2-8.6-20220515.0.x86_64
-if [[ ! "${SOURCE_AMI_NAME}" =~ Rocky-[89]-ec2-[89]\.[0-9]-[0-9]+\.[0-9]+\.((aarch|x86_)64|ppc64le|s390x) ]]; then
+pat="Rocky-[89]-EC2-[89]\.[0-9]-[0-9]+\.[0-9]+\.((aarch|x86_)64|ppc64le|s390x)"
+if [[ ! "${SOURCE_AMI_NAME}" =~ $pat ]]; then
   echo "Bad source ami (${SOURCE_AMI_NAME}). Exiting."
   exit 1
 fi
