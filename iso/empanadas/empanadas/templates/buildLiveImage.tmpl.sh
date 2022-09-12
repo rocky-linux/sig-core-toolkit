@@ -20,7 +20,7 @@ cd /builddir
 if [ -d "/builddir/ks/live/{{ major }}/peridot" ]; then
   pushd /builddir/ks/live/{{ major }}/{{ arch }}/peridot || { echo "Could not change directory"; exit 1; }
 else
-  pushd /builddir/ks/live/{{ major }}/{{ arch }}/staging || { echo "Could not change directory"; exit 1; }
+  pushd /builddir/ks/live/{{ major }}/{{ arch }}/stage   || { echo "Could not change directory"; exit 1; }
 fi
 ksflatten -c {{ ks_file }} -o /builddir/ks.cfg
 if [ $? -ne 0 ]; then
