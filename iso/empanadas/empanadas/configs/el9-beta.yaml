@@ -88,6 +88,7 @@
       Workstation-Lite: rocky-live-workstation-lite.ks
       XFCE: rocky-live-xfce.ks
       KDE: rocky-live-kde.ks
+      MATE: rocky-live-mate.ks
     allowed_arches:
       - x86_64
       - aarch64
