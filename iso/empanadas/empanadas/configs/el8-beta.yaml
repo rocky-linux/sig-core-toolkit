@@ -13,7 +13,7 @@
     - x86_64
     - aarch64
   provide_multilib: False
-  project_id: 'e9cfc87c-d2d2-42d5-a121-852101f1a966'
+  project_id: '26694529-26cd-44bd-bc59-1c1195364322'
   repo_symlinks:
     devel: 'Devel'
     NFV: 'nfv'
@@ -94,8 +94,8 @@
       - 'git'
   variantmap:
     git_repo: 'https://git.rockylinux.org/rocky/pungi-rocky.git'
-    branch: 'r8'
-    git_raw_path: 'https://git.rockylinux.org/rocky/pungi-rocky/-/raw/r8/'
+    branch: 'r8-beta'
+    git_raw_path: 'https://git.rockylinux.org/rocky/pungi-rocky/-/raw/r8-beta/'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
