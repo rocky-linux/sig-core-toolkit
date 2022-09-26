@@ -6,12 +6,7 @@ if [ ! -f "/usr/bin/pungi-koji" ]; then
   exit 1
 fi
 
-if [[ $# -eq 0  ]]; then
-  echo "You must provide a major version."
-  exit 1
-fi
-
-VER="${1}"
+VER="${RLVER}"
 BRANCH="r${VER}"
 REPO="${GIT_URL}/rocky/pungi-rocky.git"
 
