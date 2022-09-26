@@ -6,6 +6,7 @@ if [ -z "$RLVER" ]; then
 fi
 
 PREPOPDROP="/tmp/prepopulate.json"
+VERSDROP="/tmp/versions.list"
 
 # Source Major common
 # Override: Not Allowed
