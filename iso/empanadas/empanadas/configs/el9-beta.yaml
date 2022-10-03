@@ -15,7 +15,7 @@
     - ppc64le
     - s390x
   provide_multilib: True
-  project_id: ''
+  project_id: '0048077b-1573-4cb7-8ba7-cce823857ba5'
   repo_symlinks:
     NFV: 'nfv'
   renames:
