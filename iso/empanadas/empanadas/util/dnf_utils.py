@@ -1487,6 +1487,186 @@ class RepoSync:
         # Deploy final metadata for a close out
         self.deploy_metadata(sync_root)
 
+    def run_upstream_repoclosure(self):
+        """
+        This does a repoclosure check in peridot
+        """
+        work_root = os.path.join(
+                self.compose_latest_dir,
+                'work'
+        )
+        # Verify if the link even exists
+        if not os.path.exists(self.compose_latest_dir):
+            self.log.error(
+                    '!! Latest compose link is broken does not exist: %s' % self.compose_latest_dir
+            )
+            self.log.error(
+                    '!! Please perform a full run if you have not done so.'
+            )
+            raise SystemExit()
+
+        log_root = os.path.join(
+                work_root,
+                "logs",
+                self.date_stamp
+        )
+
+        if not os.path.exists(log_root):
+            os.makedirs(log_root, exist_ok=True)
+
+        cmd = Shared.podman_cmd(self.log)
+        entries_dir = os.path.join(work_root, "entries")
+        bad_exit_list = []
+        dnf_config = Shared.generate_conf(
+                self.shortname,
+                self.major_version,
+                self.repos,
+                self.repo_base_url,
+                self.project_id,
+                self.hashed,
+                self.extra_files,
+                self.gpgkey,
+                self.gpg_check,
+                self.repo_gpg_check,
+                self.tmplenv,
+                self.log
+        )
+
+
+        if not self.parallel:
+            self.log.error('repoclosure is too slow to run one by one. enable parallel mode.')
+            raise SystemExit()
+
+        self.log.info('Beginning upstream repoclosure')
+        for repo in self.repoclosure_map['repos']:
+            if self.repo and repo not in self.repo:
+                continue
+
+            repoclosure_entry_name_list = []
+            self.log.info('Setting up repoclosure for {}'.format(repo))
+
+            for arch in self.repoclosure_map['arches']:
+                repo_combination = []
+                repoclosure_entry_name = 'peridot-repoclosure-{}-{}'.format(repo, arch)
+                repoclosure_entry_name_list.append(repoclosure_entry_name)
+                repoclosure_arch_list = self.repoclosure_map['arches'][arch]
+
+                # Some repos will have additional repos to close against - this
+                # helps append
+                if len(self.repoclosure_map['repos'][repo]) > 0:
+                    for l in self.repoclosure_map['repos'][repo]:
+                        stretch = '--repo={}'.format(l)
+                        repo_combination.append(stretch)
+
+                join_repo_comb = ' '.join(repo_combination)
+
+                repoclosure_entry_point_sh = os.path.join(
+                        entries_dir,
+                        repoclosure_entry_name
+                )
+                repoclosure_entry_point_sh = os.path.join(
+                        entries_dir,
+                        repoclosure_entry_name
+                )
+                repoclosure_cmd = ('/usr/bin/dnf repoclosure {} '
+                        '--repo={} --check={} {} -c {} -y '
+                        '| tee -a {}/peridot-{}-repoclosure-{}.log').format(
+                        repoclosure_arch_list,
+                        repo,
+                        repo,
+                        join_repo_comb,
+                        dnf_config,
+                        log_root,
+                        repo,
+                        arch
+                )
+                repoclosure_entry_point_open = open(repoclosure_entry_point_sh, "w+")
+                repoclosure_entry_point_open.write('#!/bin/bash\n')
+                repoclosure_entry_point_open.write('set -o pipefail\n')
+                repoclosure_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                repoclosure_entry_point_open.write('/usr/bin/dnf clean all\n')
+                repoclosure_entry_point_open.write(repoclosure_cmd + '\n')
+                repoclosure_entry_point_open.close()
+                os.chmod(repoclosure_entry_point_sh, 0o755)
+                repo_combination.clear()
+
+            self.log.info('Spawning pods for %s' % repo)
+            for pod in repoclosure_entry_name_list:
+                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                        cmd,
+                        self.compose_root,
+                        self.compose_root,
+                        dnf_config,
+                        dnf_config,
+                        entries_dir,
+                        entries_dir,
+                        pod,
+                        entries_dir,
+                        pod,
+                        self.container
+                )
+                #print(podman_cmd_entry)
+                process = subprocess.call(
+                        shlex.split(podman_cmd_entry),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+            join_all_pods = ' '.join(repoclosure_entry_name_list)
+            time.sleep(3)
+            self.log.info('Performing repoclosure on %s ... ' % repo)
+            pod_watcher = '{} wait {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            watch_man = subprocess.call(
+                    shlex.split(pod_watcher),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+            )
+
+            for pod in repoclosure_entry_name_list:
+                checkcmd = '{} ps -f status=exited -f name={}'.format(
+                        cmd,
+                        pod
+                )
+                podcheck = subprocess.Popen(
+                        checkcmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True
+                )
+
+                output, errors = podcheck.communicate()
+                if 'Exited (0)' not in output.decode():
+                    self.log.error(Color.FAIL + pod)
+                    bad_exit_list.append(pod)
+
+            rmcmd = '{} rm {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            rmpod = subprocess.Popen(
+                    rmcmd,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    shell=True
+            )
+
+            repoclosure_entry_name_list.clear()
+            self.log.info('Syncing %s completed' % repo)
+
+        if len(bad_exit_list) > 0:
+            self.log.error(
+                    Color.BOLD + Color.RED + 'There were issues closing these '
+                    'repositories:' + Color.END
+            )
+            for issue in bad_exit_list:
+                self.log.error(issue)
+
+
 class SigRepoSync:
     """
     This helps us do reposync operations for SIG's. Do not use this for the
