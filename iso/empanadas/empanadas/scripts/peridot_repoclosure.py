@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description="Peridot Upstream Repoclosure")
 parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
 parser.add_argument('--simple', action='store_false')
 parser.add_argument('--enable-repo-gpg-check', action='store_true')
+parser.add_argument('--hashed', action='store_true')
 parser.add_argument('--logger', type=str)
 
 # Parse them
@@ -27,6 +28,7 @@ a = RepoSync(
         rlvars,
         config,
         major=major,
+        hashed=results.hashed,
         parallel=results.simple,
         repo_gpg_check=results.enable_repo_gpg_check,
         logger=results.logger,
