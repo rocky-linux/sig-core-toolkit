@@ -3,6 +3,7 @@ set -o pipefail
 {{ import_gpg_cmd }} | tee -a {{ sync_log }}
 {{ dnf_plugin_cmd }} | tee -a {{ sync_log }}
 sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/*.repo
+{{ metadata_cmd }} | tee -a {{ sync_log }}
 {{ sync_cmd }} | tee -a {{ sync_log }}
 
 # Yes this is a bit hacky. Can't think of a better way to do this.
@@ -18,8 +19,13 @@ if [ "$ret_val" -eq 0 ]; then
     echo "SOME PACKAGES DID NOT DOWNLOAD" | tee -a {{ sync_log }}
     exit 1
   else
+{% if deploy_extra_files %}
+    pushd {{ download_path }}
+    curl -RO {{ gpg_key_url }}
+    popd
+{% endif %}
     exit 0
   fi
 fi
 
-# {{ check_cmd  }} | tee -a {{ sync_log }}
+# {{ check_cmd }} | tee -a {{ sync_log }}

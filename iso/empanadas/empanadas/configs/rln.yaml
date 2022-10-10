@@ -88,6 +88,7 @@
       KDE: rocky-live-kde.ks
     allowed_arches:
       - x86_64
+      - aarch64
     required_pkgs:
       - 'lorax-lmc-novirt'
       - 'vim-minimal'

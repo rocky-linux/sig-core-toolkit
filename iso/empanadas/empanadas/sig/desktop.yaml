@@ -1,0 +1,37 @@
+---
+desktop:
+  '8':
+    profile: 'desktop'
+    project_id: '8b3c9b53-0633-47bd-98a3-1ca3ec141278'
+    addtional_dirs: []
+    repo:
+      desktop-common:
+        allowed_arches:
+          - x86_64
+          - aarch64
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-desktop.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-desktop/-/raw/r8/'
+      branch: 'r8'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Desktop'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Desktop'
+  '9':
+    profile: 'desktop'
+    project_id: 'b0460c25-22cf-496c-a3a3-067b9a2af14a'
+    addtional_dirs: []
+    repo:
+      desktop-common:
+        allowed_arches:
+          - x86_64
+          - aarch64
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-desktop.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-desktop/-/raw/r9/'
+      branch: 'r9'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Desktop'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Desktop'
+...

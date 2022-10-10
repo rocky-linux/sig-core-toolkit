@@ -1,21 +1,24 @@
 ---
 '8':
   fullname: 'Rocky Linux 8'
-  revision: '8.6'
-  rclvl: 'RC2'
+  revision: '8.7'
+  rclvl: 'RC1'
   major: '8'
-  minor: '6'
+  minor: '7'
   profile: '8'
   bugurl: 'https://bugs.rockylinux.org'
+  checksum: 'sha256'
+  fedora_major: '20'
   allowed_arches:
     - x86_64
     - aarch64
   provide_multilib: False
-  project_id: ''
+  project_id: 'e9cfc87c-d2d2-42d5-a121-852101f1a966'
   repo_symlinks:
     devel: 'Devel'
     NFV: 'nfv'
-  renames: {}
+  renames:
+    all: 'devel'
   all_repos:
     - 'BaseOS'
     - 'AppStream'
@@ -27,23 +30,6 @@
     - 'extras'
     - 'devel'
     - 'plus'
-    - 'rockyrpi'
-  no_comps_or_groups:
-    - 'extras'
-    - 'devel'
-    - 'plus'
-    - 'rockyrpi'
-  comps_or_groups:
-    - 'BaseOS'
-    - 'AppStream'
-    - 'PowerTools'
-    - 'HighAvailability'
-    - 'ResilientStorage'
-    - 'RT'
-    - 'NFV'
-  has_modules:
-    - 'AppStream'
-    - 'PowerTools'
   structure:
     packages: 'os/Packages'
     repodata: 'os/repodata'
@@ -93,7 +79,7 @@
         format: qcow2
   livemap:
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
-    branch: 'r9'
+    branch: 'r8'
     ksentry:
       Workstation: rocky-live-workstation.ks
       Workstation-Lite: rocky-live-workstation-lite.ks

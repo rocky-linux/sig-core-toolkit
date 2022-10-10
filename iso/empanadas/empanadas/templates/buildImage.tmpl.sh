@@ -53,6 +53,8 @@ elif [ -f "/usr/bin/isoinfo" ]; then
       grep -v '/TRANS.TBL$' | sort >> lorax/images/boot.iso.manifest
 fi
 
+find lorax -perm 700 -exec chmod 755 {} \;
+
 tar czf "${LORAX_TAR}" lorax "${LOGFILE}"
 
 tar_ret_val=$?

@@ -57,7 +57,12 @@ class RepoSync:
             fullrun: bool = False,
             nofail: bool = False,
             gpgkey: str = 'stable',
+            gpg_check: bool = True,
+            repo_gpg_check: bool = True,
             rlmode: str = 'stable',
+            just_pull_everything: bool = False,
+            extra_dnf_args=None,
+            reposync_clean_old: bool = False,
             logger=None
         ):
         self.nofail = nofail
@@ -73,6 +78,9 @@ class RepoSync:
         self.refresh_treeinfo = refresh_treeinfo
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
+        # This makes it so every repo is synced at the same time.
+        # This is EXTREMELY dangerous.
+        self.just_pull_everything = just_pull_everything
         # Relevant config items
         self.major_version = major
         self.date_stamp = config['date_stamp']
@@ -88,7 +96,8 @@ class RepoSync:
 
         # Relevant major version items
         self.shortname = config['shortname']
-        self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.revision_level = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.revision = rlvars['revision']
         self.fullversion = rlvars['revision']
         self.arches = rlvars['allowed_arches']
         self.project_id = rlvars['project_id']
@@ -99,6 +108,8 @@ class RepoSync:
         self.extra_files = rlvars['extra_files']
         self.gpgkey = gpgkey
         self.checksum = rlvars['checksum']
+        self.gpg_check = gpg_check
+        self.repo_gpg_check = repo_gpg_check
 
         self.compose_id = '{}-{}-{}'.format(
                 config['shortname'],
@@ -110,6 +121,17 @@ class RepoSync:
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
         self.tmplenv = Environment(loader=file_loader)
 
+        # dnf args
+        dnf_args_to_add = []
+        if extra_dnf_args:
+            if '--delete' in extra_dnf_args:
+                raise SystemExit('Please use the --reposync-clean option instead.')
+
+            dnf_args_to_add.extend(extra_dnf_args.split(' '))
+
+        self.extra_dnf_args = dnf_args_to_add.copy()
+        self.reposync_clean_old = reposync_clean_old
+
         # each el can have its own designated container to run stuff in,
         # otherwise we'll just default to the default config.
         self.container = config['container']
@@ -118,12 +140,6 @@ class RepoSync:
 
         if 'repoclosure_map' in rlvars and len(rlvars['repoclosure_map']) > 0:
             self.repoclosure_map = rlvars['repoclosure_map']
-
-        self.staging_dir = os.path.join(
-                    config['staging_root'],
-                    config['category_stub'],
-                    self.revision
-        )
 
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
@@ -163,7 +179,7 @@ class RepoSync:
             self.log.addHandler(handler)
 
         self.log.info('reposync init')
-        self.log.info(self.revision)
+        self.log.info(self.revision_level)
 
         # The repo name should be valid
         if self.repo is not None:
@@ -234,8 +250,20 @@ class RepoSync:
                 "global",
         )
 
-        #self.dnf_config = self.generate_conf(dest_path=global_work_root)
-        self.dnf_config = self.generate_conf()
+        self.dnf_config = Shared.generate_conf(
+                self.shortname,
+                self.major_version,
+                self.repos,
+                self.repo_base_url,
+                self.project_id,
+                self.hashed,
+                self.extra_files,
+                self.gpgkey,
+                self.gpg_check,
+                self.repo_gpg_check,
+                self.tmplenv,
+                self.log
+        )
 
         if self.dryrun:
             self.log.error('Dry Runs are not supported just yet. Sorry!')
@@ -244,10 +272,11 @@ class RepoSync:
         if self.fullrun and self.refresh_extra_files:
             self.log.warn(Color.WARN + 'A full run implies extra files are also deployed.')
 
-        self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
+        if not self.skip_all:
+            self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
 
         if self.fullrun:
-            self.deploy_extra_files(sync_root, global_work_root)
+            Shared.deploy_extra_files(self.extra_files, sync_root, global_work_root, self.log)
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
             self.tweak_treeinfo(self.repo, sync_root, self.arch)
             self.symlink_to_latest(generated_dir)
@@ -256,7 +285,7 @@ class RepoSync:
             self.repoclosure_work(sync_root, work_root, log_root)
 
         if self.refresh_extra_files and not self.fullrun:
-            self.deploy_extra_files(sync_root, global_work_root)
+            Shared.deploy_extra_files(self.extra_files, sync_root, global_work_root, self.log)
 
         # deploy_treeinfo does NOT overwrite any treeinfo files. However,
         # tweak_treeinfo calls out to a method that does. This should not
@@ -284,15 +313,7 @@ class RepoSync:
         if self.parallel:
             self.podman_sync(repo, sync_root, work_root, log_root, global_work_root, arch)
         else:
-            self.dnf_sync(repo, sync_root, work_root, arch)
-
-    def dnf_sync(self, repo, sync_root, work_root, arch):
-        """
-        This is for normal dnf syncs. This is very slow.
-        """
-        self.log.error('DNF syncing has been removed.')
-        self.log.error('Please install podman and enable parallel')
-        raise SystemExit()
+            Shared.dnf_sync(repo, sync_root, work_root, arch, self.log)
 
     def podman_sync(
             self,
@@ -314,8 +335,11 @@ class RepoSync:
         cmd = Shared.podman_cmd(self.log)
         contrunlist = []
         bad_exit_list = []
+        extra_dnf_args = ' '.join(self.extra_dnf_args.copy())
+        reposync_delete = '--delete' if self.reposync_clean_old else ''
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
+        gpg_key_url = self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
 
@@ -346,12 +370,9 @@ class RepoSync:
             if r in self.repo_renames:
                 repo_name = self.repo_renames[r]
 
-
+            # Sync all if arch is x86_64 and multilib is true
             if 'all' in r and 'x86_64' in arches_to_sync and self.multilib:
                 arch_sync.append('i686')
-
-            # There should be a check here that if it's "all" and multilib
-            # is on, i686 should get synced too.
 
             for a in arch_sync:
                 entry_name = '{}-{}'.format(r, a)
@@ -386,10 +407,7 @@ class RepoSync:
                         'debug/tree'
                 )
 
-                import_gpg_cmd = ("/usr/bin/rpm --import {}{}").format(
-                        self.extra_files['git_raw_path'],
-                        self.extra_files['gpg'][self.gpgkey]
-                )
+                import_gpg_cmd = ("/usr/bin/rpm --import {}").format(gpg_key_url)
 
                 arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
                     a,
@@ -410,24 +428,43 @@ class RepoSync:
                         a
                 )
 
+                metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
+                        "--forcearch {} --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        a
+                )
+
                 sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
-                        "--repoid={} -p {} --forcearch {} --norepopath "
-                        "--gpgcheck --assumeyes 2>&1").format(
+                        "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
+                        "--gpgcheck --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
                         os_sync_path,
+                        a,
+                        reposync_delete
+                )
+
+                debug_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={}-debug "
+                        "--forcearch {} --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
                         a
                 )
 
+
                 debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
                         "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--gpgcheck --norepopath --assumeyes 2>&1").format(
+                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         a,
                         r,
                         debug_sync_path,
-                        a
+                        a,
+                        reposync_delete
                 )
 
                 dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
@@ -438,6 +475,7 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=sync_cmd,
+                        metadata_cmd=metadata_cmd,
                         sync_log=sync_log,
                         download_path=os_sync_path
                 )
@@ -448,6 +486,7 @@ class RepoSync:
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=debug_sync_cmd,
+                        metadata_cmd=debug_metadata_cmd,
                         sync_log=debug_sync_log,
                         download_path=debug_sync_path
                 )
@@ -482,9 +521,17 @@ class RepoSync:
                             'kickstart'
                     )
 
+                    ks_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
+                            "--forcearch {} --assumeyes 2>&1").format(
+                            self.dnf_config,
+                            a,
+                            r,
+                            a
+                    )
+
                     ks_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
                             "--repoid={} -p {} --forcearch {} --norepopath "
-                            "--gpgcheck --assumeyes 2>&1").format(
+                            "--gpgcheck --assumeyes --remote-time 2>&1").format(
                             self.dnf_config,
                             a,
                             r,
@@ -504,6 +551,7 @@ class RepoSync:
                             arch_force_cp=arch_force_cp,
                             dnf_plugin_cmd=dnf_plugin_cmd,
                             sync_cmd=ks_sync_cmd,
+                            metadata_cmd=ks_metadata_cmd,
                             sync_log=ks_sync_log
                     )
                     ks_entry_point_open = open(ks_point_sh, "w+")
@@ -533,12 +581,19 @@ class RepoSync:
                         repo_name
                 )
 
+                source_metadata_cmd = ("/usr/bin/dnf makecache -c {} --repoid={}-source "
+                        "--assumeyes 2>&1").format(
+                        self.dnf_config,
+                        r
+                )
+
                 source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
                         "--download-metadata --repoid={}-source -p {} "
-                        "--gpgcheck --norepopath --assumeyes 2>&1").format(
+                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
                         self.dnf_config,
                         r,
-                        source_sync_path
+                        source_sync_path,
+                        reposync_delete
                 )
 
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
@@ -546,6 +601,7 @@ class RepoSync:
                         import_gpg_cmd=import_gpg_cmd,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=source_sync_cmd,
+                        metadata_cmd=source_metadata_cmd,
                         sync_log=source_sync_log
                 )
 
@@ -555,7 +611,7 @@ class RepoSync:
                 os.chmod(source_entry_point_sh, 0o755)
 
             # Spawn up all podman processes for repo
-            self.log.info('Starting podman processes for %s ...' % r)
+            self.log.info(Color.INFO + 'Starting podman processes for %s ...' % r)
 
             #print(entry_name_list)
             for pod in entry_name_list:
@@ -582,6 +638,7 @@ class RepoSync:
             join_all_pods = ' '.join(entry_name_list)
             time.sleep(3)
             self.log.info(Color.INFO + 'Syncing ' + r + ' ...')
+            self.log.info(Color.INFO + 'Arches: ' + ' '.join(arch_sync))
             pod_watcher = '{} wait {}'.format(
                     cmd,
                     join_all_pods
@@ -657,70 +714,6 @@ class RepoSync:
 
         self.log.info('Symlinking to latest-{}-{}...'.format(self.shortname, self.major_version))
         os.symlink(generated_dir, self.compose_latest_dir)
-
-    def generate_conf(self, dest_path='/var/tmp') -> str:
-        """
-        Generates the necessary repo conf file for the operation. This repo
-        file should be temporary in nature. This will generate a repo file
-        with all repos by default. If a repo is chosen for sync, that will be
-        the only one synced.
-
-        :param dest_path: The destination where the temporary conf goes
-        :param repo: The repo object to create a file for
-        """
-        fname = os.path.join(
-                dest_path,
-                "{}-{}-config.repo".format(self.shortname, self.major_version)
-        )
-        pname = os.path.join(
-                '/var/tmp',
-                "{}-{}-config.repo".format(self.shortname, self.major_version)
-        )
-        self.log.info('Generating the repo configuration: %s' % fname)
-
-        if self.repo_base_url.startswith("/"):
-            self.log.error("Local file syncs are not supported.")
-            raise SystemExit(Color.BOLD + "Local file syncs are not "
-                "supported." + Color.END)
-
-        prehashed = ''
-        if self.hashed:
-            prehashed = "hashed-"
-        # create dest_path
-        if not os.path.exists(dest_path):
-            os.makedirs(dest_path, exist_ok=True)
-        config_file = open(fname, "w+")
-        repolist = []
-        for repo in self.repos:
-            constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
-                    self.repo_base_url,
-                    self.project_id,
-                    prehashed,
-                    repo,
-            )
-
-            constructed_url_src = '{}/{}/repo/{}{}/src'.format(
-                    self.repo_base_url,
-                    self.project_id,
-                    prehashed,
-                    repo,
-            )
-
-            repodata = {
-                    'name': repo,
-                    'baseurl': constructed_url,
-                    'srcbaseurl': constructed_url_src,
-                    'gpgkey': self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
-            }
-            repolist.append(repodata)
-
-        template = self.tmplenv.get_template('repoconfig.tmpl')
-        output = template.render(repos=repolist)
-        config_file.write(output)
-
-        config_file.close()
-        #return (fname, pname)
-        return fname
 
     def repoclosure_work(self, sync_root, work_root, log_root):
         """
@@ -877,66 +870,6 @@ class RepoSync:
             )
             for issue in bad_exit_list:
                 self.log.error(issue)
-
-    def deploy_extra_files(self, sync_root, global_work_root):
-        """
-        deploys extra files based on info of rlvars including a
-        extra_files.json
-
-        might also deploy COMPOSE_ID and maybe in the future a metadata dir with
-        a bunch of compose-esque stuff.
-        """
-        self.log.info(Color.INFO + 'Deploying treeinfo, discinfo, and media.repo')
-
-        cmd = Shared.git_cmd(self.log)
-        tmpclone = '/tmp/clone'
-        extra_files_dir = os.path.join(
-                global_work_root,
-                'extra-files'
-        )
-        metadata_dir = os.path.join(
-                sync_root,
-                "metadata"
-        )
-        if not os.path.exists(extra_files_dir):
-            os.makedirs(extra_files_dir, exist_ok=True)
-
-        if not os.path.exists(metadata_dir):
-            os.makedirs(metadata_dir, exist_ok=True)
-
-        clonecmd = '{} clone {} -b {} -q {}'.format(
-                cmd,
-                self.extra_files['git_repo'],
-                self.extra_files['branch'],
-                tmpclone
-        )
-
-        git_clone = subprocess.call(
-                shlex.split(clonecmd),
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-        )
-
-        self.log.info(Color.INFO + 'Deploying extra files to work and metadata directories ...')
-
-        # Copy files to work root
-        for extra in self.extra_files['list']:
-            src = '/tmp/clone/' + extra
-            # Copy extra files to root of compose here also - The extra files
-            # are meant to be picked up by our ISO creation process and also
-            # exist on our mirrors.
-            try:
-                shutil.copy2(src, extra_files_dir)
-                shutil.copy2(src, metadata_dir)
-            except:
-                self.log.warn(Color.WARN + 'Extra file not copied: ' + src)
-
-        try:
-            shutil.rmtree(tmpclone)
-        except OSError as e:
-            self.log.error(Color.FAIL + 'Directory ' + tmpclone +
-                    ' could not be removed: ' + e.strerror
-            )
 
     def deploy_metadata(self, sync_root):
         """
@@ -1376,25 +1309,25 @@ class RepoSync:
                     self.log.error(Color.FAIL + 'There was an error writing os treeinfo.')
                     self.log.error(e)
 
-                if self.fullrun:
-                    ksimage = os.path.join(sync_root, v, a, 'kickstart')
-                    ksdata = {
-                            'arch': a,
-                            'variant': v,
-                            'variant_path': ksimage,
-                            'checksum': self.checksum,
-                            'distname': self.distname,
-                            'fullname': self.fullname,
-                            'shortname': self.shortname,
-                            'release': self.fullversion,
-                            'timestamp': self.timestamp,
-                    }
+                #if self.fullrun:
+                ksimage = os.path.join(sync_root, v, a, 'kickstart')
+                ksdata = {
+                        'arch': a,
+                        'variant': v,
+                        'variant_path': ksimage,
+                        'checksum': self.checksum,
+                        'distname': self.distname,
+                        'fullname': self.fullname,
+                        'shortname': self.shortname,
+                        'release': self.fullversion,
+                        'timestamp': self.timestamp,
+                }
 
-                    try:
-                        Shared.treeinfo_modify_write(ksdata, imagemap, self.log)
-                    except Exception as e:
-                        self.log.error(Color.FAIL + 'There was an error writing kickstart treeinfo.')
-                        self.log.error(e)
+                try:
+                    Shared.treeinfo_modify_write(ksdata, imagemap, self.log)
+                except Exception as e:
+                    self.log.error(Color.FAIL + 'There was an error writing kickstart treeinfo.')
+                    self.log.error(e)
 
     def run_compose_closeout(self):
         """
@@ -1541,7 +1474,7 @@ class RepoSync:
                     lp.close()
 
             images_arch_root = os.path.join(sync_images_root, arch)
-            images_arch_checksum = os.path.join(sync_images_root, 'CHECKSUM')
+            images_arch_checksum = os.path.join(images_arch_root, 'CHECKSUM')
             if os.path.exists(images_arch_root):
                 with open(images_arch_checksum, 'w+', encoding='utf-8') as ip:
                     for icheck in glob.iglob(images_arch_root + '/*.CHECKSUM'):
@@ -1553,6 +1486,186 @@ class RepoSync:
 
         # Deploy final metadata for a close out
         self.deploy_metadata(sync_root)
+
+    def run_upstream_repoclosure(self):
+        """
+        This does a repoclosure check in peridot
+        """
+        work_root = os.path.join(
+                self.compose_latest_dir,
+                'work'
+        )
+        # Verify if the link even exists
+        if not os.path.exists(self.compose_latest_dir):
+            self.log.error(
+                    '!! Latest compose link is broken does not exist: %s' % self.compose_latest_dir
+            )
+            self.log.error(
+                    '!! Please perform a full run if you have not done so.'
+            )
+            raise SystemExit()
+
+        log_root = os.path.join(
+                work_root,
+                "logs",
+                self.date_stamp
+        )
+
+        if not os.path.exists(log_root):
+            os.makedirs(log_root, exist_ok=True)
+
+        cmd = Shared.podman_cmd(self.log)
+        entries_dir = os.path.join(work_root, "entries")
+        bad_exit_list = []
+        dnf_config = Shared.generate_conf(
+                self.shortname,
+                self.major_version,
+                self.repos,
+                self.repo_base_url,
+                self.project_id,
+                self.hashed,
+                self.extra_files,
+                self.gpgkey,
+                self.gpg_check,
+                self.repo_gpg_check,
+                self.tmplenv,
+                self.log
+        )
+
+
+        if not self.parallel:
+            self.log.error('repoclosure is too slow to run one by one. enable parallel mode.')
+            raise SystemExit()
+
+        self.log.info('Beginning upstream repoclosure')
+        for repo in self.repoclosure_map['repos']:
+            if self.repo and repo not in self.repo:
+                continue
+
+            repoclosure_entry_name_list = []
+            self.log.info('Setting up repoclosure for {}'.format(repo))
+
+            for arch in self.repoclosure_map['arches']:
+                repo_combination = []
+                repoclosure_entry_name = 'peridot-repoclosure-{}-{}'.format(repo, arch)
+                repoclosure_entry_name_list.append(repoclosure_entry_name)
+                repoclosure_arch_list = self.repoclosure_map['arches'][arch]
+
+                # Some repos will have additional repos to close against - this
+                # helps append
+                if len(self.repoclosure_map['repos'][repo]) > 0:
+                    for l in self.repoclosure_map['repos'][repo]:
+                        stretch = '--repo={}'.format(l)
+                        repo_combination.append(stretch)
+
+                join_repo_comb = ' '.join(repo_combination)
+
+                repoclosure_entry_point_sh = os.path.join(
+                        entries_dir,
+                        repoclosure_entry_name
+                )
+                repoclosure_entry_point_sh = os.path.join(
+                        entries_dir,
+                        repoclosure_entry_name
+                )
+                repoclosure_cmd = ('/usr/bin/dnf repoclosure {} '
+                        '--repo={} --check={} {} -c {} -y '
+                        '| tee -a {}/peridot-{}-repoclosure-{}.log').format(
+                        repoclosure_arch_list,
+                        repo,
+                        repo,
+                        join_repo_comb,
+                        dnf_config,
+                        log_root,
+                        repo,
+                        arch
+                )
+                repoclosure_entry_point_open = open(repoclosure_entry_point_sh, "w+")
+                repoclosure_entry_point_open.write('#!/bin/bash\n')
+                repoclosure_entry_point_open.write('set -o pipefail\n')
+                repoclosure_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                repoclosure_entry_point_open.write('/usr/bin/dnf clean all\n')
+                repoclosure_entry_point_open.write(repoclosure_cmd + '\n')
+                repoclosure_entry_point_open.close()
+                os.chmod(repoclosure_entry_point_sh, 0o755)
+                repo_combination.clear()
+
+            self.log.info('Spawning pods for %s' % repo)
+            for pod in repoclosure_entry_name_list:
+                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                        cmd,
+                        self.compose_root,
+                        self.compose_root,
+                        dnf_config,
+                        dnf_config,
+                        entries_dir,
+                        entries_dir,
+                        pod,
+                        entries_dir,
+                        pod,
+                        self.container
+                )
+                #print(podman_cmd_entry)
+                process = subprocess.call(
+                        shlex.split(podman_cmd_entry),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+            join_all_pods = ' '.join(repoclosure_entry_name_list)
+            time.sleep(3)
+            self.log.info('Performing repoclosure on %s ... ' % repo)
+            pod_watcher = '{} wait {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            watch_man = subprocess.call(
+                    shlex.split(pod_watcher),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+            )
+
+            for pod in repoclosure_entry_name_list:
+                checkcmd = '{} ps -f status=exited -f name={}'.format(
+                        cmd,
+                        pod
+                )
+                podcheck = subprocess.Popen(
+                        checkcmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True
+                )
+
+                output, errors = podcheck.communicate()
+                if 'Exited (0)' not in output.decode():
+                    self.log.error(Color.FAIL + pod)
+                    bad_exit_list.append(pod)
+
+            rmcmd = '{} rm {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            rmpod = subprocess.Popen(
+                    rmcmd,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    shell=True
+            )
+
+            repoclosure_entry_name_list.clear()
+            self.log.info('Syncing %s completed' % repo)
+
+        if len(bad_exit_list) > 0:
+            self.log.error(
+                    Color.BOLD + Color.RED + 'There were issues closing these '
+                    'repositories:' + Color.END
+            )
+            for issue in bad_exit_list:
+                self.log.error(issue)
+
 
 class SigRepoSync:
     """
@@ -1577,6 +1690,11 @@ class SigRepoSync:
             dryrun: bool = False,
             fullrun: bool = False,
             nofail: bool = False,
+            gpgkey: str = 'stable',
+            gpg_check: bool = True,
+            repo_gpg_check: bool = True,
+            extra_dnf_args=None,
+            reposync_clean_old: bool = False,
             logger=None
         ):
         self.nofail = nofail
@@ -1598,23 +1716,48 @@ class SigRepoSync:
         self.repo_base_url = config['repo_base_url']
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
-        self.profile = rlvars['profile']
+        self.profile = sigvars['profile']
         self.sigprofile = sigvars['profile']
         self.iso_map = rlvars['iso_map']
         self.distname = config['distname']
         self.fullname = rlvars['fullname']
         self.shortname = config['shortname']
+        self.fullversion = rlvars['revision']
+        self.sigrepo = repo
+        self.checksum = rlvars['checksum']
+        self.gpg_check = gpg_check
+        self.repo_gpg_check = repo_gpg_check
 
         # Relevant major version items
         self.sigvars = sigvars
-        self.sigrepos = sigvars.keys()
+        self.sigrepos = sigvars['repo'].keys()
+        self.extra_files = sigvars['extra_files']
+        self.gpgkey = gpgkey
         #self.arches = sigvars['allowed_arches']
-        #self.project_id = sigvars['project_id']
-        self.sigrepo = repo
+        self.project_id = sigvars['project_id']
+        if 'additional_dirs' in sigvars:
+            self.additional_dirs = sigvars['additional_dirs']
+
+        self.compose_id = '{}-{}-{}'.format(
+                self.profile,
+                self.major_version,
+                config['date_stamp']
+        )
 
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
         self.tmplenv = Environment(loader=file_loader)
+
+        # dnf args
+        dnf_args_to_add = []
+        if extra_dnf_args:
+            if '--delete' in extra_dnf_args:
+                raise SystemExit('Please use the --reposync-clean option instead.')
+
+            dnf_args_to_add.extend(extra_dnf_args.split(' '))
+
+        self.extra_dnf_args = dnf_args_to_add.copy()
+        self.reposync_clean_old = reposync_clean_old
 
         # each el can have its own designated container to run stuff in,
         # otherwise we'll just default to the default config.
@@ -1634,10 +1777,9 @@ class SigRepoSync:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-{}-{}-SIG-{}".format(
-                    self.shortname,
+                "latest-SIG-{}-{}".format(
+                    self.sigprofile,
                     major,
-                    self.sigprofile
                 )
         )
 
@@ -1670,11 +1812,508 @@ class SigRepoSync:
             self.log.addHandler(handler)
 
         self.log.info('sig reposync init')
-        self.log.info(major)
-        #self.dnf_config = Shared.generate_conf()
+        self.log.info(self.profile + ' ' + self.major_version)
+
+        # The repo name should be valid
+        if self.sigrepo is not None:
+            if self.sigrepo not in self.sigrepos:
+                self.log.error(
+                        Color.FAIL +
+                        'Invalid SIG repository: ' +
+                        self.profile +
+                        ' ' +
+                        self.sigrepo
+                )
 
     def run(self):
         """
         This runs the sig sync.
         """
-        pass
+        if self.fullrun and self.sigrepo:
+            self.log.error('WARNING: repo ignored when doing a full sync')
+        if self.fullrun and self.dryrun:
+            self.log.error('A full and dry run is currently not supported.')
+            raise SystemExit('\nA full and dry run is currently not supported.')
+
+        # This should create the initial compose dir and set the path.
+        # Otherwise, just use the latest link.
+        if self.fullrun:
+            simplename = 'SIG-' + self.sigprofile
+            generated_dir = Shared.generate_compose_dirs(
+                    self.compose_base,
+                    simplename,
+                    self.fullversion,
+                    self.date_stamp,
+                    self.log
+            )
+            work_root = os.path.join(
+                    generated_dir,
+                    'work'
+            )
+            sync_root = os.path.join(
+                    generated_dir,
+                    'compose'
+            )
+        else:
+            # Put in a verification here.
+            work_root = os.path.join(
+                    self.compose_latest_dir,
+                    'work'
+            )
+            sync_root = self.compose_latest_sync
+
+            # Verify if the link even exists
+            if not os.path.exists(self.compose_latest_dir):
+                self.log.error('!! Latest compose link is broken does not exist: %s' % self.compose_latest_dir)
+                self.log.error('!! Please perform a full run if you have not done so.')
+                raise SystemExit()
+
+        log_root = os.path.join(
+                work_root,
+                "logs",
+                self.date_stamp
+        )
+
+        global_work_root = os.path.join(
+                work_root,
+                "global",
+        )
+
+        sig_sync_root = os.path.join(
+                sync_root,
+                self.major_version,
+                self.sigprofile
+        )
+
+        self.dnf_config = Shared.generate_conf(
+                self.profile,
+                self.major_version,
+                self.sigrepos,
+                self.repo_base_url,
+                self.project_id,
+                self.hashed,
+                self.extra_files,
+                self.gpgkey,
+                self.gpg_check,
+                self.repo_gpg_check,
+                self.tmplenv,
+                self.log
+        )
+
+        # dnf config here
+        if self.dryrun:
+            self.log.error('Dry Runs are not supported just yet. Sorry!')
+            raise SystemExit()
+
+        if self.fullrun and self.refresh_extra_files:
+            self.log.warn(Color.WARN + 'A full run implies extra files are also deployed.')
+
+        self.sync(self.sigrepo, sync_root, work_root, log_root, global_work_root, self.arch)
+
+        if self.fullrun:
+            Shared.deploy_extra_files(self.extra_files, sig_sync_root, global_work_root, self.log)
+            Shared.symlink_to_latest(simplename, self.major_version,
+                    generated_dir, self.compose_latest_dir, self.log)
+
+        if self.refresh_extra_files and not self.fullrun:
+            Shared.deploy_extra_files(self.extra_files, sig_sync_root, global_work_root, self.log)
+
+    def sync(self, repo, sync_root, work_root, log_root, global_work_root, arch=None):
+        """
+        Calls out syncing of the repos. We generally sync each component of a
+        repo:
+            * each arch
+            * each arch debug
+            * each source
+
+        If paralel is true, we will run in podman.
+        """
+        # I think we need to do a bit of leg work here, there is a chance that
+        # a sig may have repos that have repos that are not applicable to all
+        # arches...
+        if self.parallel:
+            self.podman_sync(repo, sync_root, work_root, log_root, global_work_root, arch)
+        else:
+            Shared.dnf_sync(repo, sync_root, work_root, arch, self.log)
+
+        self.create_additional_dirs(sync_root)
+
+    def podman_sync(
+            self,
+            repo,
+            sync_root,
+            work_root,
+            log_root,
+            global_work_root,
+            arch
+        ):
+        """
+        This is for podman syncs
+
+        Create sync/root/work/entries
+        Generate scripts as needed into dir
+        Each container runs their own script
+        wait till all is finished
+        """
+        cmd = Shared.podman_cmd(self.log)
+        bad_exit_list = []
+        extra_dnf_args = ' '.join(self.extra_dnf_args.copy())
+        reposync_delete = '--delete' if self.reposync_clean_old else ''
+        self.log.info('Generating container entries')
+        entries_dir = os.path.join(work_root, "entries")
+        gpg_key_url = self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
+        if not os.path.exists(entries_dir):
+            os.makedirs(entries_dir, exist_ok=True)
+
+        # yeah, I know.
+        if not os.path.exists(global_work_root):
+            os.makedirs(global_work_root, exist_ok=True)
+
+        if not os.path.exists(log_root):
+            os.makedirs(log_root, exist_ok=True)
+
+        repos_to_sync = self.sigrepos
+        if repo and not self.fullrun:
+            repos_to_sync = [repo]
+
+        for r in repos_to_sync:
+            entry_name_list = []
+            repo_name = r
+            # Each repo can have specific allowed arches, based on the request
+            # of the SIG. What we also want to make sure is that if an arch was
+            # asked for but a repo (regardless if we are choosing a repo or not)
+            # we have to pass it with a warning.
+            arch_sync = self.sigvars['repo'][r]['allowed_arches'].copy()
+            if arch:
+                arch_sync = [arch]
+
+            for a in arch_sync:
+                entry_name = '{}-{}'.format(r, a)
+                debug_entry_name = '{}-debug-{}'.format(r, a)
+
+                entry_name_list.append(entry_name)
+                if not self.ignore_debug and not a == 'source':
+                    entry_name_list.append(debug_entry_name)
+
+                entry_point_sh = os.path.join(
+                        entries_dir,
+                        entry_name
+                )
+
+                debug_entry_point_sh = os.path.join(
+                        entries_dir,
+                        debug_entry_name
+                )
+
+                os_sync_path = os.path.join(
+                        sync_root,
+                        self.major_version,
+                        self.profile,
+                        a,
+                        r
+                )
+
+                debug_sync_path = os.path.join(
+                        sync_root,
+                        self.major_version,
+                        self.profile,
+                        a,
+                        r + '-debug'
+                )
+
+                import_gpg_cmd = ("/usr/bin/rpm --import {}").format(gpg_key_url)
+
+                arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
+                    a,
+                    self.dnf_config,
+                    self.dnf_config,
+                    a
+                ))
+
+                sync_log = ("{}/{}-{}.log").format(
+                        log_root,
+                        repo_name,
+                        a
+                )
+
+                debug_sync_log = ("{}/{}-{}-debug.log").format(
+                        log_root,
+                        repo_name,
+                        a
+                )
+
+                metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
+                        "--forcearch {} --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        a
+                )
+
+                sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
+                        "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
+                        "--gpgcheck --assumeyes {} 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        os_sync_path,
+                        a,
+                        reposync_delete
+                )
+
+                debug_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={}-debug "
+                        "--forcearch {} --assumeyes 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        a
+                )
+
+
+                debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
+                        "--download-metadata --repoid={}-debug -p {} --forcearch {} "
+                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
+                        self.dnf_config,
+                        a,
+                        r,
+                        debug_sync_path,
+                        a,
+                        reposync_delete
+                )
+
+                dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
+
+                sync_template = self.tmplenv.get_template('reposync.tmpl')
+                sync_output = sync_template.render(
+                        import_gpg_cmd=import_gpg_cmd,
+                        arch_force_cp=arch_force_cp,
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=sync_cmd,
+                        metadata_cmd=metadata_cmd,
+                        sync_log=sync_log,
+                        download_path=os_sync_path,
+                        gpg_key_url=gpg_key_url,
+                        deploy_extra_files=True
+                )
+
+                debug_sync_template = self.tmplenv.get_template('reposync.tmpl')
+                debug_sync_output = debug_sync_template.render(
+                        import_gpg_cmd=import_gpg_cmd,
+                        arch_force_cp=arch_force_cp,
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=debug_sync_cmd,
+                        metadata_cmd=debug_metadata_cmd,
+                        sync_log=debug_sync_log,
+                        download_path=debug_sync_path,
+                        gpg_key_url=gpg_key_url,
+                        deploy_extra_files=True
+                )
+
+                entry_point_open = open(entry_point_sh, "w+")
+                debug_entry_point_open = open(debug_entry_point_sh, "w+")
+
+                entry_point_open.write(sync_output)
+                debug_entry_point_open.write(debug_sync_output)
+
+                entry_point_open.close()
+                debug_entry_point_open.close()
+
+                os.chmod(entry_point_sh, 0o755)
+                os.chmod(debug_entry_point_sh, 0o755)
+
+            # We ignoring sources?
+            if (not self.ignore_source and not arch) or (
+                    not self.ignore_source and arch == 'source'):
+                source_entry_name = '{}-source'.format(r)
+                entry_name_list.append(source_entry_name)
+
+                source_entry_point_sh = os.path.join(
+                        entries_dir,
+                        source_entry_name
+                )
+
+                source_sync_path = os.path.join(
+                        sync_root,
+                        self.major_version,
+                        self.profile,
+                        'source',
+                        r
+                )
+
+                source_sync_log = ("{}/{}-source.log").format(
+                        log_root,
+                        repo_name
+                )
+
+                source_metadata_cmd = ("/usr/bin/dnf makecache -c {} --repoid={}-source "
+                        "--assumeyes 2>&1").format(
+                        self.dnf_config,
+                        r
+                )
+
+                source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
+                        "--download-metadata --repoid={}-source -p {} "
+                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
+                        self.dnf_config,
+                        r,
+                        source_sync_path,
+                        reposync_delete
+                )
+
+                source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
+                source_sync_output = source_sync_template.render(
+                        import_gpg_cmd=import_gpg_cmd,
+                        dnf_plugin_cmd=dnf_plugin_cmd,
+                        sync_cmd=source_sync_cmd,
+                        metadata_cmd=source_metadata_cmd,
+                        sync_log=source_sync_log,
+                        download_path=debug_sync_path,
+                        gpg_key_url=gpg_key_url,
+                        deploy_extra_files=True
+                )
+
+                source_entry_point_open = open(source_entry_point_sh, "w+")
+                source_entry_point_open.write(source_sync_output)
+                source_entry_point_open.close()
+                os.chmod(source_entry_point_sh, 0o755)
+
+            # Spawn up all podman processes for repo
+            self.log.info(Color.INFO + 'Starting podman processes for %s ...' % r)
+
+            #print(entry_name_list)
+            for pod in entry_name_list:
+                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                        cmd,
+                        self.compose_root,
+                        self.compose_root,
+                        self.dnf_config,
+                        self.dnf_config,
+                        entries_dir,
+                        entries_dir,
+                        pod,
+                        entries_dir,
+                        pod,
+                        self.container
+                )
+                #print(podman_cmd_entry)
+                process = subprocess.call(
+                        shlex.split(podman_cmd_entry),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+            join_all_pods = ' '.join(entry_name_list)
+            time.sleep(3)
+            self.log.info(Color.INFO + 'Syncing ' + r + ' ...')
+            self.log.info(Color.INFO + 'Arches: ' + ' '.join(arch_sync))
+            pod_watcher = '{} wait {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            #print(pod_watcher)
+            watch_man = subprocess.call(
+                    shlex.split(pod_watcher),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+            )
+
+            # After the above is done, we'll check each pod process for an exit
+            # code.
+            pattern = "Exited (0)"
+            for pod in entry_name_list:
+                checkcmd = '{} ps -f status=exited -f name={}'.format(
+                        cmd,
+                        pod
+                )
+                podcheck = subprocess.Popen(
+                        checkcmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True
+                )
+
+                output, errors = podcheck.communicate()
+                if 'Exited (0)' not in output.decode():
+                    self.log.error(Color.FAIL + pod)
+                    bad_exit_list.append(pod)
+
+            rmcmd = '{} rm {}'.format(
+                    cmd,
+                    join_all_pods
+            )
+
+            rmpod = subprocess.Popen(
+                    rmcmd,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    shell=True
+            )
+
+            entry_name_list.clear()
+            self.log.info(Color.INFO + 'Syncing ' + r + ' completed')
+
+        if len(bad_exit_list) > 0:
+            self.log.error(
+                    Color.BOLD + Color.RED + 'There were issues syncing these '
+                    'repositories:' + Color.END
+            )
+            for issue in bad_exit_list:
+                self.log.error(issue)
+        else:
+            self.log.info(
+                    '[' + Color.BOLD + Color.GREEN + ' OK ' + Color.END + '] '
+                    'No issues detected.'
+            )
+
+    def deploy_metadata(self, sync_root):
+        """
+        Deploys metadata that defines information about the compose. Some data
+        will be close to how pungi produces it, but it won't be exact nor a
+        perfect replica.
+        """
+        self.log.info(Color.INFO + 'Deploying metadata for this compose')
+        # Create metadata here
+        # Create COMPOSE_ID here (this doesn't necessarily match anything, it's
+        # just an indicator)
+        metadata_dir = os.path.join(
+                sync_root,
+                "metadata"
+        )
+
+        # It should already exist from a full run or refresh. This is just in
+        # case and it doesn't hurt.
+        if not os.path.exists(metadata_dir):
+            os.makedirs(metadata_dir, exist_ok=True)
+
+        with open(metadata_dir + '/COMPOSE_ID', "w+") as f:
+            f.write(self.compose_id)
+            f.close()
+
+        Shared.write_metadata(
+                self.timestamp,
+                self.date_stamp,
+                self.distname,
+                self.fullversion,
+                self.compose_id,
+                metadata_dir + '/metadata'
+        )
+
+        # TODO: Add in each repo and their corresponding arch.
+        productmd_date = self.date_stamp.split('.')[0]
+        Shared.composeinfo_write(
+                metadata_dir + '/composeinfo',
+                self.distname,
+                self.shortname,
+                self.fullversion,
+                'updates',
+                productmd_date
+        )
+
+        self.log.info(Color.INFO + 'Metadata files phase completed.')
+
+    def create_additional_dirs(self, sync_root):
+        """
+        Creates additional directories
+        """
+        self.log.info(Color.INFO + 'Ensuring additional directories exist')

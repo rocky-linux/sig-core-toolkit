@@ -8,13 +8,14 @@
   profile: '9-beta'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
+  fedora_major: '20'
   allowed_arches:
     - x86_64
     - aarch64
     - ppc64le
     - s390x
   provide_multilib: True
-  project_id: ''
+  project_id: '0048077b-1573-4cb7-8ba7-cce823857ba5'
   repo_symlinks:
     NFV: 'nfv'
   renames:
@@ -87,8 +88,10 @@
       Workstation-Lite: rocky-live-workstation-lite.ks
       XFCE: rocky-live-xfce.ks
       KDE: rocky-live-kde.ks
+      MATE: rocky-live-mate.ks
     allowed_arches:
       - x86_64
+      - aarch64
     required_pkgs:
       - 'lorax-lmc-novirt'
       - 'vim-minimal'

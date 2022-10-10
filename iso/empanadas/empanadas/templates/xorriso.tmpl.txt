@@ -1,6 +1,10 @@
 -indev {{ boot_iso }}
 -outdev {{ isoname }}
 -boot_image any replay
+-joliet on
+-system_id {{ 'PPC' if arch == 'ppc64le' else 'LINUX' }}
+-compliance joliet_long_names
+{{ '-compliance untranslated_names' if arch == 'ppc64le' }}
 -volid {{ volid }}
 {{ graft }}
 -end

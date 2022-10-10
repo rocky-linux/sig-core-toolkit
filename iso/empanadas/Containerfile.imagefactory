@@ -57,7 +57,7 @@ RUN rm -rf /etc/yum.repos.d/*.repo /get_arch
 
 RUN pip install awscli
 
-ARG BRANCH r9
+ARG BRANCH=r9
 RUN git clone https://git.resf.org/sig_core/kickstarts.git --branch $BRANCH /kickstarts
 
 RUN pip install 'git+https://git.resf.org/sig_core/toolkit.git@devel#egg=empanadas&subdirectory=iso/empanadas'

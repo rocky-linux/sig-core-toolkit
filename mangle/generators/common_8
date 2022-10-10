@@ -1,0 +1,4 @@
+# To be sourced by scripts to use
+
+REPO=("BaseOS" "AppStream" "CRB" "HighAvailability" "ResilientStorage" "NFV" "RT")
+ARCH=("aarch64" "x86_64")

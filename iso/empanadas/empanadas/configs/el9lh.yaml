@@ -1,20 +1,21 @@
 ---
 '9-lookahead':
-  fullname: 'Rocky Linux 9.1'
-  revision: '9.1'
+  fullname: 'Rocky Linux 9.2'
+  revision: '9.2'
   rclvl: 'LH1'
   major: '9'
-  minor: '1'
+  minor: '2'
   profile: '9-lookahead'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
+  fedora_major: '20'
   allowed_arches:
     - x86_64
     - aarch64
     - ppc64le
     - s390x
   provide_multilib: True
-  project_id: ''
+  project_id: '6794b5a8-290b-4d0d-ad5a-47164329cbb0'
   repo_symlinks:
     NFV: 'nfv'
   renames:
@@ -87,8 +88,10 @@
       Workstation-Lite: rocky-live-workstation-lite.ks
       XFCE: rocky-live-xfce.ks
       KDE: rocky-live-kde.ks
+      MATE: rocky-live-mate.ks
     allowed_arches:
       - x86_64
+      - aarch64
     required_pkgs:
       - 'lorax-lmc-novirt'
       - 'vim-minimal'

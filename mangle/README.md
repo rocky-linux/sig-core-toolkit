@@ -1,1 +1,1 @@
-# Mirrormanager Mangling tools
+# Mirrormanager Mangling tools and other Accessories

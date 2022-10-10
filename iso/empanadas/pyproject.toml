@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "empanadas"
-version = "0.3.0"
+version = "0.4.0"
 description = "hand crafted ISOs with love and spice"
 authors = ["Louis Abel <label@rockylinux.org>", "Neil Hanlon <neil@rockylinux.org>"]
 
@@ -34,6 +34,7 @@ build-image = "empanadas.scripts.build_image:run"
 finalize_compose = "empanadas.scripts.finalize_compose:run"
 pull-cloud-image = "empanadas.scripts.pull_cloud_image:run"
 generate_compose = "empanadas.scripts.generate_compose:run"
+peridot_repoclosure = "empanadas.scripts.peridot_repoclosure:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

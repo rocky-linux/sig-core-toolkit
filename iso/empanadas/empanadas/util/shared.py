@@ -5,6 +5,7 @@ import json
 import hashlib
 import shlex
 import subprocess
+import shutil
 import yaml
 import requests
 import boto3
@@ -401,7 +402,21 @@ class Shared:
         return cmd
 
     @staticmethod
-    def generate_conf(data, logger, dest_path='/var/tmp') -> str:
+    def generate_conf(
+            shortname,
+            major_version,
+            repos,
+            repo_base_url,
+            project_id,
+            hashed,
+            extra_files,
+            gpgkey,
+            gpg_check,
+            repo_gpg_check,
+            templates,
+            logger,
+            dest_path='/var/tmp'
+        ) -> str:
         """
         Generates the necessary repo conf file for the operation. This repo
         file should be temporary in nature. This will generate a repo file
@@ -413,35 +428,35 @@ class Shared:
         """
         fname = os.path.join(
                 dest_path,
-                "{}-{}-config.repo".format(data.shortname, data.major_version)
+                "{}-{}-config.repo".format(shortname, major_version)
         )
-        data.log.info('Generating the repo configuration: %s' % fname)
+        logger.info('Generating the repo configuration: %s' % fname)
 
-        if data.repo_base_url.startswith("/"):
+        if repo_base_url.startswith("/"):
             logger.error("Local file syncs are not supported.")
             raise SystemExit(Color.BOLD + "Local file syncs are not "
                 "supported." + Color.END)
 
         prehashed = ''
-        if data.hashed:
+        if hashed:
             prehashed = "hashed-"
         # create dest_path
         if not os.path.exists(dest_path):
             os.makedirs(dest_path, exist_ok=True)
         config_file = open(fname, "w+")
         repolist = []
-        for repo in data.repos:
+        for repo in repos:
 
             constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
-                    data.repo_base_url,
-                    data.project_id,
+                    repo_base_url,
+                    project_id,
                     prehashed,
                     repo,
             )
 
             constructed_url_src = '{}/{}/repo/{}{}/src'.format(
-                    data.repo_base_url,
-                    data.project_id,
+                    repo_base_url,
+                    project_id,
                     prehashed,
                     repo,
             )
@@ -450,12 +465,16 @@ class Shared:
                     'name': repo,
                     'baseurl': constructed_url,
                     'srcbaseurl': constructed_url_src,
-                    'gpgkey': data.extra_files['git_raw_path'] + data.extra_files['gpg'][data.gpgkey]
+                    'gpgkey': extra_files['git_raw_path'] + extra_files['gpg'][gpgkey]
             }
             repolist.append(repodata)
 
-        template = data.tmplenv.get_template('repoconfig.tmpl')
-        output = template.render(repos=repolist)
+        template = templates.get_template('repoconfig.tmpl')
+        output = template.render(
+                repos=repolist,
+                gpg_check=gpg_check,
+                repo_gpg_check=repo_gpg_check
+        )
         config_file.write(output)
 
         config_file.close()
@@ -821,7 +840,14 @@ class Shared:
             isokwargs["input_charset"] = None
 
         if opts['use_xorrisofs']:
-            cmd = ['/usr/bin/xorriso', '-dialog', 'on', '<', opts['graft_points']]
+            cmd = [
+                    '/usr/bin/xorriso',
+                    '-dialog',
+                    'on',
+                    '<',
+                    opts['graft_points'],
+                    '2>&1'
+            ]
         else:
             cmd = Shared.get_mkisofs_cmd(
                     opts['iso_name'],
@@ -937,7 +963,7 @@ class Shared:
         Write compose info similar to pungi.
 
         arches and repos may be better suited for a dictionary. that is a
-        future thing we will work on for 0.3.0.
+        future thing we will work on for 0.5.0.
         """
         cijson = file_path + '.json'
         ciyaml = file_path + '.yaml'
@@ -961,3 +987,90 @@ class Shared:
         with open(ciyaml, 'w+') as ymdump:
             yaml.dump(jsonData, ymdump)
             ymdump.close()
+
+    @staticmethod
+    def symlink_to_latest(shortname, major_version, generated_dir, compose_latest_dir, logger):
+        """
+        Emulates pungi and symlinks latest-Rocky-X
+        This link will be what is updated in full runs. Whatever is in this
+        'latest' directory is what is rsynced on to staging after completion.
+        This link should not change often.
+        """
+        try:
+            os.remove(compose_latest_dir)
+        except:
+            pass
+
+        logger.info('Symlinking to latest-{}-{}...'.format(shortname, major_version))
+        os.symlink(generated_dir, compose_latest_dir)
+
+    @staticmethod
+    def deploy_extra_files(extra_files, sync_root, global_work_root, logger):
+        """
+        deploys extra files based on info of rlvars including a
+        extra_files.json
+
+        might also deploy COMPOSE_ID and maybe in the future a metadata dir with
+        a bunch of compose-esque stuff.
+        """
+        #logger.info(Color.INFO + 'Deploying treeinfo, discinfo, and media.repo')
+
+        cmd = Shared.git_cmd(logger)
+        tmpclone = '/tmp/clone'
+        extra_files_dir = os.path.join(
+                global_work_root,
+                'extra-files'
+        )
+        metadata_dir = os.path.join(
+                sync_root,
+                "metadata"
+        )
+        if not os.path.exists(extra_files_dir):
+            os.makedirs(extra_files_dir, exist_ok=True)
+
+        if not os.path.exists(metadata_dir):
+            os.makedirs(metadata_dir, exist_ok=True)
+
+        clonecmd = '{} clone {} -b {} -q {}'.format(
+                cmd,
+                extra_files['git_repo'],
+                extra_files['branch'],
+                tmpclone
+        )
+
+        git_clone = subprocess.call(
+                shlex.split(clonecmd),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+        )
+
+        logger.info(Color.INFO + 'Deploying extra files to work and metadata directories ...')
+
+        # Copy files to work root
+        for extra in extra_files['list']:
+            src = '/tmp/clone/' + extra
+            # Copy extra files to root of compose here also - The extra files
+            # are meant to be picked up by our ISO creation process and also
+            # exist on our mirrors.
+            try:
+                shutil.copy2(src, extra_files_dir)
+                shutil.copy2(src, metadata_dir)
+            except:
+                logger.warn(Color.WARN + 'Extra file not copied: ' + src)
+
+        try:
+            shutil.rmtree(tmpclone)
+        except OSError as e:
+            logger.error(Color.FAIL + 'Directory ' + tmpclone +
+                    ' could not be removed: ' + e.strerror
+            )
+
+    @staticmethod
+    def dnf_sync(repo, sync_root, work_root, arch, logger):
+        """
+        This is for normal dnf syncs. This is very slow.
+        """
+        logger.error('DNF syncing has been removed.')
+        logger.error('Please install podman and enable parallel')
+        raise SystemExit()
+

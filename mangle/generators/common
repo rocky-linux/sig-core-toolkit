@@ -1,0 +1,20 @@
+# To be sourced by scripts to use
+
+if [ -z "$RLVER" ]; then
+  echo "You must set RLVER."
+  exit 1
+fi
+
+PREPOPDROP="/tmp/prepopulate.json"
+VERSDROP="/tmp/versions.list"
+
+# Source Major common
+# Override: Not Allowed
+test -f "$(dirname "${BASH_SOURCE[0]}")/common_${RLVER}" && source "$(dirname "${BASH_SOURCE[0]}")/common_${RLVER}"
+if [ "$?" -ne 0 ]; then
+  echo "Could not source common_${RLVER}"
+  exit 1
+fi
+
+STREAM_COMPOSE_BASEURL="https://composes.stream.centos.org/production"
+COMPOSE_BASEDIR="/mnt/compose"

@@ -7,3 +7,4 @@ LIST=${LIST:-mirrorlist}
 MIRRORLIST_BASE="http://mirrors.rockylinux.org/${LIST}"
 
 MIRROR_DISPLAY_COUNT=1
+GIT_URL="https://git.rockylinux.org"

@@ -1,0 +1,52 @@
+#!/bin/bash
+# Parses a CentOS Stream compose's repos
+#set -x
+
+if [ -n "$1" ] && [ -n "$2" ]; then
+  MAJOR=$1
+  DATE=$2
+else
+  echo "Major version not specified"
+  exit 1
+fi
+
+# Verify the date format
+echo "${DATE}" | grep -Eq '[0-9]+\.[0-9]'
+grep_val=$?
+
+if [ "$grep_val" -ne 0 ]; then
+  echo "Date format incorrect. You must use: YYYYMMDD.X"
+fi
+
+export RLVER=$MAJOR
+source common
+
+drop="${PREPOPDROP}"
+current=$(pwd)
+tmpdir=$(mktemp -d)
+stream_compose_url="${STREAM_COMPOSE_BASEURL}/CentOS-Stream-${MAJOR}-${DATE}/compose"
+
+pushd "${tmpdir}" || { echo "Could not change directory"; exit 1; }
+for x in "${REPO[@]}"; do
+  echo "Working on ${x}"
+  for y in "${ARCH[@]}"; do
+    repodatas=( $(dnf reposync --repofrompath ${x},${stream_compose_url}/${x}/${y}/os --download-metadata --repoid=${x} -p ${x}/${y} --forcearch ${y} --norepopath --remote-time --assumeyes -u | grep repodata) )
+    mkdir -p "${x}/${y}/repodata"
+    pushd "${x}/${y}/repodata" || { echo "Could not change directory"; exit 1; }
+    for z in "${repodatas[@]}"; do
+      wget -q -nc "${z}"
+    done
+    wget -q -nc "${stream_compose_url}/${x}/${y}/os/repodata/repomd.xml"
+    popd || { echo "Could not change back..."; exit 1; }
+  done
+done
+/usr/bin/python3 "${current}/prepopulate_parser.py"
+ret_val=$?
+popd || { echo "Could not change back..."; exit 1; }
+
+if [ "$ret_val" -ne "0" ]; then
+  echo "There was an error running through the parser."
+  exit 1
+fi
+
+echo "File located at: $drop"

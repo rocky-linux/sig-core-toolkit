@@ -388,7 +388,7 @@ class ImageBuild:
             except Exception as e:
                 log.exception(e)
             finally:
-                f.flush()   
+                f.flush()
 
 def run():
     try:

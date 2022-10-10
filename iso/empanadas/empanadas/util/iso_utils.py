@@ -61,6 +61,8 @@ class IsoBuild:
             extra_iso_mode: str = 'local',
             compose_dir_is_here: bool = False,
             hashed: bool = False,
+            updated_image: bool = False,
+            image_increment: str = '0',
             image=None,
             logger=None
     ):
@@ -93,13 +95,18 @@ class IsoBuild:
         self.checksum = rlvars['checksum']
         self.profile = rlvars['profile']
         self.hashed = hashed
+        self.updated_image = updated_image
+        self.updated_image_increment = "." + image_increment
+        self.updated_image_date = (time.strftime("%Y%m%d", time.localtime())
+                                   + self.updated_image_increment)
 
         # Relevant major version items
         self.arch = arch
         self.arches = rlvars['allowed_arches']
         self.release = rlvars['revision']
         self.minor_version = rlvars['minor']
-        self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.revision_level = rlvars['revision'] + "-" + rlvars['rclvl']
+        self.revision = rlvars['revision']
         self.rclvl = rlvars['rclvl']
         self.repos = rlvars['iso_map']['lorax']['repos']
         self.repo_base_url = config['repo_base_url']
@@ -112,12 +119,6 @@ class IsoBuild:
         self.container = config['container']
         if 'container' in rlvars and len(rlvars['container']) > 0:
             self.container = rlvars['container']
-
-        self.staging_dir = os.path.join(
-                    config['staging_root'],
-                    config['category_stub'],
-                    self.revision
-        )
 
         # all bucket related info
         self.s3_region = config['aws_region']
@@ -196,7 +197,7 @@ class IsoBuild:
                 self.compose_dir_is_here,
                 self.hashed
         )
-        self.log.info(self.revision)
+        self.log.info(self.revision_level)
 
     def run(self):
         work_root = os.path.join(
@@ -502,6 +503,7 @@ class IsoBuild:
             self.log.info('Removing boot.iso from %s' % image)
             try:
                 os.remove(path_to_image + '/images/boot.iso')
+                os.remove(path_to_image + '/images/boot.iso.manifest')
             except:
                 self.log.error(
                             '[' + Color.BOLD + Color.YELLOW + 'FAIL' + Color.END + '] ' +
@@ -509,21 +511,9 @@ class IsoBuild:
                 )
 
     def _copy_boot_to_work(self, force_unpack, arch):
-        src_to_image = os.path.join(
-                self.lorax_work_dir,
-                arch,
-                'lorax'
-        )
-
-        iso_to_go = os.path.join(
-                self.iso_work_dir,
-                arch
-        )
-
-        path_to_src_image = '{}/{}'.format(
-                src_to_image,
-                '/images/boot.iso'
-        )
+        src_to_image = os.path.join(self.lorax_work_dir, arch, 'lorax')
+        iso_to_go = os.path.join(self.iso_work_dir, arch)
+        path_to_src_image = os.path.join(src_to_image, 'images/boot.iso')
 
         rclevel = ''
         if self.release_candidate:
@@ -538,15 +528,13 @@ class IsoBuild:
                 'boot'
         )
 
-        isobootpath = '{}/{}'.format(
-                iso_to_go,
-                discname
-        )
-
-        manifest = '{}.{}'.format(
-                isobootpath,
-                'manifest'
-        )
+        isobootpath = os.path.join(iso_to_go, discname)
+        manifest = '{}.manifest'.format(isobootpath)
+        link_name = '{}-{}-boot.iso'.format(self.shortname, arch)
+        link_manifest = link_name + '.manifest'
+        isobootpath = os.path.join(iso_to_go, discname)
+        linkbootpath = os.path.join(iso_to_go, link_name)
+        manifestlink = os.path.join(iso_to_go, link_manifest)
 
         if not force_unpack:
             file_check = isobootpath
@@ -556,9 +544,18 @@ class IsoBuild:
 
         self.log.info('Copying %s boot iso to work directory...' % arch)
         os.makedirs(iso_to_go, exist_ok=True)
-        shutil.copy2(path_to_src_image, isobootpath)
+        try:
+            shutil.copy2(path_to_src_image, isobootpath)
+            if os.path.exists(linkbootpath):
+                os.remove(linkbootpath)
+            os.symlink(discname, linkbootpath)
+        except Exception as e:
+            self.log.error(Color.FAIL + 'We could not copy the image or create a symlink.')
+            raise SystemExit(e)
+
         if os.path.exists(path_to_src_image + '.manifest'):
             shutil.copy2(path_to_src_image + '.manifest', manifest)
+            os.symlink(manifest.split('/')[-1], manifestlink)
 
         self.log.info('Creating checksum for %s boot iso...' % arch)
         checksum = Shared.get_checksum(isobootpath, self.checksum, self.log)
@@ -568,6 +565,14 @@ class IsoBuild:
         with open(isobootpath + '.CHECKSUM', "w+") as c:
             c.write(checksum)
             c.close()
+
+        linksum = Shared.get_checksum(linkbootpath, self.checksum, self.log)
+        if not linksum:
+            self.log.error(Color.FAIL + linkbootpath + ' not found! Did we actually make the symlink?')
+            return
+        with open(linkbootpath + '.CHECKSUM', "w+") as l:
+            l.write(linksum)
+            l.close()
 
     def _copy_nondisc_to_repo(self, force_unpack, arch, repo):
         """
@@ -579,6 +584,13 @@ class IsoBuild:
                 repo,
                 arch,
                 'os'
+        )
+
+        kspathway = os.path.join(
+                self.compose_latest_sync,
+                repo,
+                arch,
+                'kickstart'
         )
 
         src_to_image = os.path.join(
@@ -614,6 +626,7 @@ class IsoBuild:
 
         try:
             shutil.copytree(src_to_image, pathway, copy_function=shutil.copy2, dirs_exist_ok=True)
+            shutil.copytree(src_to_image, kspathway, copy_function=shutil.copy2, dirs_exist_ok=True)
         except:
             self.log.error('%s already exists??' % repo)
 
@@ -769,11 +782,14 @@ class IsoBuild:
         mock_sh_template = self.tmplenv.get_template('extraisobuild.tmpl.sh')
         iso_template = self.tmplenv.get_template('buildExtraImage.tmpl.sh')
         xorriso_template = self.tmplenv.get_template('xorriso.tmpl.txt')
+        iso_readme_template = self.tmplenv.get_template('ISOREADME.tmpl')
 
         mock_iso_path = '/var/tmp/lorax-{}.cfg'.format(self.major_version)
         mock_sh_path = '{}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
         iso_template_path = '{}/buildExtraImage-{}-{}.sh'.format(entries_dir, arch, image)
         xorriso_template_path = '{}/xorriso-{}-{}.txt'.format(entries_dir, arch, image)
+        iso_readme_path = '{}/{}/README'.format(self.iso_work_dir, arch)
+        print(iso_readme_path)
 
         log_root = os.path.join(
                 work_root,
@@ -801,6 +817,10 @@ class IsoBuild:
         if self.release_candidate:
             rclevel = '-' + self.rclvl
 
+        datestamp = ''
+        if self.updated_image:
+            datestamp = '-' + self.updated_image_date
+
         volid = '{}-{}-{}{}-{}-{}'.format(
                 self.shortname,
                 self.major_version,
@@ -810,14 +830,16 @@ class IsoBuild:
                 volname
         )
 
-        isoname = '{}-{}.{}{}-{}-{}.iso'.format(
+        isoname = '{}-{}{}{}-{}-{}.iso'.format(
                 self.shortname,
-                self.major_version,
-                self.minor_version,
+                self.revision,
                 rclevel,
+                datestamp,
                 arch,
                 image
         )
+
+        generic_isoname = '{}-{}-{}.iso'.format(self.shortname, arch, image)
 
         lorax_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
                 ' '.join(required_pkgs),
@@ -867,6 +889,7 @@ class IsoBuild:
                     isoname=isoname,
                     volid=volid,
                     graft=xorpoint,
+                    arch=arch,
             )
             xorriso_template_entry = open(xorriso_template_path, "w+")
             xorriso_template_entry.write(xorriso_template_output)
@@ -894,6 +917,11 @@ class IsoBuild:
                 make_manifest=make_manifest,
                 lorax_pkg_cmd=lorax_pkg_cmd,
                 isoname=isoname,
+                generic_isoname=generic_isoname,
+        )
+
+        iso_readme_template_output = iso_readme_template.render(
+                arch=arch
         )
 
         mock_iso_entry = open(mock_iso_path, "w+")
@@ -907,6 +935,10 @@ class IsoBuild:
         iso_template_entry = open(iso_template_path, "w+")
         iso_template_entry.write(iso_template_output)
         iso_template_entry.close()
+
+        iso_readme_entry = open(iso_readme_path, "w+")
+        iso_readme_entry.write(iso_readme_template_output)
+        iso_readme_entry.close()
 
         os.chmod(mock_sh_path, 0o755)
         os.chmod(iso_template_path, 0o755)
@@ -943,6 +975,11 @@ class IsoBuild:
         isos_dir = os.path.join(work_root, "isos")
         bad_exit_list = []
         checksum_list = []
+
+        datestamp = ''
+        if self.updated_image:
+            datestamp = '-' + self.updated_image_date
+
         for i in images:
             entry_name_list = []
             image_name = i
@@ -956,17 +993,25 @@ class IsoBuild:
                 if self.release_candidate:
                     rclevel = '-' + self.rclvl
 
-                isoname = '{}/{}-{}.{}{}-{}-{}.iso'.format(
+                isoname = '{}/{}-{}{}{}-{}-{}.iso'.format(
                         a,
                         self.shortname,
-                        self.major_version,
-                        self.minor_version,
+                        self.revision,
                         rclevel,
+                        datestamp,
+                        a,
+                        i
+                )
+
+                genericname = '{}/{}-{}-{}.iso'.format(
+                        a,
+                        self.shortname,
                         a,
                         i
                 )
 
                 checksum_list.append(isoname)
+                checksum_list.append(genericname)
 
             for pod in entry_name_list:
                 podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
@@ -1358,6 +1403,7 @@ class IsoBuild:
 
                 source_path = latest_artifacts[arch]
                 drop_name = source_path.split('/')[-1]
+                checksum_name = drop_name + '.CHECKSUM'
                 full_drop = '{}/{}'.format(
                         image_arch_dir,
                         drop_name
@@ -1407,12 +1453,32 @@ class IsoBuild:
                         arch,
                         formattype
                 )
+                latest_path = latest_name.split('/')[-1]
+                latest_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
+                        image_arch_dir,
+                        self.shortname,
+                        self.major_version,
+                        imagename,
+                        arch,
+                        formattype
+                )
                 # For some reason python doesn't have a "yeah just change this
                 # link" part of the function
                 if os.path.exists(latest_name):
                     os.remove(latest_name)
 
                 os.symlink(drop_name, latest_name)
+
+                self.log.info('Creating checksum for latest symlinked image...')
+                shutil.copy2(checksum_drop, latest_checksum)
+                with open(latest_checksum, 'r') as link:
+                    checkdata = link.read()
+
+                checkdata = checkdata.replace(drop_name, latest_path)
+
+                with open(latest_checksum, 'w+') as link:
+                    link.write(checkdata)
+                    link.close()
 
         self.log.info(Color.INFO + 'Image download phase completed')
 
@@ -1436,6 +1502,8 @@ class LiveBuild:
             image=None,
             justcopyit: bool = False,
             force_build: bool = False,
+            updated_image: bool = False,
+            image_increment: str = '0',
             logger=None
     ):
 
@@ -1449,7 +1517,6 @@ class LiveBuild:
         self.major_version = major
         self.compose_dir_is_here = compose_dir_is_here
         self.date_stamp = config['date_stamp']
-        self.date = time.strftime("%Y%m%d", time.localtime())
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
         self.current_arch = config['arch']
@@ -1482,6 +1549,11 @@ class LiveBuild:
         self.container = config['container']
         if 'container' in rlvars and len(rlvars['container']) > 0:
             self.container = rlvars['container']
+
+        self.updated_image = updated_image
+        self.updated_image_increment = "." + image_increment
+        self.date = (time.strftime("%Y%m%d", time.localtime())
+                                   + self.updated_image_increment)
 
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
@@ -1643,16 +1715,17 @@ class LiveBuild:
         )
         required_pkgs = self.livemap['required_pkgs']
 
-        volid = '{}-{}-{}'.format(
+        volid = '{}-{}-{}-{}'.format(
                 self.shortname,
-                image,
-                self.release
+                self.major_version,
+                self.minor_version,
+                image
         )
 
         isoname = '{}-{}-{}-{}-{}.iso'.format(
                 self.shortname,
-                image,
                 self.release,
+                image,
                 self.current_arch,
                 self.date
         )
@@ -1865,10 +1938,17 @@ class LiveBuild:
         live_dir_arch = os.path.join(self.live_work_dir, arch)
         isoname = '{}-{}-{}-{}-{}.iso'.format(
                 self.shortname,
-                image,
                 self.release,
+                image,
                 arch,
                 self.date
+        )
+        isolink = '{}-{}-{}-{}-{}.iso'.format(
+                self.shortname,
+                self.major_version,
+                image,
+                arch,
+                'latest'
         )
         live_res_dir = '/var/lib/mock/{}-{}-{}/result'.format(
                 self.shortname.lower(),
@@ -1907,8 +1987,17 @@ class LiveBuild:
             self.log.info(Color.INFO + 'Copying image to work directory')
             source_path = os.path.join(live_res_dir, isoname)
             dest_path = os.path.join(live_dir_arch, isoname)
+            link_path = os.path.join(live_dir_arch, isolink)
             os.makedirs(live_dir_arch, exist_ok=True)
-            shutil.copy2(source_path, dest_path)
+            try:
+                shutil.copy2(source_path, dest_path)
+                if os.path.exists(link_path):
+                    os.remove(link_path)
+                os.symlink(isoname, link_path)
+            except:
+                self.log.error(Color.FAIL + 'We could not copy the image or create a symlink.')
+                return
+
             self.log.info(Color.INFO + 'Generating checksum')
             checksum = Shared.get_checksum(dest_path, self.checksum, self.log)
             if not checksum:
@@ -1916,4 +2005,12 @@ class LiveBuild:
                 return
             with open(dest_path + '.CHECKSUM', "w+") as c:
                 c.write(checksum)
+                c.close()
+
+            linksum = Shared.get_checksum(link_path, self.checksum, self.log)
+            if not linksum:
+                self.log.error(Color.FAIL + link_path + ' not found. Did we copy it?')
+                return
+            with open(link_path + '.CHECKSUM', "w+") as c:
+                c.write(linksum)
                 c.close()
