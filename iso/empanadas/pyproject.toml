@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "empanadas"
-version = "0.4.0"
+version = "0.5.0"
 description = "hand crafted ISOs with love and spice"
 authors = ["Louis Abel <label@rockylinux.org>", "Neil Hanlon <neil@rockylinux.org>"]
 
