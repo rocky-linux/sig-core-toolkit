@@ -55,6 +55,9 @@ STORAGE_DIR = pathlib.Path("/var/lib/imagefactory/storage")
 KICKSTART_PATH = pathlib.Path(os.environ.get("KICKSTART_PATH", "/kickstarts"))
 BUILDTIME = datetime.datetime.utcnow()
 
+
+CMD_PARAM_T = List[Union[str, Callable[..., str]]]
+
 @define(kw_only=True)
 class ImageBuild:
     architecture: Architecture = field()
@@ -89,9 +92,11 @@ class ImageBuild:
         self.command_args = self._command_args()
         self.package_args = self._package_args()
         self.common_args = self._common_args()
-        self.kickstart_arg = self.kickstart_imagefactory_args()
 
         self.metadata = pathlib.Path(self.outdir, "metadata.json")
+
+        self.checkout_kickstarts()
+        self.kickstart_arg = self.kickstart_imagefactory_args()
 
         # Yes, this is gross. I'll fix it later.
         if self.image_type in ["Container"]:
@@ -112,8 +117,6 @@ class ImageBuild:
                     ["/prep-azure.sh", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{STORAGE_DIR}"],
                     ["cp", lambda: f"{STORAGE_DIR}/{self.target_uuid}.vhd", f"{self.outdir}/{self.outname}.vhd"]
             ]
-            #         ["qemu-img", "resize", "-f", "raw", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", lambda: f"{self.rounded_size()}"],
-            #         ["qemu-img", "convert", "-f", "raw", "-o", "subformat=fixed,force_size" ,"-O", "vpc", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.vhd"]
         if self.image_type in ["Vagrant"]:
             _map = {
                     "Vbox": "vmdk",
@@ -147,12 +150,27 @@ class ImageBuild:
                 finally:
                     f.flush()
 
-    # def rounded_size(self) -> int:
-    #     # Azure images need to be rounded to the nearest 1MB boundary.
-    #     MB=1024*1024
-    #
-    #     raw_size = pathlib.Path(STORAGE_DIR},f"{self.target_uuid}.body").stat().st_size
-    #     rounded_size = raw
+    def checkout_kickstarts(self) -> int:
+        cmd = ["git", "clone", "--branch", f"r{self.architecture.major}", rlvars['livemap']['git_repo'], f"{KICKSTART_PATH}"]
+        ret, out, err, _ = self.runCmd(cmd, search=False)
+        log.debug(out)
+        log.debug(err)
+        if ret > 0:
+            ret = self.pull_kickstarts()
+        return ret
+
+    def pull_kickstarts(self) -> int:
+        cmd: CMD_PARAM_T = ["git", "-C", f"{KICKSTART_PATH}", "reset", "--hard", "HEAD"]
+        ret, out, err, _ = self.runCmd(cmd, search=False)
+        log.debug(out)
+        log.debug(err)
+        if ret == 0:
+            cmd = ["git", "-C", f"{KICKSTART_PATH}",  "pull"]
+            ret, out, err, _ = self.runCmd(cmd, search=False)
+            log.debug(out)
+            log.debug(err)
+        return ret
+
 
     def output_name(self) -> Tuple[pathlib.Path, str]:
         directory = f"Rocky-{self.architecture.major}-{self.type_variant}-{self.architecture.version}-{BUILDTIME.strftime('%Y%m%d')}.{self.release}"
@@ -301,7 +319,7 @@ class ImageBuild:
         log.info(f"Build complete! Output available in {self.outdir}/")
         return 0
 
-    def runCmd(self, command: List[Union[str, Callable]], search: bool = True) -> Tuple[int, Union[bytes,None], Union[bytes,None], Union[str,None]]:
+    def runCmd(self, command: CMD_PARAM_T, search: bool = True) -> Tuple[int, Union[bytes,None], Union[bytes,None], Union[str,None]]:
         prepared, _ = self.prepare_command(command)
         log.info(f"Running command: {' '.join(prepared)}")
 
@@ -332,7 +350,7 @@ class ImageBuild:
 
             return res
 
-    def prepare_command(self, command_list: List[Union[str, Callable]]) -> Tuple[List[str],List[None]]:
+    def prepare_command(self, command_list: CMD_PARAM_T) -> Tuple[List[str],List[None]]:
         """
         Commands may be a callable, which should be a lambda to be evaluated at
         preparation time with available locals. This can be used to, among
