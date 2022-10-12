@@ -1,10 +1,10 @@
 ---
 '8':
   fullname: 'Rocky Linux 8'
-  revision: '8.7'
+  revision: '8.6'
   rclvl: 'RC1'
   major: '8'
-  minor: '7'
+  minor: '6'
   profile: '8'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
