@@ -912,7 +912,9 @@ class RepoSync:
                 self.shortname,
                 self.fullversion,
                 'updates',
-                productmd_date
+                productmd_date,
+                self.arches,
+                self.repos
         )
 
         self.log.info(Color.INFO + 'Metadata files phase completed.')

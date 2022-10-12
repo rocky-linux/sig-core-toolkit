@@ -22,6 +22,7 @@ attrs = "^21.4.0"
 pytest = "~5"
 
 [tool.poetry.scripts]
+test_module = "empanadas.scripts.test_module:run"
 sync_from_peridot = "empanadas.scripts.sync_from_peridot:run"
 sync_from_peridot_test = "empanadas.scripts.sync_from_peridot_test:run"
 sync_sig = "empanadas.scripts.sync_sig:run"

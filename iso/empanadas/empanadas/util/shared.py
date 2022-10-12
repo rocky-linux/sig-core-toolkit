@@ -978,6 +978,16 @@ class Shared:
         ci.compose.date = datestamp
         ci.compose.respin = 0
 
+        for repo in repos:
+            variant_repo = productmd.composeinfo.Variant(ci)
+            variant_repo.id = repo
+            variant_repo.uid = repo
+            variant_repo.name = repo
+            variant_repo.type = "variant"
+            variant_repo.arches = set(arches)
+
+            ci.variants.add(variant_repo)
+
         ci.dump(cijson)
 
         with open(cijson, 'r') as cidump:
