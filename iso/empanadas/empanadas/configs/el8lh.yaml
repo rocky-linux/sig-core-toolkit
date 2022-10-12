@@ -1,5 +1,5 @@
 ---
-'8':
+'8-lookahead':
   fullname: 'Rocky Linux 8'
   revision: '8.8'
   rclvl: 'RC1'
