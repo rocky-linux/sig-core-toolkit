@@ -95,6 +95,8 @@ class ImageBuild:
 
         self.metadata = pathlib.Path(self.outdir, "metadata.json")
 
+        self.kickstart_path = pathlib.Path(f"{KICKSTART_PATH}/Rocky-{self.architecture.major}-{self.type_variant}.ks")
+
         self.checkout_kickstarts()
         self.kickstart_arg = self.kickstart_imagefactory_args()
 
@@ -196,7 +198,7 @@ class ImageBuild:
         args = []
         if self.image_type == "Container":
             args = ["--parameter", "offline_icicle", "true"]
-        if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure"]:
+        if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure", "OCP"]:
             args = ["--parameter", "generate_icicle", "false"]
         return args
 
@@ -207,15 +209,14 @@ class ImageBuild:
         return mapping[self.image_type] if self.image_type in mapping.keys() else ''
 
     def kickstart_imagefactory_args(self) -> List[str]:
-        kickstart_path = pathlib.Path(f"{KICKSTART_PATH}/Rocky-{self.architecture.major}-{self.type_variant}.ks")
 
-        if not kickstart_path.is_file():
-            log.warn(f"Kickstart file is not available: {kickstart_path}")
+        if not self.kickstart_path.is_file():
+            log.warn(f"Kickstart file is not available: {self.kickstart_path}")
             if not debug:
                 log.warn("Exiting because debug mode is not enabled.")
                 exit(2)
 
-        return ["--file-parameter", "install_script", str(kickstart_path)]
+        return ["--file-parameter", "install_script", str(self.kickstart_path)]
 
     def render_icicle_template(self) -> pathlib.Path:
         handle, output = tempfile.mkstemp()
@@ -376,7 +377,8 @@ class ImageBuild:
             log_lines("Command STDERR", stderr)
 
     def fix_ks(self):
-        self.runCmd(["sed", "-i", f"s,$basearch,{self.architecture.name},", self.kickstart_arg[-1]], search=False)
+        cmd: CMD_PARAM_T = ["sed", "-i", f"s,$basearch,{self.architecture.name},", str(self.kickstart_path)]
+        self.runCmd(cmd, search=False)
 
     def render_kubernetes_job(self):
         commands = [self.build_command(), self.package_command(), self.copy_command()]
