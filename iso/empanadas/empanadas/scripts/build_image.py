@@ -69,6 +69,7 @@ class ImageBuild:
     image_type: str = field()
     job_template: Optional[Template] = field(init=False)
     kickstart_arg: List[str] = field(factory=list)
+    kickstart_path: pathlib.Path = field(init=False)
     metadata: pathlib.Path = field(init=False)
     out_type: str = field(init=False)
     outdir: pathlib.Path = field(init=False) 
