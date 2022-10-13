@@ -1,0 +1,16 @@
+#!/bin/bash
+set -o pipefail
+{{ import_gpg_cmd }} | tee -a {{ sync_log }}
+{{ arch_force_cp }} | tee -a {{ sync_log }}
+{{ dnf_plugin_cmd }} | tee -a {{ sync_log }}
+sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/*.repo
+
+LISTS=( $({{ dnf_url_cmd }} | grep '.rpm$' | tee -a {{ sync_log }}) )
+
+ret_val=$?
+if [ "$ret_val" -ne 0 ]; then
+  echo "Pulling URL's failed" | tee -a {{ sync_log }}
+  echo "It is likely the repo is not GPG signed properly." | tee -a {{ sync_log }}
+  exit 1
+fi
+
