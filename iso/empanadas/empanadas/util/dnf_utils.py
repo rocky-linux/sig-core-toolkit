@@ -354,13 +354,13 @@ class RepoSync:
         arches_to_sync = self.arches
         if arch:
             sync_single_arch = True
-            arches_to_sync = [arch]
+            arches_to_sync = arch.split(',')
 
         sync_single_repo = False
         repos_to_sync = self.repos
         if repo and not self.fullrun:
             sync_single_repo = True
-            repos_to_sync = [repo]
+            repos_to_sync = repo.split(',')
 
         for r in repos_to_sync:
             entry_name_list = []
@@ -907,7 +907,7 @@ class RepoSync:
         # TODO: Add in each repo and their corresponding arch.
         productmd_date = self.date_stamp.split('.')[0]
         Shared.composeinfo_write(
-                metadata_dir + '/composeinfo',
+                sync_root,
                 self.distname,
                 self.shortname,
                 self.fullversion,
@@ -941,11 +941,11 @@ class RepoSync:
 
         arches_to_tree = self.arches
         if arch:
-            arches_to_tree = [arch]
+            arches_to_tree = arch.split(',')
 
         repos_to_tree = self.repos
         if repo and not self.fullrun:
-            repos_to_tree = [repo]
+            repos_to_tree = repo.split(',')
 
         # If a treeinfo or discinfo file exists, it should be skipped.
         for r in repos_to_tree:
@@ -1270,11 +1270,11 @@ class RepoSync:
 
         arches_to_tree = self.arches
         if arch:
-            arches_to_tree = [arch]
+            arches_to_tree = arch.split(',')
 
         repos_to_tree = self.repos
         if repo and not self.fullrun:
-            repos_to_tree = [repo]
+            repos_to_tree = repo.split(',')
 
         for r in repos_to_tree:
             entry_name_list = []
@@ -1976,7 +1976,7 @@ class SigRepoSync:
 
         repos_to_sync = self.sigrepos
         if repo and not self.fullrun:
-            repos_to_sync = [repo]
+            repos_to_sync = repo.split(',')
 
         for r in repos_to_sync:
             entry_name_list = []
@@ -1987,7 +1987,7 @@ class SigRepoSync:
             # we have to pass it with a warning.
             arch_sync = self.sigvars['repo'][r]['allowed_arches'].copy()
             if arch:
-                arch_sync = [arch]
+                arch_sync = arch.split(',')
 
             for a in arch_sync:
                 entry_name = '{}-{}'.format(r, a)
@@ -2304,7 +2304,7 @@ class SigRepoSync:
         # TODO: Add in each repo and their corresponding arch.
         productmd_date = self.date_stamp.split('.')[0]
         Shared.composeinfo_write(
-                metadata_dir + '/composeinfo',
+                sync_root,
                 self.distname,
                 self.shortname,
                 self.fullversion,

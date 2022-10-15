@@ -950,7 +950,7 @@ class Shared:
 
     @staticmethod
     def composeinfo_write(
-            file_path,
+            compose_path,
             distname,
             shortname,
             release,
@@ -965,8 +965,10 @@ class Shared:
         arches and repos may be better suited for a dictionary. that is a
         future thing we will work on for 0.5.0.
         """
-        cijson = file_path + '.json'
-        ciyaml = file_path + '.yaml'
+        metadata_dir = compose_path + '/metadata'
+        composeinfo_path = metadata_dir + '/composeinfo'
+        cijson = composeinfo_path + '.json'
+        ciyaml = composeinfo_path + '.yaml'
         ci = productmd.composeinfo.ComposeInfo()
         ci.release.name = distname
         ci.release.short = shortname
@@ -985,6 +987,24 @@ class Shared:
             variant_repo.name = repo
             variant_repo.type = "variant"
             variant_repo.arches = set(arches)
+            # directories...
+            # if the repo is BaseOS, set the "isos" to isos/ARCH
+            for arch in variant_repo.arches:
+                variant_repo.paths.os_tree[arch] = repo + "/" + arch + "/os"
+                variant_repo.paths.repository[arch] = repo + "/" + arch + "/os"
+                variant_repo.paths.packages[arch] = repo + "/" + arch + "/os/Packages"
+                # Debug
+                variant_repo.paths.debug_packages[arch] = repo + "/" + arch + "/debug/tree/Packages"
+                variant_repo.paths.debug_repository[arch] = repo + "/" + arch + "/debug/tree"
+                variant_repo.paths.debug_tree[arch] = repo + "/" + arch + "/debug/tree"
+                # Source
+                variant_repo.paths.source_packages[arch] = repo + "/source/tree/Packages"
+                variant_repo.paths.source_repository[arch] = repo + "/source/tree"
+                variant_repo.paths.source_tree[arch] = repo + "/source/tree"
+
+                if "BaseOS" or "Minimal" in repo:
+                    variant_repo.paths.isos[arch] = "isos/" + arch
+                    variant_repo.paths.images[arch] = "images/" + arch
 
             ci.variants.add(variant_repo)
 

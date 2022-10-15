@@ -10,9 +10,13 @@ from empanadas.util import RepoSync
 parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 
 # All of our options
-parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
-parser.add_argument('--repo', type=str, help="Repository name")
-parser.add_argument('--arch', type=str, help="Architecture")
+parser.add_argument('--release',
+                    type=str,
+                    help="Major Release Version or major-type (eg 9-beta)",
+                    required=True
+)
+parser.add_argument('--repo', type=str, help="Repository name (comma separated list allowed)")
+parser.add_argument('--arch', type=str, help="Architecture (comma separated list allowed)")
 parser.add_argument('--ignore-debug', action='store_true')
 parser.add_argument('--ignore-source', action='store_true')
 parser.add_argument('--repoclosure', action='store_true')
