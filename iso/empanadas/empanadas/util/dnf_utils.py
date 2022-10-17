@@ -183,8 +183,18 @@ class RepoSync:
 
         # The repo name should be valid
         if self.repo is not None:
-            if self.repo not in self.repos:
-                self.log.error(Color.FAIL + 'Invalid repository: ' + self.repo)
+            bad_repo_list = []
+            repo_list_if_commas = self.repo.split(',')
+            for repoitem in repo_list_if_commands:
+                if repoitem not in self.repos:
+                    bad_repo_list.append(repoitem)
+
+            if len(bad_repo_list) > 0:
+                self.log.error(
+                        Color.BOLD + Color.RED + 'These repos are not listed:' + Color.END
+                )
+                for badrepo in bad_repo_list:
+                    self.log.error(badrepo)
                 raise SystemExit()
 
     def run(self):
