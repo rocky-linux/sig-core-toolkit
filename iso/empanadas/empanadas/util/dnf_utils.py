@@ -185,7 +185,7 @@ class RepoSync:
         if self.repo is not None:
             bad_repo_list = []
             repo_list_if_commas = self.repo.split(',')
-            for repoitem in repo_list_if_commands:
+            for repoitem in repo_list_if_commas:
                 if repoitem not in self.repos:
                     bad_repo_list.append(repoitem)
 
