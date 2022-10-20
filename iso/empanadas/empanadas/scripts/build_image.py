@@ -107,7 +107,7 @@ class ImageBuild:
                     ["tar", "-C", f"{self.outdir}", "--strip-components=1", "-x", "-f", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", "*/layer.tar"],
                     ["xz",  f"{self.outdir}/layer.tar"]
             ]
-        if self.image_type in ["GenericCloud"]:
+        if self.image_type in ["GenericCloud", "OCP"]:
             self.stage_commands = [
                     ["qemu-img", "convert", "-c", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
             ]
@@ -283,7 +283,7 @@ class ImageBuild:
     def package(self) -> int: 
         # Some build types don't need to be packaged by imagefactory
         # @TODO remove business logic if possible
-        if self.image_type in ["GenericCloud", "EC2", "Azure", "Vagrant"]:
+        if self.image_type in ["GenericCloud", "EC2", "Azure", "Vagrant", "OCP"]:
             self.target_uuid = self.base_uuid if hasattr(self, 'base_uuid') else ""
 
         if self.target_uuid:
