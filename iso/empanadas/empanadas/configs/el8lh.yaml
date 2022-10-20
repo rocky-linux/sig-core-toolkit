@@ -6,6 +6,7 @@
   major: '8'
   minor: '8'
   profile: '8'
+  disttag: 'el8'
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   fedora_major: '20'

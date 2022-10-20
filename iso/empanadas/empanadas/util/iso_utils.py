@@ -73,7 +73,7 @@ class IsoBuild:
         # Relevant config items
         self.major_version = major
         self.compose_dir_is_here = compose_dir_is_here
-        self.disttag = config['dist']
+        self.disttag = rlvars['disttag']
         self.date_stamp = config['date_stamp']
         self.timestamp = time.time()
         self.compose_root = config['compose_root']
@@ -1539,7 +1539,7 @@ class LiveBuild:
         self.minor_version = rlvars['minor']
         self.revision = rlvars['revision'] + "-" + rlvars['rclvl']
         self.rclvl = rlvars['rclvl']
-        self.disttag = config['dist']
+        self.disttag = rlvars['disttag']
         self.repos = rlvars['iso_map']['lorax']['repos']
         self.repo_base_url = config['repo_base_url']
         self.project_id = rlvars['project_id']

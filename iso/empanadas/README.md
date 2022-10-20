@@ -5,7 +5,9 @@
 1. Install [Poetry](https://python-poetry.org/docs/)
 2. Setup: `poetry install`
 3. Install dependencies: `dnf install podman mock`
-3. Have fun
+4. Have fun
+
+Deeper documenation can be found at the [SIG/Core Wiki](https://sig-core.rocky.page/documentation).
 
 ## Reliance on podman and mock
 
@@ -43,6 +45,7 @@ Changes to the poetry.lock should be commited if dependencies are added or updat
 * build-image          -> Runs build-iso
 * generate_compose     -> Creates a compose directory right away and optionally links it as latest
                           (You should only use this if you are running into errors with images)
+* peridot_repoclosure  -> Runs repoclosure against a peridot instance
 ```
 
 ## wrappers
