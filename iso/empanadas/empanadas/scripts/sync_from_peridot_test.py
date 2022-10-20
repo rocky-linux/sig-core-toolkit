@@ -9,7 +9,7 @@ from empanadas.util import RepoSync
 
 rlvars = rldict['9-lookahead']
 r = Checks(rlvars, config['arch'])
-r.check_valid_arch()
+r.check_validity()
 
 #a = RepoSync(rlvars, config, major="9", repo="ResilientStorage", parallel=True, ignore_debug=False, ignore_source=False)
 a = RepoSync(rlvars, config, major="9", repo="BaseOS", parallel=True, ignore_debug=False, ignore_source=False, hashed=True)

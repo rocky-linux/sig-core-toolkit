@@ -20,7 +20,7 @@ rlvars = rldict[results.release]
 major = rlvars['major']
 
 r = Checks(rlvars, config['arch'])
-r.check_valid_arch()
+r.check_validity()
 
 # Send them and do whatever I guess
 a = RepoSync(

@@ -85,7 +85,7 @@ from util import Checks
 
 rlvars = rldict['9']
 r = Checks(rlvars, arch)
-r.check_valid_arch()
+r.check_validity()
 ```
 
 ### script names and permissions

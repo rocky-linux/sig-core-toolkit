@@ -7,7 +7,7 @@ from empanadas.util import SigRepoSync
 
 #rlvars = rldict['9']
 #r = Checks(rlvars, config['arch'])
-#r.check_valid_arch()
+#r.check_validity()
 
 # Start up the parser baby
 parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
@@ -39,7 +39,7 @@ results = parser.parse_args()
 rlvars = rldict[results.release]
 sigvars = sigdict[results.sig][results.release]
 r = Checks(rlvars, config['arch'])
-r.check_valid_arch()
+r.check_validity()
 
 # Send them and do whatever I guess
 a = SigRepoSync(
