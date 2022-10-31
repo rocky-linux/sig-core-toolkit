@@ -2,6 +2,7 @@
 import os
 import os.path
 import json
+import argparse
 import dnf
 import createrepo_c as cr
 from common import *
@@ -20,6 +21,15 @@ IGNORES = [
         'redhat-release'
 ]
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--pungi", help="local pungi is here", action='store_true')
+args = parser.parse_args()
+
+if args.pungi:
+    APPEND_TO_PATH = '/os'
+else:
+    APPEND_TO_PATH = ''
+
 def warningcb(warning_type, message):
     print("WARNING: %s" % message)
     return True
@@ -31,7 +41,7 @@ for k in REPOS:
         PRIMARY_XML_PATH   = None
         FILELISTS_XML_PATH = None
         OTHER_XML_PATH     = None
-        REPO_PATH          = k + '/' + arch
+        REPO_PATH          = k + '/' + arch + APPEND_TO_PATH
         repomd = cr.Repomd()
         cr.xml_parse_repomd(os.path.join(REPO_PATH, "repodata/repomd.xml"), repomd, warningcb)
         for record in repomd.records:

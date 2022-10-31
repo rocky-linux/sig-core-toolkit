@@ -6,7 +6,7 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   MAJOR=$1
   DATE=$2
 else
-  echo "Major version not specified"
+  echo "Major version or date not specified"
   exit 1
 fi
 
@@ -16,6 +16,7 @@ grep_val=$?
 
 if [ "$grep_val" -ne 0 ]; then
   echo "Date format incorrect. You must use: YYYYMMDD.X"
+  exit 2
 fi
 
 export RLVER=$MAJOR

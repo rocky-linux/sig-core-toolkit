@@ -2,21 +2,11 @@
 # Parses a local compose's repos
 #set -x
 
-if [ -n "$1" ] && [ -n "$2" ]; then
+if [ -n "$1" ]; then
   MAJOR=$1
-  DATE=$2
 else
-  echo "Major version or date not specified"
+  echo "Major version not specified"
   exit 1
-fi
-
-# Verify the date format
-echo "${DATE}" | grep -Eq '[0-9]+\.[0-9]'
-grep_val=$?
-
-if [ "$grep_val" -ne 0 ]; then
-  echo "Date format incorrect. You must use: YYYYMMDD.X"
-  exit 2
 fi
 
 export RLVER=$MAJOR
@@ -24,10 +14,10 @@ source common
 
 drop="${PREPOPDROP}"
 current=$(pwd)
-compose_dir="${COMPOSE_BASEDIR}/${MAJOR}/Rocky-${MAJOR}-${DATE}/compose"
+compose_dir="${COMPOSE_BASEDIR}/${MAJOR}/latest-Rocky-${MAJOR}/compose"
 
 pushd "${compose_dir}" || { echo "Could not change directory"; exit 1; }
-/usr/bin/python3 "${current}/prepopulate_parser.py"
+/usr/bin/python3 "${current}/prepopulate_parser.py" --pungi
 ret_val=$?
 popd || { echo "Could not change back..."; exit 1; }
 
