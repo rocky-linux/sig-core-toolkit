@@ -1,6 +1,8 @@
 #!/bin/bash
 # Performs a full on sync of a minor release, directories and all. It calls the
 # other scripts in this directory to assist where necessary.
+# Note that this is EL8 specific
+#
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
 source $(dirname "$0")/common
@@ -12,6 +14,32 @@ MAJ=${RLVER}
 for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   echo "${COMPOSE}: Syncing"
   pushd "/mnt/compose/${MAJ}/latest-${COMPOSE}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
+
+  if [[ "${COMPOSE}" == "Rocky" ]]; then
+    # ISO Work before syncing
+    mkdir -p isos/{x86_64,aarch64}
+
+    # Sort the ISO's
+    for ARCH in "${ARCHES[@]}"; do
+      for x in BaseOS Minimal; do
+        echo "${x} ${ARCH}: Moving ISO images"
+        mv "${x}/${ARCH}/iso/*" "isos/${ARCH}/"
+      done
+      pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
+      ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${ARCH}-boot.iso"
+      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${ARCH}-dvd1.iso"
+      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${ARCH}-dvd.iso"
+      ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${ARCH}-minimal.iso"
+      for file in *.iso; do
+        printf "# %s: %s bytes\n%s\n" \
+          "${file}" \
+          "$(stat -c %s ${file})" \
+          "$(sha256sum --tag ${file})" \
+        | sudo tee -a CHECKSUM;
+      done
+      popd || { echo "Could not change directory"; break; }
+    done
+  fi
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
   mkdir -p "${TARGET}"
@@ -29,59 +57,19 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
 
   # Return back to where we started
   popd || { echo "${COMPOSE}: Failed to change back"; break; }
+
+  # Create extra stuff
+  pushd "${TARGET}" || { echo "${COMPOSE}: Failed to change directory"; break;  }
+  mkdir -p Live/x86_64
+  ln -s Live live
+  popd || { echo "${COMPOSE}: Failed to change back"; break;  }
 done
 
-
-# sync all sig stuff
-# Only enabled for giving preferential treatment.
-#for SIG in "${!SIG_COMPOSE[@]}"; do
-#  echo "${SIG}: Syncing"
-#  cd "/mnt/compose/${MAJ}/latest-${SIG}-${MAJ}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
-#
-#  TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${SIG_COMPOSE[$SIG]}"
-#  mkdir -p "${TARGET}"
-#  # disabling because none of our files should be starting with dashes. If they
-#  # are something is *seriously* wrong here.
-#  # shellcheck disable=SC2035
-#  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
-#      {} "${TARGET}"
-#done
 
 # Create symlinks for repos that were once separate from the main compose
 for LINK in "${LINK_REPOS[@]}"; do
   ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${LINK}" \
     "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${LINK_REPOS[$LINK]}"
-done
-
-# copy around the ISOs a bit, make things comfortable
-for ARCH in "${ARCHES[@]}"; do
-  TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/isos/${ARCH}"
-  # who knows if EL10 will change the name of baseos
-  for x in BaseOS Minimal; do
-    echo "${x} ${ARCH}: Copying ISO images"
-    # Hardcoding this for now
-    SOURCE="/mnt/compose/${MAJ}/latest-Rocky-${MAJ}/compose/${x}/${ARCH}/iso"
-    TARGET_ARCH="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${x}/${ARCH}/iso"
-    mkdir -p "${TARGET}"
-    #mkdir -p "${SOURCE}" "${TARGET}" "${TARGET_ARCH}"
-    # Copy the ISO and manifests into their target architecture
-    #cp -n "${SOURCE}"/*.iso "${TARGET_ARCH}/"
-    #cp -n "${SOURCE}"/*.iso.manifest "${TARGET_ARCH}/"
-    #cp -n "${SOURCE}/CHECKSUM" "${TARGET_ARCH}/"
-    # Copy the ISO and manifests into the main isos target
-    cp "${SOURCE}"/*.iso "${TARGET}/"
-    cp "${SOURCE}"/*.iso.manifest "${TARGET}/"
-    pushd "${TARGET}" || { echo "Could not change directory"; break; }
-  done
-  # shellcheck disable=SC2086
-  for file in *.iso; do
-    printf "# %s: %s bytes\n%s\n" \
-      "${file}" \
-      "$(stat -c %s ${file})" \
-      "$(sha256sum --tag ${file})" \
-    | sudo tee -a CHECKSUM;
-  done
-  popd || { echo "Could not change directory"; break; }
 done
 
 # make a kickstart directory
