@@ -1,7 +1,7 @@
 # To be sourced by scripts to use
 
 # Revision must always start with a major number
-REVISION=9.0
+REVISION=9.1
 
 ARCHES=(x86_64 aarch64 ppc64le s390x)
 
@@ -9,7 +9,7 @@ MAJOR="${REVISION:0:1}"
 MINOR="${REVISION:2:1}"
 
 # comment or blank if needed
-APPEND_TO_DIR="-RC2"
+APPEND_TO_DIR="-RC1"
 
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
@@ -54,10 +54,6 @@ ALL_REPOS=(
 
 NONSIG_COMPOSE=(
   Rocky
-  Extras
-  Rocky-devel
-  Plus
-  rockyrpi
 )
 
 declare -A SIG_COMPOSE

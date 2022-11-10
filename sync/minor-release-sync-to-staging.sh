@@ -23,7 +23,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
     for ARCH in "${ARCHES[@]}"; do
       for x in BaseOS Minimal; do
         echo "${x} ${ARCH}: Moving ISO images"
-        mv "${x}/${ARCH}/iso/*" "isos/${ARCH}/"
+        mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
       ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${ARCH}-boot.iso"
