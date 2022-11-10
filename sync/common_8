@@ -51,6 +51,7 @@ ALL_REPOS=(
 
 NONSIG_COMPOSE=(
   Rocky
+  Extras
   Rocky-devel
   Plus
 )

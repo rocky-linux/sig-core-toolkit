@@ -21,6 +21,12 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
       {} "${TARGET}"
 
+  if [[ "${COMPOSE}" == "Rocky" ]]; then
+    cp COMPOSE_ID "${TARGET}"
+    chown 10004:10005 "${TARGET}/COMPOSE_ID"
+    rsync -av --chown=10004:10005 --progress --relative --human-readable metadata "${TARGET}"
+  fi
+
   # Return back to where we started
   popd || { echo "${COMPOSE}: Failed to change back"; break; }
 done
