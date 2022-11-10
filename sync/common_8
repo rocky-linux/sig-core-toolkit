@@ -51,10 +51,8 @@ ALL_REPOS=(
 
 NONSIG_COMPOSE=(
   Rocky
-  Extras
   Rocky-devel
   Plus
-  rockyrpi
 )
 
 declare -A SIG_COMPOSE
