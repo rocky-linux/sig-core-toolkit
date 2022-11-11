@@ -4,7 +4,7 @@
   revision: '8.6'
   rclvl: 'RC1'
   major: '8'
-  minor: '6'
+  minor: '7'
   profile: '8'
   disttag: 'el8'
   bugurl: 'https://bugs.rockylinux.org'
