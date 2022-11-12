@@ -1361,29 +1361,37 @@ class IsoBuild:
             unpack_single_arch = True
             arches_to_unpack = [self.arch]
 
-        for imagename in self.cloudimages['images']:
-            self.log.info(Color.INFO + 'Determining the latest images for ' + imagename + ' ...')
-            formattype = self.cloudimages['images'][imagename]['format']
+        for name, extra in self.cloudimages['images'].items():
+            self.log.info(Color.INFO + 'Determining the latest images for ' + name + ' ...')
+            formattype = extra['format']
 
-            if self.s3:
-                latest_artifacts = Shared.s3_determine_latest(
-                        self.s3_bucket,
-                        self.release,
-                        arches_to_unpack,
-                        formattype,
-                        imagename,
-                        self.log
-                )
+            variants = extra['variants'] if 'variants' in extra.keys() else [None] # need to loop once
+            latest_artifacts = []
 
-            else:
-                latest_artifacts = Shared.reqs_determine_latest(
-                        self.s3_bucket_url,
-                        self.release,
-                        arches_to_unpack,
-                        formattype,
-                        imagename,
-                        self.log
-                )
+            for variant in variants:
+                if variant:
+                    name = f"{name}-{variant}"
+                if self.s3:
+                    latest_artifacts.append(Shared.s3_determine_latest(
+                            self.s3_bucket,
+                            self.release,
+                            arches_to_unpack,
+                            formattype,
+                            name,
+                            self.log
+                    ))
+
+                else:
+                    latest_artifacts.append(Shared.reqs_determine_latest(
+                            self.s3_bucket_url,
+                            self.release,
+                            arches_to_unpack,
+                            formattype,
+                            name,
+                            self.log
+                    ))
+
+            # latest_artifacts should have at least 1 result if has_variants, else == 1
 
             if not len(latest_artifacts) > 0:
                 self.log.warn(Color.WARN + 'No images found.')
@@ -1397,7 +1405,7 @@ class IsoBuild:
                 )
 
                 if arch not in latest_artifacts.keys():
-                    self.log.warn(Color.WARN + 'Artifact for ' + imagename +
+                    self.log.warn(Color.WARN + 'Artifact for ' + name +
                             ' ' + arch + ' (' + formattype + ') does not exist.')
                     continue
 
@@ -1449,7 +1457,7 @@ class IsoBuild:
                         image_arch_dir,
                         self.shortname,
                         self.major_version,
-                        imagename,
+                        name,
                         arch,
                         formattype
                 )
@@ -1458,7 +1466,7 @@ class IsoBuild:
                         image_arch_dir,
                         self.shortname,
                         self.major_version,
-                        imagename,
+                        name,
                         arch,
                         formattype
                 )

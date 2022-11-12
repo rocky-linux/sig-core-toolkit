@@ -74,9 +74,19 @@
         - 'xorriso'
   cloudimages:
     images:
+      Azure:
+        format: vhd
+        variants: [Base, LVM]
       EC2:
         format: raw
+        variants: [Base, LVM]
       GenericCloud:
+        format: qcow2
+        variants: [Base, LVM]
+      Container:
+        format: tar.xz
+        variants: [Base, Minimal, UBI]
+      OCP:
         format: qcow2
   livemap:
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
