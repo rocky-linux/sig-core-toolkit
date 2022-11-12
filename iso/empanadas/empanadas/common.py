@@ -107,7 +107,7 @@ ALLOWED_TYPE_VARIANTS = {
         "Container": ["Base", "Minimal", "UBI"],
         "EC2": ["Base", "LVM"],
         "GenericCloud": ["Base", "LVM"],
-        "Vagrant": ["Libvirt", "Vbox"],
+        "Vagrant": ["Libvirt", "Vbox", "VMware"],
         "OCP": None
 }
 def valid_type_variant(_type: str, variant: str="") -> bool:

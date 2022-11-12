@@ -123,7 +123,8 @@ class ImageBuild:
         if self.image_type in ["Vagrant"]:
             _map = {
                     "Vbox": "vmdk",
-                    "Libvirt": "qcow2"
+                    "Libvirt": "qcow2",
+                    "VMware": "vhd"
                     }
             output = f"{_map[self.variant]}" #type: ignore
             self.stage_commands = [
