@@ -1,7 +1,7 @@
 ---
 '8':
   fullname: 'Rocky Linux 8'
-  revision: '8.6'
+  revision: '8.7'
   rclvl: 'RC1'
   major: '8'
   minor: '7'
