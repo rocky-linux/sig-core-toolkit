@@ -1366,6 +1366,8 @@ class IsoBuild:
             formattype = extra['format']
 
             variants = extra['variants'] if 'variants' in extra.keys() else [None] # need to loop once
+            imagename = name
+            primary_variant = extra['primary_variant'] if 'primary_variant' in extra else None
             latest_artifacts = []
 
             for variant in variants:
@@ -1398,95 +1400,129 @@ class IsoBuild:
                 continue
 
             self.log.info(Color.INFO + 'Attempting to download requested artifacts')
-            for arch in arches_to_unpack:
-                image_arch_dir = os.path.join(
-                        self.image_work_dir,
-                        arch
-                )
-
-                if arch not in latest_artifacts.keys():
-                    self.log.warn(Color.WARN + 'Artifact for ' + name +
-                            ' ' + arch + ' (' + formattype + ') does not exist.')
-                    continue
-
-                source_path = latest_artifacts[arch]
-                drop_name = source_path.split('/')[-1]
-                checksum_name = drop_name + '.CHECKSUM'
-                full_drop = '{}/{}'.format(
-                        image_arch_dir,
-                        drop_name
-                )
-
-                checksum_drop = '{}/{}.CHECKSUM'.format(
-                        image_arch_dir,
-                        drop_name
-                )
-
-                if not os.path.exists(image_arch_dir):
-                    os.makedirs(image_arch_dir, exist_ok=True)
-
-                self.log.info('Downloading artifact for ' + Color.BOLD + arch + Color.END)
-                if self.s3:
-                    Shared.s3_download_artifacts(
-                            self.force_download,
-                            self.s3_bucket,
-                            source_path,
-                            full_drop,
-                            self.log
-                    )
-                else:
-                    Shared.reqs_download_artifacts(
-                            self.force_download,
-                            self.s3_bucket_url,
-                            source_path,
-                            full_drop,
-                            self.log
+            for item in latest_artifacts:
+                for arch in arches_to_unpack:
+                    image_arch_dir = os.path.join(
+                            self.image_work_dir,
+                            arch
                     )
 
-                self.log.info('Creating checksum ...')
-                checksum = Shared.get_checksum(full_drop, self.checksum, self.log)
-                if not checksum:
-                    self.log.error(Color.FAIL + full_drop + ' not found! Are you sure we copied it?')
-                    continue
-                with open(checksum_drop, 'w+') as c:
-                    c.write(checksum)
-                    c.close()
+                    if arch not in item.keys():
+                        self.log.warn(Color.WARN + 'Artifact for ' + name +
+                                ' ' + arch + ' (' + formattype + ') does not exist.')
+                        continue
 
-                self.log.info('Creating a symlink to latest image...')
-                latest_name = '{}/{}-{}-{}.latest.{}.{}'.format(
-                        image_arch_dir,
-                        self.shortname,
-                        self.major_version,
-                        name,
-                        arch,
-                        formattype
-                )
-                latest_path = latest_name.split('/')[-1]
-                latest_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
-                        image_arch_dir,
-                        self.shortname,
-                        self.major_version,
-                        name,
-                        arch,
-                        formattype
-                )
-                # For some reason python doesn't have a "yeah just change this
-                # link" part of the function
-                if os.path.exists(latest_name):
-                    os.remove(latest_name)
+                    source_path = item[arch]
+                    drop_name = source_path.split('/')[-1]
+                    checksum_name = drop_name + '.CHECKSUM'
+                    full_drop = '{}/{}'.format(
+                            image_arch_dir,
+                            drop_name
+                    )
 
-                os.symlink(drop_name, latest_name)
+                    checksum_drop = '{}/{}.CHECKSUM'.format(
+                            image_arch_dir,
+                            drop_name
+                    )
 
-                self.log.info('Creating checksum for latest symlinked image...')
-                shutil.copy2(checksum_drop, latest_checksum)
-                with open(latest_checksum, 'r') as link:
-                    checkdata = link.read()
+                    if not os.path.exists(image_arch_dir):
+                        os.makedirs(image_arch_dir, exist_ok=True)
 
-                checkdata = checkdata.replace(drop_name, latest_path)
+                    self.log.info('Downloading artifact for ' + Color.BOLD + arch + Color.END)
+                    if self.s3:
+                        Shared.s3_download_artifacts(
+                                self.force_download,
+                                self.s3_bucket,
+                                source_path,
+                                full_drop,
+                                self.log
+                        )
+                    else:
+                        Shared.reqs_download_artifacts(
+                                self.force_download,
+                                self.s3_bucket_url,
+                                source_path,
+                                full_drop,
+                                self.log
+                        )
 
-                with open(latest_checksum, 'w+') as link:
-                    link.write(checkdata)
-                    link.close()
+                    self.log.info('Creating checksum ...')
+                    checksum = Shared.get_checksum(full_drop, self.checksum, self.log)
+                    if not checksum:
+                        self.log.error(Color.FAIL + full_drop + ' not found! Are you sure we copied it?')
+                        continue
+                    with open(checksum_drop, 'w+') as c:
+                        c.write(checksum)
+                        c.close()
+
+                    self.log.info('Creating a symlink to latest image...')
+                    latest_name = '{}/{}-{}-{}.latest.{}.{}'.format(
+                            image_arch_dir,
+                            self.shortname,
+                            self.major_version,
+                            name,
+                            arch,
+                            formattype
+                    )
+                    latest_path = latest_name.split('/')[-1]
+                    latest_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
+                            image_arch_dir,
+                            self.shortname,
+                            self.major_version,
+                            name,
+                            arch,
+                            formattype
+                    )
+                    # If an image is the primary, we set this.
+                    latest_primary_name = '{}/{}-{}-{}.latest.{}.{}'.format(
+                            image_arch_dir,
+                            self.shortname,
+                            self.major_version,
+                            imagename,
+                            arch,
+                            formattype
+                    )
+                    latest_primary_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
+                            image_arch_dir,
+                            self.shortname,
+                            self.major_version,
+                            imagename,
+                            arch,
+                            formattype
+                    )
+                    latest_primary_path = latest_name.split('/')[-1]
+                    # For some reason python doesn't have a "yeah just change this
+                    # link" part of the function
+                    if os.path.exists(latest_name):
+                        os.remove(latest_name)
+
+                    os.symlink(drop_name, latest_name)
+
+                    self.log.info('Creating checksum for latest symlinked image...')
+                    shutil.copy2(checksum_drop, latest_checksum)
+                    with open(latest_checksum, 'r') as link:
+                        checkdata = link.read()
+
+                    checkdata = checkdata.replace(drop_name, latest_path)
+
+                    with open(latest_checksum, 'w+') as link:
+                        link.write(checkdata)
+                        link.close()
+
+                    # If this is the primary image, set the appropriate symlink
+                    # and checksum
+                    if primary_variant and primary_variant in drop_name:
+                        self.log.info('This is the primary image, setting link and checksum')
+                        if os.path.exists(latest_primary_name):
+                            os.remove(latest_primary_name)
+                        os.symlink(drop_name, latest_primary_name)
+                        shutil.copy2(checksum_drop, latest_primary_checksum)
+                        with open(latest_primary_checksum) as link:
+                            checkpdata = link.read()
+                        checkpdata = checkpdata.replace(drop_name, latest_primary_path)
+                        with open(latest_primary_checksum, 'w+') as link:
+                            link.write(checkpdata)
+                            link.close()
 
         self.log.info(Color.INFO + 'Image download phase completed')
 

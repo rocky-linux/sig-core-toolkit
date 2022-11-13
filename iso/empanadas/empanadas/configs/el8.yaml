@@ -77,12 +77,15 @@
       Azure:
         format: vhd
         variants: [Base, LVM]
+        primary_variant: 'Base'
       EC2:
         format: raw
         variants: [Base, LVM]
+        primary_variant: 'Base'
       GenericCloud:
         format: qcow2
         variants: [Base, LVM]
+        primary_variant: 'Base'
       Container:
         format: tar.xz
         variants: [Base, Minimal, UBI]
