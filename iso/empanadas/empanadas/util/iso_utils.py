@@ -1357,6 +1357,7 @@ class IsoBuild:
         """
         unpack_single_arch = False
         arches_to_unpack = self.arches
+        latest_artifacts = {}
         if self.arch:
             unpack_single_arch = True
             arches_to_unpack = [self.arch]
@@ -1364,56 +1365,76 @@ class IsoBuild:
         for name, extra in self.cloudimages['images'].items():
             self.log.info(Color.INFO + 'Determining the latest images for ' + name + ' ...')
             formattype = extra['format']
+            latest_artifacts[name] = {}
+            primary_variant = extra['primary_variant'] if 'primary_variant' in extra else None
+            latest_artifacts[name]['primary'] = primary_variant
 
             variants = extra['variants'] if 'variants' in extra.keys() else [None] # need to loop once
             imagename = name
-            primary_variant = extra['primary_variant'] if 'primary_variant' in extra else None
-            latest_artifacts = []
+            variantname = name
 
             for variant in variants:
                 if variant:
-                    name = f"{name}-{variant}"
+                    variantname = f"{name}-{variant}"
+                    self.log.info(Color.INFO + 'Getting latest for variant ' + variant + ' ...')
                 if self.s3:
-                    latest_artifacts.append(Shared.s3_determine_latest(
+                    latest_artifacts[name][variantname] = Shared.s3_determine_latest(
                             self.s3_bucket,
                             self.release,
                             arches_to_unpack,
                             formattype,
-                            name,
+                            variantname,
                             self.log
-                    ))
+                    )
 
                 else:
-                    latest_artifacts.append(Shared.reqs_determine_latest(
+                    latest_artifacts[name][variantname] = Shared.reqs_determine_latest(
                             self.s3_bucket_url,
                             self.release,
                             arches_to_unpack,
                             formattype,
-                            name,
+                            variantname,
                             self.log
-                    ))
+                    )
 
-            # latest_artifacts should have at least 1 result if has_variants, else == 1
+                # latest_artifacts should have at least 1 result if has_variants, else == 1
+                if not len(latest_artifacts[name][variantname]) > 0:
+                    self.log.warn(Color.WARN + 'No images found for ' + variantname +
+                            '. This means it will be skipped.')
 
-            if not len(latest_artifacts) > 0:
-                self.log.warn(Color.WARN + 'No images found.')
-                continue
+            del imagename
+            del variantname
+            del variants
 
-            self.log.info(Color.INFO + 'Attempting to download requested artifacts')
-            for item in latest_artifacts:
+        #print(latest_artifacts)
+        for keyname in latest_artifacts.keys():
+            primary = latest_artifacts[keyname]['primary']
+            for imgname in latest_artifacts[keyname]:
+                keysect = latest_artifacts[keyname][imgname]
+                if imgname == 'primary':
+                    continue
+
+                if not keysect:
+                    continue
+
+                self.log.info(Color.INFO + 'Attempting to download requested ' +
+                              'artifacts (' + keyname + ')')
+
                 for arch in arches_to_unpack:
                     image_arch_dir = os.path.join(
                             self.image_work_dir,
                             arch
                     )
 
-                    if arch not in item.keys():
-                        self.log.warn(Color.WARN + 'Artifact for ' + name +
-                                ' ' + arch + ' (' + formattype + ') does not exist.')
-                        continue
-
-                    source_path = item[arch]
+                    source_path = keysect[arch]
                     drop_name = source_path.split('/')[-1]
+
+                    # Docker containers get a "layer" name, this hack gets
+                    # around it. I didn't feel like adding another config opt.
+                    if 'layer' in drop_name:
+                        fsuffix = drop_name.replace('layer', '')
+                        drop_name = source_path.split('/')[-3] + fsuffix
+
                     checksum_name = drop_name + '.CHECKSUM'
                     full_drop = '{}/{}'.format(
                             image_arch_dir,
@@ -1460,7 +1481,7 @@ class IsoBuild:
                             image_arch_dir,
                             self.shortname,
                             self.major_version,
-                            name,
+                            imgname,
                             arch,
                             formattype
                     )
@@ -1469,28 +1490,10 @@ class IsoBuild:
                             image_arch_dir,
                             self.shortname,
                             self.major_version,
-                            name,
+                            imgname,
                             arch,
                             formattype
                     )
-                    # If an image is the primary, we set this.
-                    latest_primary_name = '{}/{}-{}-{}.latest.{}.{}'.format(
-                            image_arch_dir,
-                            self.shortname,
-                            self.major_version,
-                            imagename,
-                            arch,
-                            formattype
-                    )
-                    latest_primary_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
-                            image_arch_dir,
-                            self.shortname,
-                            self.major_version,
-                            imagename,
-                            arch,
-                            formattype
-                    )
-                    latest_primary_path = latest_name.split('/')[-1]
                     # For some reason python doesn't have a "yeah just change this
                     # link" part of the function
                     if os.path.exists(latest_name):
@@ -1511,7 +1514,26 @@ class IsoBuild:
 
                     # If this is the primary image, set the appropriate symlink
                     # and checksum
-                    if primary_variant and primary_variant in drop_name:
+                    if primary and primary in drop_name:
+                        # If an image is the primary, we set this.
+                        latest_primary_name = '{}/{}-{}-{}.latest.{}.{}'.format(
+                                image_arch_dir,
+                                self.shortname,
+                                self.major_version,
+                                keyname,
+                                arch,
+                                formattype
+                        )
+                        latest_primary_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
+                                image_arch_dir,
+                                self.shortname,
+                                self.major_version,
+                                keyname,
+                                arch,
+                                formattype
+                        )
+                        latest_primary_path = latest_name.split('/')[-1]
+
                         self.log.info('This is the primary image, setting link and checksum')
                         if os.path.exists(latest_primary_name):
                             os.remove(latest_primary_name)
