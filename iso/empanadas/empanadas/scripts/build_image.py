@@ -124,7 +124,7 @@ class ImageBuild:
             _map = {
                     "Vbox": "vmdk",
                     "Libvirt": "qcow2",
-                    "VMware": "vhd"
+                    "VMware": "vmdk"
                     }
             output = f"{_map[self.variant]}" #type: ignore
             self.stage_commands = [
