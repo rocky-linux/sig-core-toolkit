@@ -83,7 +83,7 @@
         variants: [Base, LVM]
         primary_variant: 'Base'
       EC2:
-        format: raw
+        format: qcow2
         variants: [Base, LVM]
         primary_variant: 'Base'
       GenericCloud:
