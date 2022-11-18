@@ -1532,7 +1532,7 @@ class IsoBuild:
                                 arch,
                                 formattype
                         )
-                        latest_primary_path = latest_name.split('/')[-1]
+                        latest_primary_path = latest_primary_name.split('/')[-1]
 
                         self.log.info('This is the primary image, setting link and checksum')
                         if os.path.exists(latest_primary_name):
