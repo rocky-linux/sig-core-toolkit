@@ -93,6 +93,8 @@
       Container:
         format: tar.xz
         variants: [Base, Minimal, UBI]
+      RPI:
+        format: raw.xz
       OCP:
         format: qcow2
   livemap:
