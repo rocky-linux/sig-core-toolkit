@@ -147,25 +147,25 @@ class ImageBuild:
         if self.image_type in ["Vagrant"]:
             _map = {
                     "Vbox": {"format": "vmdk", "provider": "virtualbox"},
-                    "Libvirt": {"format": "qcow2", "provider": "libvirt"},
-                    "VMware": {"format": "vmdk", "convertOptions": ["-o", "subformat=streamOptimized"], "provider": "vmware_desktop"}
+                    "Libvirt": {"format": "qcow2", "provider": "libvirt", "virtual_size": 10},
+                    "VMware": {"format": "vmdk", "provider": "vmware_desktop"}
                     }
             output = f"{_map[self.variant]['format']}" #type: ignore
             options = _map[self.variant]['convertOptions'] if 'convertOptions' in _map[self.variant].keys() else '' #type: ignore
             provider = f"{_map[self.variant]['provider']}" # type: ignore
 
-            self.prepare_vagrant(provider)
             self.stage_commands = [
                     ["qemu-img", "convert", "-c", "-f", "raw", "-O", output, *options, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"],
                     ["tar", "-C", self.outdir, "-czf", f"/tmp/{self.outname}.box", '.'],
                     ["mv", f"/tmp/{self.outname}.box", self.outdir]
             ]
+            self.prepare_vagrant(_map[self.variant])
 
         if self.stage_commands:
             self.stage_commands.append(["cp", "-v",  lambda: f"{STORAGE_DIR}/{self.target_uuid}.meta", f"{self.outdir}/build.meta"])
 
 
-    def prepare_vagrant(self, provider):
+    def prepare_vagrant(self, options):
         """Setup the output directory for the Vagrant type variant, dropping templates as required"""
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
         tmplenv = Environment(loader=file_loader)
@@ -179,11 +179,17 @@ class ImageBuild:
             provider = "vmware_desktop"
             templates[f"{self.outname}.vmx"] = tmplenv.get_template('vagrant/vmx.tmpl')
 
+
+        if self.variant == "Libvirt":
+            # Libvirt vagrant driver expects the qcow2 file to be called box.img.
+            qemu_command_index = [i for i, d in enumerate(self.stage_commands) if d[0] == "qemu-img"][0]
+            self.stage_commands.insert(qemu_command_index+1, ["mv", f"{self.outdir}/{self.outname}.qcow2", f"{self.outdir}/box.img"])
+
         for name, template in templates.items():
-            print(name, template)
             self.render_template(f"{self.outdir}/{name}", template,
                     name=self.outname,
-                    provider=provider
+                    arch=self.architecture.name,
+                    options=options
             )
 
     def checkout_kickstarts(self) -> int:
