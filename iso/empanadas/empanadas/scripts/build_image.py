@@ -107,6 +107,11 @@ class ImageBuild:
                     ["tar", "-C", f"{self.outdir}", "--strip-components=1", "-x", "-f", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", "*/layer.tar"],
                     ["xz",  f"{self.outdir}/layer.tar"]
             ]
+        if self.image_type in ["RPI"]:
+            self.stage_commands = [
+                    ["tar", "-C", f"{self.outdir}", "--strip-components=1", "-x", "-f", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", "*/layer.tar"],
+                    ["xz",  f"{self.outdir}/layer.tar"]
+            ]
         if self.image_type in ["GenericCloud", "OCP"]:
             self.stage_commands = [
                     ["qemu-img", "convert", "-c", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
@@ -192,13 +197,13 @@ class ImageBuild:
         return [param for name, param in args_mapping.items() if getattr(self.cli_args, name)]
 
     def _package_args(self) -> List[str]:
-        if self.image_type == "Container":
+        if self.image_type in ["Container", "RPI"]:
             return ["--parameter", "compress", "xz"]
         return [""]
 
     def _common_args(self) -> List[str]:
         args = []
-        if self.image_type == "Container":
+        if self.image_type in ["Container", "RPI"]:
             args = ["--parameter", "offline_icicle", "true"]
         if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure", "OCP"]:
             args = ["--parameter", "generate_icicle", "false"]
@@ -206,7 +211,8 @@ class ImageBuild:
 
     def image_format(self) -> str:
         mapping = {
-                "Container": "docker"
+                "Container": "docker",
+                "RPI": "docker"
         }
         return mapping[self.image_type] if self.image_type in mapping.keys() else ''
 
