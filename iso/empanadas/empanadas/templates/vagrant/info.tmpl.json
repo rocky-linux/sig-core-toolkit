@@ -1,0 +1,7 @@
+{
+  "Author": "Rocky Linux Team",
+  "Website": "https://rockylinux.org/",
+  "Artifacts": "https://vagrantcloud.com/rockylinux/",
+  "Repository": "https://git.resf.org/sig_core/toolkit",
+  "Description": "1st party distributed Vagrant images."
+}

@@ -1,0 +1,45 @@
+# frozen_string_literal: true
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  # Example configuration of new VM..
+  # 
+  #config.vm.define :test_vm do |test_vm|
+    # Box name
+    #
+    #test_vm.vm.box = "rockylinux"
+
+    # Domain Specific Options
+    #
+    # See README for more info.
+
+    # Interfaces for VM
+    # 
+    # Networking features in the form of `config.vm.network`
+    #
+    #test_vm.vm.network :private_network, :ip => '10.20.30.40'
+    #test_vm.vm.network :public_network, :ip => '10.20.30.41'
+  #end
+
+  # Options for VMware Vagrant provider.
+  ["vmware_fusion", "vmware_workstation", "vmware_desktop"].each do |provider|
+    config.vm.provider provider do |vmware, override|
+      vmware.whitelist_verified = true
+      vmware.gui = false
+
+      # The machine is configured with 2 cores and 1GB of RAM by default
+      vmware.vmx["memsize"] = "1024"
+      vmware.vmx["numvcpus"] = "2"
+      vmware.vmx["cpuid.coresPerSocket"] = "2"
+
+      # For compatility reasons version 10 (VMware Workstation 10.x and later)
+      # is used, this can be changed to every later version without any
+      # other changes if features are needed
+      # https://kb.vmware.com/s/article/1003746
+      vmware.vmx["virtualHW.version"] = "10"
+    end
+  end
+end

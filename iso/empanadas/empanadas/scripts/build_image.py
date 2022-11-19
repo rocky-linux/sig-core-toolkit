@@ -101,6 +101,25 @@ class ImageBuild:
         self.checkout_kickstarts()
         self.kickstart_arg = self.kickstart_imagefactory_args()
 
+        try:
+            os.mkdir(self.outdir)
+        except FileExistsError as e:
+            log.info("Directory already exists for this release. If possible, previously executed steps may be skipped")
+        except Exception as e:
+            log.exception("Some other exception occured while creating the output directory", e)
+            return 0
+
+        if os.path.exists(self.metadata):
+            with open(self.metadata, "r") as f:
+                try:
+                    o = json.load(f)
+                    self.base_uuid = o['base_uuid']
+                    self.target_uuid = o['target_uuid']
+                except json.decoder.JSONDecodeError as e:
+                    log.exception("Couldn't decode metadata file", e)
+                finally:
+                    f.flush()
+
         # Yes, this is gross. I'll fix it later.
         if self.image_type in ["Container"]:
             self.stage_commands = [
@@ -127,37 +146,44 @@ class ImageBuild:
             ]
         if self.image_type in ["Vagrant"]:
             _map = {
-                    "Vbox": "vmdk",
-                    "Libvirt": "qcow2",
-                    "VMware": "vmdk"
+                    "Vbox": {"format": "vmdk", "provider": "virtualbox"},
+                    "Libvirt": {"format": "qcow2", "provider": "libvirt"},
+                    "VMware": {"format": "vmdk", "convertOptions": ["-o", "subformat=streamOptimized"], "provider": "vmware_desktop"}
                     }
-            output = f"{_map[self.variant]}" #type: ignore
-            self.stage_commands = [
-                    ["qemu-img", "convert", "-c", "-f", "raw", "-O", output, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"]
-            ]
+            output = f"{_map[self.variant]['format']}" #type: ignore
+            options = f"{_map[self.variant]['convertOptions']}" if 'convertOptions' in _map[self.variant].keys() else '' #type: ignore
+            provider = f"{_map[self.variant]['provider']}" # type: ignore
 
+            self.prepare_vagrant(provider)
+            self.stage_commands = [
+                    ["qemu-img", "convert", "-c", "-f", "raw", "-O", output, *options, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"],
+                    ["tar", "--strip-components=2", "-czf", f"{self.outdir}/{self.outname}.box", f"{self.outdir}"]
+            ]
 
         if self.stage_commands:
             self.stage_commands.append(["cp", "-v",  lambda: f"{STORAGE_DIR}/{self.target_uuid}.meta", f"{self.outdir}/build.meta"])
 
-        try:
-            os.mkdir(self.outdir)
-        except FileExistsError as e:
-            log.info("Directory already exists for this release. If possible, previously executed steps may be skipped")
-        except Exception as e:
-            log.exception("Some other exception occured while creating the output directory", e)
-            return 0
 
-        if os.path.exists(self.metadata):
-            with open(self.metadata, "r") as f:
-                try:
-                    o = json.load(f)
-                    self.base_uuid = o['base_uuid']
-                    self.target_uuid = o['target_uuid']
-                except json.decoder.JSONDecodeError as e:
-                    log.exception("Couldn't decode metadata file", e)
-                finally:
-                    f.flush()
+    def prepare_vagrant(self, provider):
+        """Setup the output directory for the Vagrant type variant, dropping templates as required"""
+        file_loader = FileSystemLoader(f"{_rootdir}/templates")
+        tmplenv = Environment(loader=file_loader)
+
+        templates = {}
+        templates['Vagrantfile'] = tmplenv.get_template(f"vagrant/Vagrantfile.{self.variant}")
+        templates['metadata.json'] = tmplenv.get_template('vagrant/metadata.tmpl.json')
+        templates['info.json'] = tmplenv.get_template('vagrant/info.tmpl.json')
+
+        if self.variant == "VMware":
+            provider = "vmware_desktop"
+            templates[f"{self.outname}.vmx"] = tmplenv.get_template('vagrant/vmx.tmpl')
+
+        for name, template in templates.items():
+            print(name, template)
+            self.render_template(f"{self.outdir}/{name}", template,
+                    name=self.outname,
+                    provider=provider
+            )
 
     def checkout_kickstarts(self) -> int:
         cmd = ["git", "clone", "--branch", f"r{self.architecture.major}", rlvars['livemap']['git_repo'], f"{KICKSTART_PATH}"]
@@ -224,6 +250,17 @@ class ImageBuild:
                 exit(2)
 
         return ["--file-parameter", "install_script", str(self.kickstart_path)]
+
+    def render_template(self, path, template, **kwargs) -> pathlib.Path:
+        with open(path, "wb") as f:
+            _template = template.render(**kwargs)
+            f.write(_template.encode())
+            f.flush()
+        output = pathlib.Path(path)
+        if not output.exists():
+            log.error("Failed to write template")
+            raise Exception("Failed to template")
+        return output
 
     def render_icicle_template(self) -> pathlib.Path:
         handle, output = tempfile.mkstemp()
