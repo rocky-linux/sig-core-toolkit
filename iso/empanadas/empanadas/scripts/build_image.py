@@ -151,13 +151,14 @@ class ImageBuild:
                     "VMware": {"format": "vmdk", "convertOptions": ["-o", "subformat=streamOptimized"], "provider": "vmware_desktop"}
                     }
             output = f"{_map[self.variant]['format']}" #type: ignore
-            options = f"{_map[self.variant]['convertOptions']}" if 'convertOptions' in _map[self.variant].keys() else '' #type: ignore
+            options = _map[self.variant]['convertOptions'] if 'convertOptions' in _map[self.variant].keys() else '' #type: ignore
             provider = f"{_map[self.variant]['provider']}" # type: ignore
 
             self.prepare_vagrant(provider)
             self.stage_commands = [
                     ["qemu-img", "convert", "-c", "-f", "raw", "-O", output, *options, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"],
-                    ["tar", "--strip-components=2", "-czf", f"{self.outdir}/{self.outname}.box", f"{self.outdir}"]
+                    ["tar", "-C", self.outdir, "-czf", f"/tmp/{self.outname}.box", '.'],
+                    ["mv", f"/tmp/{self.outname}.box", self.outdir]
             ]
 
         if self.stage_commands:
