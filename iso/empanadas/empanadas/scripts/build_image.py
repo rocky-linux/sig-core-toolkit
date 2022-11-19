@@ -94,7 +94,7 @@ class ImageBuild:
         self.package_args = self._package_args()
         self.common_args = self._common_args()
 
-        self.metadata = pathlib.Path(self.outdir, "metadata.json")
+        self.metadata = pathlib.Path(self.outdir, ".imagefactory-metadata.json")
 
         self.kickstart_path = pathlib.Path(f"{KICKSTART_PATH}/Rocky-{self.architecture.major}-{self.type_variant}.ks")
 
@@ -443,7 +443,7 @@ class ImageBuild:
         return template
 
     def save(self):
-        with open(pathlib.Path(self.outdir, "metadata.json"), "w") as f:
+        with open(self.metadata, "w") as f:
             try: 
                 o = { name: getattr(self, name) for name in ["base_uuid", "target_uuid"] }
                 log.debug(o)
