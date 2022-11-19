@@ -566,7 +566,7 @@ class Shared:
         s3 = boto3.client('s3')
 
         try:
-            s3.list_objects(Bucket=s3_bucket)['Contents']
+            res = s3.list_objects(Bucket=s3_bucket)['Contents']
         except:
             logger.error(
                         '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
@@ -574,9 +574,19 @@ class Shared:
             )
             raise SystemExit()
 
-        for y in s3.list_objects(Bucket=s3_bucket)['Contents']:
-            if filetype in y['Key'] and release in y['Key'] and name in y['Key']:
-                temp.append(y['Key'])
+        objs = res['Contents']
+
+        while True:
+            for y in objs:
+                key = y['Key']
+                if filetype in key and release in key and name in key:
+                    temp.append(y['Key'])
+            next_token = res.get("NextContinuationToken", None)
+            if next_token:
+                res = s3.list_objects_v2(Bucket=s3_bucket, ContinuationToken=next_token)
+                objs = res['Contents']
+            else:
+                break
 
         for arch in arches:
             temps = []

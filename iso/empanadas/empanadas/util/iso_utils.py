@@ -365,6 +365,10 @@ class IsoBuild:
                 arch
             )
 
+            if arch not in latest_artifacts:
+                self.log.error(Color.FAIL + 'No lorax artifacts for ' + arch)
+                continue
+
             source_path = latest_artifacts[arch]
 
             full_drop = '{}/lorax-{}-{}.tar.gz'.format(
