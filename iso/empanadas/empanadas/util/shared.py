@@ -566,7 +566,7 @@ class Shared:
         s3 = boto3.client('s3')
 
         try:
-            res = s3.list_objects(Bucket=s3_bucket)
+            res = s3.list_objects_v2(Bucket=s3_bucket)
         except:
             logger.error(
                         '[' + Color.BOLD + Color.RED + 'FAIL' + Color.END + '] ' +
