@@ -109,8 +109,8 @@ class ImageBuild:
             ]
         if self.image_type in ["RPI"]:
             self.stage_commands = [
-                    ["tar", "-C", f"{self.outdir}", "--strip-components=1", "-x", "-f", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", "*/layer.tar"],
-                    ["xz",  f"{self.outdir}/layer.tar"]
+                    ["cp", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.raw"],
+                    ["xz",  f"{self.outdir}/{self.outname}.raw"]
             ]
         if self.image_type in ["GenericCloud", "OCP"]:
             self.stage_commands = [
@@ -197,22 +197,21 @@ class ImageBuild:
         return [param for name, param in args_mapping.items() if getattr(self.cli_args, name)]
 
     def _package_args(self) -> List[str]:
-        if self.image_type in ["Container", "RPI"]:
+        if self.image_type in ["Container"]:
             return ["--parameter", "compress", "xz"]
         return [""]
 
     def _common_args(self) -> List[str]:
         args = []
-        if self.image_type in ["Container", "RPI"]:
+        if self.image_type in ["Container"]:
             args = ["--parameter", "offline_icicle", "true"]
-        if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure", "OCP"]:
+        if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure", "OCP", "RPI"]:
             args = ["--parameter", "generate_icicle", "false"]
         return args
 
     def image_format(self) -> str:
         mapping = {
-                "Container": "docker",
-                "RPI": "docker"
+                "Container": "docker"
         }
         return mapping[self.image_type] if self.image_type in mapping.keys() else ''
 
@@ -290,7 +289,7 @@ class ImageBuild:
     def package(self) -> int: 
         # Some build types don't need to be packaged by imagefactory
         # @TODO remove business logic if possible
-        if self.image_type in ["GenericCloud", "EC2", "Azure", "Vagrant", "OCP"]:
+        if self.image_type in ["GenericCloud", "EC2", "Azure", "Vagrant", "OCP", "RPI"]:
             self.target_uuid = self.base_uuid if hasattr(self, 'base_uuid') else ""
 
         if self.target_uuid:
