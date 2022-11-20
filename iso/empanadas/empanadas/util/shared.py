@@ -579,7 +579,7 @@ class Shared:
         while True:
             for y in objs:
                 key = y['Key']
-                if filetype in key and release in key and name in key:
+                if key.endswith(filetype) and release in key and name in key:
                     temp.append(y['Key'])
             next_token = res.get("NextContinuationToken", None)
             if next_token:
@@ -640,7 +640,7 @@ class Shared:
         resp = xmltodict.parse(bucket_data.content)
 
         for y in resp['ListBucketResult']['Contents']:
-            if filetype in y['Key'] and release in y['Key'] and name in y['Key']:
+            if y['Key'].endswith(filetype) and release in y['Key'] and name in y['Key']:
                 temp.append(y['Key'])
 
         for arch in arches:

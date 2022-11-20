@@ -92,8 +92,13 @@
       Container:
         format: tar.xz
         variants: [Base, Minimal, UBI]
+      RPI:
+        format: raw.xz
       OCP:
         format: qcow2
+      Vagrant:
+        format: box
+        variants: [Libvirt, Vbox, VMware]
   livemap:
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
     branch: 'r9lh'
