@@ -182,7 +182,6 @@ class ImageBuild:
             provider = "vmware_desktop"
             templates[f"{self.outname}.vmx"] = tmplenv.get_template('vagrant/vmx.tmpl')
 
-
         if self.variant == "Libvirt":
             # Libvirt vagrant driver expects the qcow2 file to be called box.img.
             qemu_command_index = [i for i, d in enumerate(self.stage_commands) if d[0] == "qemu-img"][0]
@@ -273,11 +272,8 @@ class ImageBuild:
         return output
 
     def render_icicle_template(self) -> pathlib.Path:
-        handle, output = tempfile.mkstemp()
-        if not handle:
-            exit(3)
-        with os.fdopen(handle, "wb") as tmp:
-            _template = self.template.render(
+        output = tempfile.NamedTemporaryFile(delete=False).name
+        return self.render_template(output, self.template,
                 architecture=self.architecture.name,
                 iso8601date=BUILDTIME.strftime("%Y%m%d"),
                 installdir="kickstart" if self.cli_args.kickstartdir else "os",
@@ -289,13 +285,6 @@ class ImageBuild:
                 utcnow=BUILDTIME,
                 version_variant=self.architecture.version if not self.variant else f"{self.architecture.version}-{self.variant}",
             )
-            tmp.write(_template.encode())
-            tmp.flush()
-        output = pathlib.Path(output)
-        if not output.exists():
-            log.error("Failed to write TDL template")
-            raise Exception("Failed to write TDL template")
-        return output
 
     def build_command(self) -> List[str]:
         build_command = ["imagefactory", *self.command_args, "base_image", *self.common_args, *self.kickstart_arg, self.tdl_path
