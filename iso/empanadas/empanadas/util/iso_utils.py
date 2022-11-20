@@ -1430,6 +1430,10 @@ class IsoBuild:
                             arch
                     )
 
+                    if arch not in keysect:
+                        self.log.warn(Color.WARN + 'This architecture (' + arch + ') does not exist for this image.')
+                        continue
+
                     source_path = keysect[arch]
                     drop_name = source_path.split('/')[-1]
 
