@@ -1372,6 +1372,7 @@ class IsoBuild:
             latest_artifacts[name] = {}
             primary_variant = extra['primary_variant'] if 'primary_variant' in extra else None
             latest_artifacts[name]['primary'] = primary_variant
+            latest_artifacts[name]['formattype'] = formattype
 
             variants = extra['variants'] if 'variants' in extra.keys() else [None] # need to loop once
             imagename = name
@@ -1413,6 +1414,7 @@ class IsoBuild:
         #print(latest_artifacts)
         for keyname in latest_artifacts.keys():
             primary = latest_artifacts[keyname]['primary']
+            filetype = latest_artifacts[keyname]['formattype']
             for imgname in latest_artifacts[keyname]:
                 keysect = latest_artifacts[keyname][imgname]
                 if imgname == 'primary':
@@ -1491,7 +1493,7 @@ class IsoBuild:
                             self.major_version,
                             imgname,
                             arch,
-                            formattype
+                            filetype
                     )
                     latest_path = latest_name.split('/')[-1]
                     latest_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
@@ -1500,7 +1502,7 @@ class IsoBuild:
                             self.major_version,
                             imgname,
                             arch,
-                            formattype
+                            filetype
                     )
                     # For some reason python doesn't have a "yeah just change this
                     # link" part of the function
@@ -1530,7 +1532,7 @@ class IsoBuild:
                                 self.major_version,
                                 keyname,
                                 arch,
-                                formattype
+                                filetype
                         )
                         latest_primary_checksum = '{}/{}-{}-{}.latest.{}.{}.CHECKSUM'.format(
                                 image_arch_dir,
@@ -1538,7 +1540,7 @@ class IsoBuild:
                                 self.major_version,
                                 keyname,
                                 arch,
-                                formattype
+                                filetype
                         )
                         latest_primary_path = latest_primary_name.split('/')[-1]
 
