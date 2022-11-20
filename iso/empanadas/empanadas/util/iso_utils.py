@@ -1423,6 +1423,9 @@ class IsoBuild:
                 if not keysect:
                     continue
 
+                if type(keysect) == str:
+                    continue
+
                 self.log.info(Color.INFO + 'Attempting to download requested ' +
                               'artifacts (' + keyname + ')')
 
@@ -1433,7 +1436,7 @@ class IsoBuild:
                     )
 
                     if arch not in keysect:
-                        self.log.warn(Color.WARN + 'This architecture (' + arch + ') does not exist for this image.')
+                        self.log.warn(Color.WARN + 'This architecture (' + arch + ', ' + keysect + ') does not exist for this image.')
                         continue
 
                     source_path = keysect[arch]
