@@ -146,16 +146,19 @@ class ImageBuild:
             ]
         if self.image_type in ["Vagrant"]:
             _map = {
-                    "Vbox": {"format": "vmdk", "provider": "virtualbox"},
+                    "Vbox": {"format": "vmdk", "provider": "virtualbox", "convertOptions": ["-o", "subformat=streamOptimized"]},
                     "Libvirt": {"format": "qcow2", "provider": "libvirt", "virtual_size": 10},
                     "VMware": {"format": "vmdk", "provider": "vmware_desktop"}
                     }
             output = f"{_map[self.variant]['format']}" #type: ignore
-            options = _map[self.variant]['convertOptions'] if 'convertOptions' in _map[self.variant].keys() else '' #type: ignore
             provider = f"{_map[self.variant]['provider']}" # type: ignore
 
+            # pop from the options map that will be passed to the vagrant metadata.json
+            convert_options = _map[self.variant].pop('convertOptions') if 'convertOptions' in _map[self.variant].keys() else '' #type: ignore
+
+
             self.stage_commands = [
-                    ["qemu-img", "convert", "-c", "-f", "raw", "-O", output, *options, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"],
+                    ["qemu-img", "convert", "-c", "-f", "raw", "-O", output, *convert_options, lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.{output}"],
                     ["tar", "-C", self.outdir, "-czf", f"/tmp/{self.outname}.box", '.'],
                     ["mv", f"/tmp/{self.outname}.box", self.outdir]
             ]
