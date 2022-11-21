@@ -1436,7 +1436,7 @@ class IsoBuild:
                     )
 
                     if arch not in keysect:
-                        self.log.warn(Color.WARN + 'This architecture (' + arch + ', ' + keysect + ') does not exist for this image.')
+                        self.log.warn(Color.WARN + 'This architecture (' + arch + ') does not exist for this image orvar is a string.')
                         continue
 
                     source_path = keysect[arch]
