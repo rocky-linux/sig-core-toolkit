@@ -30,6 +30,12 @@ if [ "$SELINUX" != "Enforcing" ]; then
   exit 1
 fi
 
+is_epel=$(r_checkEPELEnabled)
+if [ "$is_epel" -ne 0 ]; then
+  r_log "internal" "EPEL enabled. Stop."
+  exit 1
+fi
+
 r_log "internal" "Starting Release Engineering Core Tests"
 
 ################################################################################

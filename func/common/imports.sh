@@ -41,6 +41,11 @@ function r_processor() {
   return 0
 }
 
+function r_checkEPELEnabled() {
+  /usr/bin/dnf repolist | grep -q '^epel'
+  return $?
+}
+
 ################################################################################
 # Functions that deal with (p)ackages
 
@@ -210,6 +215,7 @@ export rl_arch
 export -f r_log
 export -f r_checkExitStatus
 export -f r_processor
+export -f r_checkEPELEnabled
 export -f p_installPackageNormal
 export -f p_installPackageNoWeaks
 export -f p_removePackage
