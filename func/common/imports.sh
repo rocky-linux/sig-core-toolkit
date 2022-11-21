@@ -36,7 +36,7 @@ function r_processor() {
     if [[ "$(basename ${file})" =~ README|^\.|^_ ]]; then
       continue
     fi
-    [ -x "${file}" ] && "${file}"
+    [ -x "${file}" ] && echo "Begin processing script: ${file}" && "${file}"
   done
   return 0
 }
