@@ -18,6 +18,3 @@ mv /etc/dovecot/dovecot.conf.backup /etc/dovecot/dovecot.conf
 mv /etc/postfix/main.cf.backup /etc/postfix/main.cf
 
 r_checkExitStatus $ret_val
-
-cp -a /etc/postfix/main.cf.backup /etc/postfix/main.cf
-cp -a /etc/dovecot/dovecot.conf.backup /etc/dovecot/dovecot.conf
