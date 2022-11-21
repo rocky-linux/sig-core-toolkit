@@ -30,8 +30,10 @@ if [ "$SELINUX" != "Enforcing" ]; then
   exit 1
 fi
 
-is_epel=$(r_checkEPELEnabled)
-if [ "$is_epel" -ne 0 ]; then
+r_checkEPELEnabled
+is_epel=$?
+if [[ "$is_epel" == "0" ]]; then
+  echo "EPEL enabled. Stop."
   r_log "internal" "EPEL enabled. Stop."
   exit 1
 fi
