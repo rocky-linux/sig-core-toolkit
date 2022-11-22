@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 VERSION="$1"
-EPOCH=0
+EPOCH=${EPOCH:-0}
 
 RLVER=$VERSION
 
@@ -77,17 +77,18 @@ begin-job() {
   import_task_id="$(aws ec2 import-snapshot --disk-container "file://$PWD/$json" --query 'ImportTaskId')"
   if [[ -z $import_task_id ]]; then
     echo "Failed to import $json"
-    exit 5
+    return 1
   fi
   echo $import_task_id
-  return
+  return 0
 }
 
 is-snapshot-imported() {
   snapshot_id=$(aws ec2 describe-import-snapshot-tasks --query 'ImportSnapshotTasks[].SnapshotTaskDetail.SnapshotId[]' --import-task-ids $1)
   if [[ -z "$snapshot_id" ]]; then
-    return 0
+    return 1
   fi
+  return 0
 }
 
 register-image() {
@@ -107,6 +108,7 @@ register-image() {
   if [[ -z "$ami_id" ]]; then
     return 1
   fi
+  return 0
 }
 
 tag-resources() {
@@ -152,11 +154,11 @@ declare -A import_jobs
 declare -A snapshot_ids
 declare -A ami_ids
 
-ARCHES=(x86_64 aarch64)
-VARIANTS=(Base LVM)
+TARGET_ARCHES=(x86_64 aarch64)
+TARGET_VARIANTS=(Base LVM)
 
-for variant in "${VARIANTS[@]}"; do
-  for arch in "${ARCHES[@]}"; do
+for variant in "${TARGET_VARIANTS[@]}"; do
+  for arch in "${TARGET_ARCHES[@]}"; do
     latest=$(printf "Rocky-%s-EC2-%s.latest.%s" "$VERSION" $variant $arch)
     name=$(printf "Rocky-%s-EC2-%s-%s-%s.%s.%s" "$VERSION" $variant $REVISION $DATE $EPOCH $arch)
     qcow=${latest}.qcow2
@@ -195,12 +197,16 @@ while ! $finished; do
   for name in "${!import_jobs[@]}"; do
     import_task_id="${import_jobs[${name}]}"
     if ! is-snapshot-imported $import_task_id; then
+      echo "Snapshot for $import_task_id ($name) is not yet finished"
       continue
     fi
 
+    # await finalization
+    sleep 2
+
     if [[ -z $snapshot_id ]]; then
-      echo "Snapshot ID is null.. continuing"
-      continue
+      echo "Snapshot ID is null.. exiting"
+      exit 2
     fi
 
     echo "Tagging snapshot with name"
@@ -211,6 +217,7 @@ while ! $finished; do
   done
   # Check if we're done, if so, great!
   if [[ ${#import_jobs[@]} -gt 0 ]]; then
+    echo "Sleeping for 1m"
     sleep 1m
     continue
   else
@@ -225,7 +232,7 @@ while ! $finished; do
     # If the snapshot is imported, turn it into an AMI
     snapshot_id="${snapshot_ids[${name}]}"
 
-    echo "Creating AMI from snapshot."
+    echo "Creating AMI from snapshot $snapshot_id ($name)"
     if ! register-image $name $snapshot_id; then
       echo "ERROR: Failed to create image for $name with snapshot id $snapshot_id"
       continue
