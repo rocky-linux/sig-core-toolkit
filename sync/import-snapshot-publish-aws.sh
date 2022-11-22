@@ -102,7 +102,7 @@ register-image() {
       arch=arm64;;
   esac
 
-  ami_id=$(aws --query "ImageId" ec2 register-image --name "$name"  --description "$name" --block-device-mappings DeviceName="/dev/sda1",Ebs={SnapshotId="$snapshot_id"} --root-device-name "/dev/sda1" --virtualization-type hvm --architecture $arch)
+  ami_id=$(aws --query "ImageId" ec2 register-image --name "$name"  --description "$name" --block-device-mappings DeviceName="/dev/sda1",Ebs={SnapshotId="$snapshot_id"} --root-device-name "/dev/sda1" --virtualization-type hvm --architecture $arch --ena-support)
 
   if [[ -z "$ami_id" ]]; then
     return 1
