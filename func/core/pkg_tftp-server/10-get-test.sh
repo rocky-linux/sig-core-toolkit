@@ -6,5 +6,5 @@ echo "rocky func" > /var/lib/tftpboot/tftptest
 tftp 127.0.0.1 -c get tftptest
 
 grep -q "rocky func" tftptest
-r_checkExitStatus
+r_checkExitStatus $?
 /bin/rm tftptest
