@@ -11,8 +11,10 @@ PASSER=/var/tmp/cpio/pass
 r_log "cpio" "Test basic copy out"
 mkdir -p "$OUTTER" "$INNER" "$PASSER"
 
+# Ensure at least one file exists in /tmp to prevent errors.
+echo 1 > $(mktemp)
 # shellcheck disable=2012
-ls /tmp | cpio -o > "$OUTTER"/cpio.out
+find /tmp -type f | cpio -o > "$OUTTER"/cpio.out 2> /dev/null
 r_checkExitStatus $?
 
 r_log "cpio" "Test basic copy in"

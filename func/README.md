@@ -150,6 +150,10 @@ security is important, actually work and function correctly.
 With that said, There is no reason to disable integral security layers on your
 system.
 
+### Should EPEL be enabled?
+No. The point is to test Rocky packages, not EPEL. There are also package
+differences that will break (eg: nc -> nmap-ncat vs netcat).
+
 Current Tree
 ------------
 ```
