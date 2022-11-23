@@ -9,7 +9,7 @@ MAJOR="${REVISION:0:1}"
 MINOR="${REVISION:2:1}"
 
 # comment or blank if needed
-APPEND_TO_DIR="-RC4"
+APPEND_TO_DIR="-RC3"
 
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
