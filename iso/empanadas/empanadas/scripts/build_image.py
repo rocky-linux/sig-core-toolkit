@@ -231,7 +231,7 @@ class ImageBuild:
 
     def _command_args(self):
         args_mapping = {
-            "debug": "--debug" 
+            "debug": "--debug",
         }
         return [param for name, param in args_mapping.items() if getattr(self.cli_args, name)]
 
@@ -246,7 +246,6 @@ class ImageBuild:
             args = ["--parameter", "offline_icicle", "true"]
         if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure", "OCP", "RPI"]:
             args = ["--parameter", "generate_icicle", "false"]
-        args.append(["--timeout", self.timeout])
         return args
 
     def image_format(self) -> str:
@@ -292,18 +291,13 @@ class ImageBuild:
             )
 
     def build_command(self) -> List[str]:
-        build_command = ["imagefactory", *self.command_args, "base_image", *self.common_args, *self.kickstart_arg, self.tdl_path
-                            # "|", "tee", "-a", f"{outdir}/logs/base_image-{outname}.out",
-                            # "|", "tail", "-n4", ">", f"{outdir}/base.meta", "||", "exit", "2"
-                        ]
+        build_command = ["imagefactory", "--timeout", self.timeout, *self.command_args, "base_image", *self.common_args, *self.kickstart_arg, self.tdl_path]
         return build_command
     def package_command(self) -> List[str]:
         package_command = ["imagefactory", *self.command_args, "target_image", self.out_type, *self.common_args,
                             "--id", f"{self.base_uuid}",
                             *self.package_args, 
                             "--parameter", "repository", self.outname,
-                            # "|", "tee", "-a", f"{outdir}/base_image-{outname}.out",
-                            # "|", "tail", "-n4", ">", f"{outdir}/target.meta", "||", "exit", "3" 
                 ]
         return package_command
 
