@@ -146,7 +146,7 @@ class ImageBuild:
             ]
         if self.image_type in ["Vagrant"]:
             _map = {
-                    "Vbox": {"format": "vmdk", "provider": "virtualbox", "convertOptions": ["-o", "subformat=streamOptimized"]},
+                    "Vbox": {"format": "vmdk", "provider": "virtualbox"},
                     "Libvirt": {"format": "qcow2", "provider": "libvirt", "virtual_size": 10},
                     "VMware": {"format": "vmdk", "provider": "vmware_desktop"}
                     }
@@ -179,8 +179,10 @@ class ImageBuild:
         templates['info.json'] = tmplenv.get_template('vagrant/info.tmpl.json')
 
         if self.variant == "VMware":
-            provider = "vmware_desktop"
             templates[f"{self.outname}.vmx"] = tmplenv.get_template('vagrant/vmx.tmpl')
+
+        if self.variant == "Vbox":
+            templates['box.ovf'] = tmplenv.get_template('vagrant/box.tmpl.ovf')
 
         if self.variant == "Libvirt":
             # Libvirt vagrant driver expects the qcow2 file to be called box.img.
