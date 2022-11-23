@@ -31,6 +31,7 @@ parser.add_argument('--type', type=str, help="Image type (container, genclo, azu
 parser.add_argument('--variant', type=str, help="", required=False)
 parser.add_argument('--release', type=str, help="Image release for subsequent builds with the same date stamp (rarely needed)", required=False)
 parser.add_argument('--kube', action='store_true', help="output as a K8s job(s)", required=False)
+parser.add_argument('--timeout', type=str, help="change timeout for imagefactory build process (default 3600)", required=False, default='3600')
 
 
 results = parser.parse_args()
@@ -80,6 +81,7 @@ class ImageBuild:
     target_uuid: Optional[str] = field(default="")
     tdl_path: pathlib.Path = field(init=False)
     template: Template = field()
+    timeout: str = field(default='3600')
     type_variant: str = field(init=False) 
     variant: Optional[str] = field()
 
@@ -244,6 +246,7 @@ class ImageBuild:
             args = ["--parameter", "offline_icicle", "true"]
         if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure", "OCP", "RPI"]:
             args = ["--parameter", "generate_icicle", "false"]
+        args.append(["--timeout", self.timeout])
         return args
 
     def image_format(self) -> str:
