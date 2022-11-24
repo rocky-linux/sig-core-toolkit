@@ -1583,6 +1583,7 @@ class LiveBuild:
             force_build: bool = False,
             updated_image: bool = False,
             image_increment: str = '0',
+            peridot: bool = False,
             logger=None
     ):
 
@@ -1610,6 +1611,7 @@ class LiveBuild:
         self.checksum = rlvars['checksum']
         self.profile = rlvars['profile']
         self.hashed = hashed
+        self.peridot = peridot
 
         # Relevant major version items
         self.arch = config['arch']
@@ -1763,6 +1765,9 @@ class LiveBuild:
         mock_iso_template = self.tmplenv.get_template('isomock.tmpl.cfg')
         mock_sh_template = self.tmplenv.get_template('liveisobuild.tmpl.sh')
         iso_template = self.tmplenv.get_template('buildLiveImage.tmpl.sh')
+        kloc = 'stage'
+        if self.peridot:
+            kloc = 'peridot'
 
         mock_iso_path = '/var/tmp/live-{}.cfg'.format(self.major_version)
         mock_sh_path = '{}/liveisobuild-{}-{}.sh'.format(
@@ -1866,6 +1871,7 @@ class LiveBuild:
                 major=self.major_version,
                 git_clone=git_clone_cmd,
                 ks_file=ks_start,
+                kloc=kloc,
         )
 
         with open(mock_iso_path, "w+") as mip:
