@@ -102,6 +102,7 @@
         <StorageController name="IDE Controller" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
           <AttachedDevice type="HardDisk" hotpluggable="false" port="0" device="0">
             <Image uuid="{289f1414-3b53-40b9-8d43-1993c752c5cc}"/>
+          </AttachedDevice>
         </StorageController>
       </StorageControllers>
     </vbox:Machine>
