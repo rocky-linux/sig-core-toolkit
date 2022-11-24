@@ -17,7 +17,7 @@ cd /builddir
 {% endif %}
 
 {{ git_clone }}
-if [ -d "/builddir/ks/live/{{ major }}/peridot" ]; then
+if [ -d "/builddir/ks/live/{{ major }}/{{ arch }}/peridot" ]; then
   pushd /builddir/ks/live/{{ major }}/{{ arch }}/peridot || { echo "Could not change directory"; exit 1; }
 else
   pushd /builddir/ks/live/{{ major }}/{{ arch }}/stage   || { echo "Could not change directory"; exit 1; }
