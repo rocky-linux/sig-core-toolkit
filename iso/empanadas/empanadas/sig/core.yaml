@@ -2,7 +2,7 @@
 core:
   '8':
     profile: 'core'
-    project_id: ''
+    project_id: '91e0dd2f-448e-4b75-9066-3946aceb60db'
     addtional_dirs: []
     repo:
       core-common:
@@ -23,7 +23,7 @@ core:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
   '9':
     profile: 'core'
-    project_id: ''
+    project_id: '47e0b4a8-84ba-43a9-bb94-eb99dde4cf14'
     addtional_dirs: []
     repo:
       core-common:
