@@ -1179,11 +1179,11 @@ class IsoBuild:
                 exclude=[
                     "*/lost+found",
                     "*/boot.iso",
-                    "*/images",
-                    "*/isolinux",
-                    "*/EFI",
-                    "*/boot",
-                    "*/ppc",
+                    "*/images/*",
+                    "*/isolinux/*",
+                    "*/EFI/*",
+                    "*/boot/*",
+                    "*/ppc/*",
                     "*/generic.ins"
                 ]
         )
