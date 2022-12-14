@@ -1176,7 +1176,16 @@ class IsoBuild:
                 grafts,
                 xorrs,
                 files,
-                exclude=["*/lost+found", "*/boot.iso"]
+                exclude=[
+                    "*/lost+found",
+                    "*/boot.iso",
+                    "*/images",
+                    "*/isolinux",
+                    "*/EFI",
+                    "*/boot",
+                    "*/ppc",
+                    "*/generic.ins"
+                ]
         )
 
         if self.iso_map['xorrisofs']:
