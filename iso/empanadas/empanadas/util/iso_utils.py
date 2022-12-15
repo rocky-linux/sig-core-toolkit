@@ -709,7 +709,7 @@ class IsoBuild:
         self._extra_iso_build_wrap()
 
         self.log.info('Compose repo directory: %s' % sync_root)
-        self.log.info('ISO result directory: %s/$arch' % self.lorax_work_dir)
+        self.log.info('ISO result directory: %s/$arch' % self.iso_work_dir)
         self.log.info(Color.INFO + 'Extra ISO phase completed.')
 
     def _extra_iso_build_wrap(self):
@@ -793,7 +793,7 @@ class IsoBuild:
         iso_template_path = '{}/buildExtraImage-{}-{}.sh'.format(entries_dir, arch, image)
         xorriso_template_path = '{}/xorriso-{}-{}.txt'.format(entries_dir, arch, image)
         iso_readme_path = '{}/{}/README'.format(self.iso_work_dir, arch)
-        print(iso_readme_path)
+        #print(iso_readme_path)
 
         log_root = os.path.join(
                 work_root,
