@@ -19,7 +19,7 @@ if [ $ret_val -eq "0" ]; then
   # disabling because none of our files should be starting with dashes. If they
   # are something is *seriously* wrong here.
   # shellcheck disable=SC2035
-  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
+  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable --delete \
       {} "${TARGET}"
 
   cd "${PRODUCTION_ROOT}/${SIG_CATEGORY_STUB}/" || { echo "Failed to change directory"; exit 1; }
