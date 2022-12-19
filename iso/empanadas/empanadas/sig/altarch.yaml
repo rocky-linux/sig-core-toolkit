@@ -10,6 +10,9 @@ altarch:
       altarch-rockyrpi:
         allowed_arches:
           - aarch64
+      altarch-devel:
+        allowed_arches:
+          - aarch64
     additional_dirs:
       - 'images'
     extra_files:
@@ -28,6 +31,9 @@ altarch:
         allowed_arches:
           - aarch64
       altarch-rockyrpi:
+        allowed_arches:
+          - aarch64
+      altarch-devel:
         allowed_arches:
           - aarch64
     additional_dirs:
