@@ -8,10 +8,11 @@ import os
 import subprocess
 import sys
 import argparse
-import subprocess
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--pkg", help="Package name to bump (can be comma delimited list)", required=True)
+parser.add_argument("--pkg",
+                    help="Package name to bump (can be comma delimited list)",
+                    required=True)
 parser.add_argument("--branch", help="Package branch", required=True)
 parser.add_argument("--sig", help="Name of SIG that holds this package")
 parser.add_argument("--peridot-import", help="Tell peridot to import",
@@ -31,15 +32,21 @@ parser.add_argument("--peridot-client-id",
 parser.add_argument("--peridot-client-secret",
                     help="Peridot client secret (PERIDOT_CLIENT_SECRET)",
                     required=False)
-parser.add_argument("--dry", help="Do a dry bump for testing",
+parser.add_argument("--dry",help="Do a dry bump for testing",
                     required=False, action='store_true')
 
 parser.add_argument("--git-user", default="Release Engineering")
 parser.add_argument("--git-email", default="releng@rockylinux.org")
+parser.add_argument("--change-user",
+                    help="Sets the user for the rpm changelog (first last <email>)",
+                    default="Release Engineering <releng@rockylinux.org>")
+parser.add_argument("--change-comment",
+                    help="Sets the comment that will appear in the changelog and commit message",
+                    default="Release tag bump for rebuild (https://sig-core.rocky.page/rebuild/)")
 
-args = parser.parse_args()
-user = 'Release Engineering <releng@rockylinux.org>'
-comment = 'Release tag bump for rebuild (https://sig-core.rocky.page/rebuild/)'
+args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
+user = args.change_user
+comment = args.change_comment
 
 if args.peridot_import:
     peridot_api_endpoint = os.environ.get('PERIDOT_ENDPOINT') or args.peridot_endpoint
