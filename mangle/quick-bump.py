@@ -13,7 +13,7 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument("--pkg", help="Package name to bump (can be comma delimited list)", required=True)
 parser.add_argument("--branch", help="Package branch", required=True)
-parser.add_argument("--sig", help="Name of SIG package", required=True)
+parser.add_argument("--sig", help="Name of SIG that holds this package")
 parser.add_argument("--peridot-import", help="Tell peridot to import",
                     required=False, action='store_true')
 parser.add_argument("--peridot-endpoint",
