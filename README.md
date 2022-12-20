@@ -13,8 +13,7 @@ What does this have?
 * analyze -> Analysis utilities (such as download stats)
 * chat -> mattermost related utilities
 * func -> (mostly defunct) testing scripts and tools to test base functionality
-* iso -> ISO, Compose, and Sync related utilities, primarily for Rocky Linux 9+
-* live -> Live image related utilities
+* iso -> Contains `empanadas`, which provides ISO, Compose, and Sync related utilities.
 * mangle -> Manglers and other misc stuff
 * sync -> Sync tools, primarily for Rocky Linux 8 and will eventually be deprecated
 
@@ -24,10 +23,12 @@ How can I help?
 Fork this repository and open a PR with your changes. Keep these things in mind
 when you make changes:
 
-* Have pre-commit installed
-* Have shellcheck installed
+* Have pre-commit installed if possible
+* Have shellcheck installed if possible
 * Shell Scripts: These must pass a shellcheck test!
 * Python scripts: Try your best to follow PEP8 guidelines (even the best linters get things wrong)
+
+  * Note that not everything has to pass. Just try your best.
 
 Your PR should be against the devel branch at all times. PR's against the main
 branch will be closed.
