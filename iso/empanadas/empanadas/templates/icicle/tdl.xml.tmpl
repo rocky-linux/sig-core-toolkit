@@ -10,6 +10,9 @@
             <icicle>
                 <extra_command>rpm -qa --qf '%{NAME},%{VERSION},%{RELEASE},%{ARCH},%{EPOCH},%{SIZE},%{SIGMD5},%{BUILDTIME}\n'</extra_command>
             </icicle>
+        {%- if architecture == 'ppc64le' -%}
+        <kernelparam>ip=::::::dhcp:1450</kernelparam>
+        {%- endif -%}
         </os>
         <description>Rocky-{{major}}-{{type}}-{{version_variant}}.{{iso8601date}}.{{release}}.{{architecture}} Generated on {{utcnow}}</description>
     <disk>
