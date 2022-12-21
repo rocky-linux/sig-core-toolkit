@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 import argparse
+import shutil
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--pkg",
@@ -57,6 +58,10 @@ if args.peridot_import:
     print('Peridot import not supported yet')
     sys.exit(1)
 
+if os.geteuid() == 0:
+    print('DO NOT RUN AS ROOT')
+    sys.exit(1)
+
 default_url = 'ssh://git@git.rockylinux.org:22220/staging/src/%s.git' % args.pkg
 if args.sig:
     default_url = 'ssh://git@git.rockylinux.org:22220/sig/%s/src/%s.git' % (args.sig, args.pkg)
@@ -99,8 +104,11 @@ for pkg in pkgs:
 
     print('Bumping release of %s' % spec)
     bumprel = ['rpmdev-bumpspec', '-D', '-u', user, '-c', comment, spec]
+    bumprel_old = ['rpmdev-bumpspec', '-u', user, '-c', comment, spec]
     if runcmd(bumprel, 'rpmdev-bumpspec', pkg, environment):
-        continue
+        print('Potentially old bumpspec version. Trying again.')
+        if runcmd(bumprel_old, 'rpmdev-bumpspec', pkg, environment):
+            continue
 
     print('Setting git user and email for this operation')
     git_name = ['git', 'config', 'user.name', args.git_user]
@@ -121,3 +129,5 @@ for pkg in pkgs:
         print('Pushing changes for %s' % pkg)
         if runcmd(push, 'push', pkg, environment, pwd=joined_dir):
             continue
+
+        shutil.rmtree(joined_dir)
