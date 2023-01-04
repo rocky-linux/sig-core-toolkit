@@ -26,6 +26,8 @@ fi
 {% if extra_iso_mode == "podman" %}
 # symlink to unversioned image name
 ln -sf {{ isoname }} {{ generic_isoname }}
+ln -sf {{ isoname }} {{ latest_isoname }}
 ln -sf {{ isoname }}.manifest {{ generic_isoname }}.manifest
+ln -sf {{ isoname }}.manifest {{ latest_isoname }}.manifest
 
 {% endif %}

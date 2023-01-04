@@ -536,9 +536,15 @@ class IsoBuild:
         manifest = '{}.manifest'.format(isobootpath)
         link_name = '{}-{}-boot.iso'.format(self.shortname, arch)
         link_manifest = link_name + '.manifest'
+        latest_link_name = '{}-{}-latest-{}-boot.iso'.format(self.shortname,
+                                                   self.major_version,
+                                                   arch)
+        latest_link_manifest = latest_link_name + '.manifest'
         isobootpath = os.path.join(iso_to_go, discname)
         linkbootpath = os.path.join(iso_to_go, link_name)
         manifestlink = os.path.join(iso_to_go, link_manifest)
+        latestlinkbootpath = os.path.join(iso_to_go, latest_link_name)
+        latestmanifestlink = os.path.join(iso_to_go, latest_link_manifest)
 
         if not force_unpack:
             file_check = isobootpath
@@ -550,16 +556,25 @@ class IsoBuild:
         os.makedirs(iso_to_go, exist_ok=True)
         try:
             shutil.copy2(path_to_src_image, isobootpath)
+
+            # For Rocky-ARCH-boot.iso
             if os.path.exists(linkbootpath):
                 os.remove(linkbootpath)
             os.symlink(discname, linkbootpath)
+
+            # For Rocky-X-latest-ARCH-boot.iso
+            if os.path.exists(latestlinkbootpath):
+                os.remove(latestlinkbootpath)
+            os.symlink(discname, latestlinkbootpath)
         except Exception as e:
             self.log.error(Color.FAIL + 'We could not copy the image or create a symlink.')
             raise SystemExit(e)
 
+        # For Rocky-ARCH-boot.iso
         if os.path.exists(path_to_src_image + '.manifest'):
             shutil.copy2(path_to_src_image + '.manifest', manifest)
             os.symlink(manifest.split('/')[-1], manifestlink)
+            os.symlink(manifest.split('/')[-1], latestmanifestlink)
 
         self.log.info('Creating checksum for %s boot iso...' % arch)
         checksum = Shared.get_checksum(isobootpath, self.checksum, self.log)
@@ -570,12 +585,22 @@ class IsoBuild:
             c.write(checksum)
             c.close()
 
+        # For Rocky-ARCH-boot.iso
         linksum = Shared.get_checksum(linkbootpath, self.checksum, self.log)
         if not linksum:
             self.log.error(Color.FAIL + linkbootpath + ' not found! Did we actually make the symlink?')
             return
         with open(linkbootpath + '.CHECKSUM', "w+") as l:
             l.write(linksum)
+            l.close()
+
+        # For Rocky-X-latest-ARCH-boot.iso
+        latestlinksum = Shared.get_checksum(latestlinkbootpath, self.checksum, self.log)
+        if not latestlinksum:
+            self.log.error(Color.FAIL + latestlinkbootpath + ' not found! Did we actually make the symlink?')
+            return
+        with open(latestlinkbootpath + '.CHECKSUM', "w+") as l:
+            l.write(latestlinksum)
             l.close()
 
     def _copy_nondisc_to_repo(self, force_unpack, arch, repo):
@@ -844,6 +869,12 @@ class IsoBuild:
         )
 
         generic_isoname = '{}-{}-{}.iso'.format(self.shortname, arch, image)
+        latest_isoname = '{}-{}-latest-{}-{}.iso'.format(
+                                               self.shortname,
+                                               self.major_version,
+                                               arch,
+                                               image
+        )
 
         lorax_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
                 ' '.join(required_pkgs),
@@ -922,6 +953,7 @@ class IsoBuild:
                 lorax_pkg_cmd=lorax_pkg_cmd,
                 isoname=isoname,
                 generic_isoname=generic_isoname,
+                latest_isoname=latest_isoname,
         )
 
         iso_readme_template_output = iso_readme_template.render(
