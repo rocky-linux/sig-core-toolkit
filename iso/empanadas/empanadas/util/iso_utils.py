@@ -1046,8 +1046,17 @@ class IsoBuild:
                         i
                 )
 
+                latestname = '{}/{}-{}-latest-{}-{}.iso'.format(
+                        a,
+                        self.shortname,
+                        self.major_version,
+                        a,
+                        i
+                )
+
                 checksum_list.append(isoname)
                 checksum_list.append(genericname)
+                checksum_list.append(latestname)
 
             for pod in entry_name_list:
                 podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
