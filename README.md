@@ -23,6 +23,7 @@ How can I help?
 Fork this repository and open a PR with your changes. Keep these things in mind
 when you make changes:
 
+* Your PR should be against the devel branch (not optional)
 * Have pre-commit installed if possible
 * Have shellcheck installed if possible
 * Shell Scripts: These must pass a shellcheck test!
@@ -30,8 +31,9 @@ when you make changes:
 
   * Note that not everything has to pass. Just try your best.
 
-Your PR should be against the devel branch at all times. PR's against the main
-branch will be closed.
+PR's against the main branch will be closed.
+
+PR's are preferred at the [RESF Git Service](https://git.resf.org).
 
 Will some of this be moved into separate repositories?
 ------------------------------------------------------
