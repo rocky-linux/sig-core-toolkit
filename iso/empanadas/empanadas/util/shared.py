@@ -6,6 +6,7 @@ import hashlib
 import shlex
 import subprocess
 import shutil
+import tarfile
 import yaml
 import requests
 import boto3
@@ -1106,6 +1107,33 @@ class Shared:
             )
 
     @staticmethod
+    def tar_is_within_directory(directory, target):
+        """
+        CVE-2007-4559
+        """
+        abs_directory = os.path.abspath(directory)
+        abs_target = os.path.abspath(target)
+        prefix = os.path.commonprefix([abs_directory, abs_target])
+        return prefix == abs_directory
+
+    @staticmethod
+    def tar_safe_extractall(tar,
+            path=".",
+            members=None,
+            *,
+            numeric_owner=False
+        ):
+        """
+        CVE-2007-4559
+        """
+        for member in tar.getmembers():
+            member_path = os.path.join(path, member.name)
+            if not Shared.tar_is_within_directory(path, member_path):
+                raise Exception("Path traversal attempted in tar file")
+
+        tar.extractall(path, members, numeric_owner)
+
+    @staticmethod
     def dnf_sync(repo, sync_root, work_root, arch, logger):
         """
         This is for normal dnf syncs. This is very slow.
@@ -1113,4 +1141,3 @@ class Shared:
         logger.error('DNF syncing has been removed.')
         logger.error('Please install podman and enable parallel')
         raise SystemExit()
-

@@ -463,7 +463,7 @@ class IsoBuild:
 
         self.log.info('Unpacking %s' % tarball)
         with tarfile.open(tarball) as t:
-            t.extractall(unpack_dir)
+            Shared.tar_safe_extractall(t, unpack_dir)
             t.close()
 
     def _copy_lorax_to_variant(self, force_unpack, arch, image):
