@@ -25,7 +25,6 @@ NONMODS_REPOS=(
   extras
   Devel
   plus
-  rockyrpi
 )
 
 # These repos were originally separate from the main compose and need symlinks
