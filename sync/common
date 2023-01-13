@@ -15,9 +15,14 @@ if [ -z "$RLVER" ]; then
   export RLVER=8
 fi
 
+if [ -z "$RLREL" ]; then
+  export RLREL=stable
+fi
+
 # Override: Not Allowed
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
+COMPOSE_ROOT="/mnt/compose"
 
 # Override: Not Allowed
 # relative to ${ENV}_ROOT

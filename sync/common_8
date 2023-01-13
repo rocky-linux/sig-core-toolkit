@@ -1,13 +1,29 @@
 # To be sourced by scripts to use
 
 # Revision must always start with a major number
-REVISION=8.7
-
-MAJOR="${REVISION:0:1}"
-MINOR="${REVISION:2:1}"
-
-# comment or blank if needed
-APPEND_TO_DIR="-RC1"
+case "${RLREL}" in
+  stable)
+    REVISION=8.7
+    MAJOR="${REVISION:0:1}"
+    MINOR="${REVISION:2:1}"
+    APPEND_TO_DIR="-RC1"
+    ;;
+  beta)
+    REVISION=8.8
+    MAJOR="${REVISION:0:1}"
+    MINOR="${REVISION:2:1}"
+    APPEND_TO_DIR="-BETA"
+    ;;
+  lh)
+    REVISION=8.8
+    MAJOR="${REVISION:0:1}"
+    MINOR="${REVISION:2:1}"
+    APPEND_TO_DIR="-LookAhead"
+    ;;
+  *)
+    echo "option no recognized"
+    ;;
+esac
 
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
@@ -15,6 +31,7 @@ PRODUCTION_ROOT="/mnt/repos-production"
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
 RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
+RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJ}${APPEND_TO_DIR}"
 
 # Set all repos that have no comps/groups associated with them. This is even in
 # cases where repos will not be available by normal means. It's just for
