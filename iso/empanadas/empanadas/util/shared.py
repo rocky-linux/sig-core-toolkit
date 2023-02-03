@@ -73,7 +73,7 @@ class Shared:
         base = os.path.basename(path)
         # This emulates our current syncing scripts that runs stat and
         # sha256sum and what not with a very specific output.
-        return "%s: %s bytes\n%s (%s) = %s\n" % (
+        return "# %s: %s bytes\n%s (%s) = %s\n" % (
                 base,
                 stat.st_size,
                 hashtype.upper(),

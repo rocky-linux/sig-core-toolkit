@@ -10,7 +10,7 @@ conf = base.conf
 base.read_all_repos()
 all_repos = base.repos.all()
 all_repos.disable()
-base.repos.add_new_repo('all-source', conf, baseurl=['https://yumrepofs.build.resf.org/v1/projects/55b17281-bc54-4929-8aca-a8a11d628738/repo/all/src'])
+base.repos.add_new_repo('all-source', conf, baseurl=['https://yumrepofs.build.resf.org/v1/projects/0048077b-1573-4cb7-8ba7-cce823857ba5/repo/all/src'])
 base.fill_sack()
 
 q = base.sack.query()
