@@ -23,7 +23,7 @@ for y in "${ALL_REPOS[@]}"; do
   if [ "$ret_val" -eq 0 ]; then
     createrepo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree" \
       "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
-      --workers 8
+      --workers 12
     sed -i '/<open-size><\/open-size>/d' \
       "${STAGING_ROOT}/${RELEASE_DIR}/${y}/source/tree/repodata/repomd.xml"
     test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
@@ -46,7 +46,7 @@ for x in "${ARCHES[@]}"; do
       if [ "$ret_val" -eq 0 ]; then
         createrepo "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}" \
           "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
-          --workers 8
+          --workers 12
         sed -i '/<open-size><\/open-size>/d' \
           "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/${z}/repodata/repomd.xml"
         test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
@@ -63,7 +63,7 @@ for x in "${ARCHES[@]}"; do
     if [ "$ret_val" -eq 0 ]; then
       createrepo --update "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree" \
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
-        --workers 8 --retain-old-md-by-age 1d
+        --workers 12 --retain-old-md-by-age 1d
       sed -i '/<open-size><\/open-size>/d' \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/debug/tree/repodata/repomd.xml"
       test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
@@ -83,7 +83,7 @@ for x in "${ARCHES[@]}"; do
         --groupfile="/mnt/compose/8/latest-Rocky-8/work/${x}/comps/comps-${y}.${x}.xml" \
         --xz --revision="${REVISION}" \
         "--distro=cpe:/o:rocky:rocky:${REVISION:0:1},Rocky Linux ${REVISION:0:1}" \
-        --workers=8 --checksum=sha256 --retain-old-md-by-age 1d
+        --workers=12 --checksum=sha256 --retain-old-md-by-age 1d
       sed -i '/<open-size><\/open-size>/d' \
         "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os/repodata/repomd.xml"
       sed -i '/<open-size><\/open-size>/d' \
