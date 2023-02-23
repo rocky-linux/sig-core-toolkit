@@ -1141,3 +1141,111 @@ class Shared:
         logger.error('DNF syncing has been removed.')
         logger.error('Please install podman and enable parallel')
         raise SystemExit()
+
+    @staticmethod
+    def norm_dnf_sync(data, repo, sync_root, work_root, arch, logger):
+        """
+        This is for normal dnf syncs. This is very slow.
+        """
+        cmd = Shared.reposync_cmd()
+        sync_single_arch = False
+        arches_to_sync = data.arches
+        if arch:
+            sync_single_arch = True
+            arches_to_sync = [arch]
+
+        logger.info(
+                Color.BOLD + '!! WARNING !! ' + Color.END + 'You are performing a '
+                'local reposync, which will incur delays in your compose.'
+        )
+
+        if data.fullrun:
+            logger.info(
+                    Color.BOLD + '!! WARNING !! ' + Color.END + 'This is a full '
+                    'sync. Expect a few days for it to complete.'
+            )
+
+        for r in repos_to_sync:
+            for a in arches_to_sync:
+                repo_name = r
+                if r in data.repo_renames:
+                    repo_name = data.repo_renames[r]
+
+                os_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'os'
+                )
+
+                debug_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'debug/tree'
+                )
+
+                sync_cmd = "{} -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
+                        cmd,
+                        data.dnf_config,
+                        r,
+                        os_sync_path,
+                        a
+                )
+
+                debug_sync_cmd = "{} -c {} --download-metadata --repoid={}-debug -p {} --forcearch {} --norepopath".format(
+                        cmd,
+                        data.dnf_config,
+                        r,
+                        debug_sync_path,
+                        a
+                )
+
+                logger.info('Syncing {} {}'.format(r, a))
+                #logger.info(sync_cmd)
+                # Try to figure out where to send the actual output of this...
+                # Also consider on running a try/except here? Basically if
+                # something happens (like a repo doesn't exist for some arch,
+                # eg RT for aarch64), make a note of it somehow (but don't
+                # break the entire sync). As it stands with this
+                # implementation, if something fails, it just continues on.
+                process = subprocess.call(
+                        shlex.split(sync_cmd),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+                if not data.ignore_debug:
+                    logger.info('Syncing {} {} (debug)'.format(r, a))
+                    process_debug = subprocess.call(
+                            shlex.split(debug_sync_cmd),
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL
+                    )
+
+                # There should be a check here that if it's "all" and multilib
+                # is on, i686 should get synced too.
+
+            if not data.ignore_source:
+                source_sync_path = os.path.join(
+                    sync_root,
+                    repo_name,
+                    'source/tree'
+                )
+
+                source_sync_cmd = "{} -c {} --download-metadata --repoid={}-source -p {} --norepopath".format(
+                    cmd,
+                    data.dnf_config,
+                    r,
+                    source_sync_path
+                )
+
+
+                logger.info('Syncing {} source'.format(r))
+                process_source = subprocess.call(
+                        shlex.split(source_sync_cmd),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+        logger.info('Syncing complete')

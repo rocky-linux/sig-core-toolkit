@@ -325,7 +325,7 @@ class RepoSync:
         if self.parallel:
             self.podman_sync(repo, sync_root, work_root, log_root, global_work_root, arch)
         else:
-            Shared.dnf_sync(repo, sync_root, work_root, arch, self.log)
+            Shared.norm_dnf_sync(self, repo, sync_root, work_root, arch, self.log)
 
     def podman_sync(
             self,
