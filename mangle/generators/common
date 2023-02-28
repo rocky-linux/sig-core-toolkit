@@ -17,4 +17,6 @@ if [ "$?" -ne 0 ]; then
 fi
 
 STREAM_COMPOSE_BASEURL="https://composes.stream.centos.org/production"
+STREAM_KOJI_REPO="https://kojihub.stream.centos.org/kojifiles/repos"
+PERIDOT_REPO="https://yumrepofs.build.resf.org/v1/projects"
 COMPOSE_BASEDIR="/mnt/compose"

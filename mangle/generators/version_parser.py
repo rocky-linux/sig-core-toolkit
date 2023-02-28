@@ -2,11 +2,20 @@
 import os
 import os.path
 import json
+import argparse
 import dnf
 import createrepo_c as cr
 from common import *
 
-REPOS = switcher.rlver((os.environ['RLVER']))
+parser = argparse.ArgumentParser(description="Version Parser")
+parser.add_argument('--version', type=str, required=True)
+parser.add_argument('--stream', action='store_true', help="Stream koji only")
+parser.add_argument('--all-repo', action='store_true', help="Looks at the all repo for peridot")
+results = parser.parse_args()
+
+REPOS = switcher.rlver(results.version,
+                       stream=results.stream,
+                       all_repo=results.all_repo)
 
 # Source packages we do not ship or are rocky branded
 IGNORES = [

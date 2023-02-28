@@ -1,0 +1,45 @@
+#!/bin/bash
+# Parses a peridot project
+#set -x
+
+if [ -n "$1" ]; then
+  MAJOR="$1"
+else
+  echo "Major version not specified"
+  exit 1
+fi
+
+if [ -n "$2" ] && [[ "$2" == "lh" ]]; then
+  export LH="lh"
+fi
+
+export RLVER="${MAJOR}"
+source common
+
+drop="${VERSDROP}"
+current=$(pwd)
+tmpdir=$(mktemp -d)
+tag_template="all"
+peridot_repo_url="${PERIDOT_REPO}/${PERIDOT_PROJECT_ID}/repo/${tag_template}"
+
+pushd "${tmpdir}" || { echo "Could not change directory"; exit 1; }
+for y in "${ARCH[@]}"; do
+  repodatas=( $(dnf reposync --repofrompath ${tag_template},${peridot_repo_url}/${y} --download-metadata --repoid=${tag_template} -p ${tag_template}/${y} --forcearch ${y} --norepopath --remote-time --assumeyes -u | grep repodata) )
+  mkdir -p "${tag_template}/${y}/repodata"
+  pushd "${tag_template}/${y}/repodata" || { echo "Could not change directory"; exit 1; }
+  for z in "${repodatas[@]}"; do
+    wget -q -nc "${z}"
+  done
+  wget -q -nc "${peridot_repo_url}/${y}/repodata/repomd.xml"
+  popd || { echo "Could not change back..."; exit 1; }
+done
+/usr/bin/python3 "${current}/version_parser.py" --version "${MAJOR}" --all-repo
+ret_val=$?
+popd || { echo "Could not change back..."; exit 1; }
+
+if [ "$ret_val" -ne "0" ]; then
+  echo "There was an error running through the parser."
+  exit 1
+fi
+
+echo "File located at: $drop"
