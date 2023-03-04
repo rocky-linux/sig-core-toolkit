@@ -1,0 +1,20 @@
+#!/bin/bash
+# Creates a prepopulate from KPR and then creates a catalog
+set -e
+
+if [ -n "$1" ]; then
+  NEWMAJOR=$1
+else
+  echo "Major version not specified"
+  exit 1
+fi
+
+tmpdir=$(mktemp -d)
+bash generate_prepopulate_from_kpr ${NEWMAJOR}
+git clone https://github.com/rocky-linux/peridot-releng.git "${tmpdir}/peridot-releng"
+cp prepopcatalog.py "${tmpdir}/peridot-releng/pungicatalog/"
+pushd "${tmpdir}/peridot-releng" || { echo "Could not change directory"; exit 1; }
+python3 pungicatalog/prepopcatalog.py --major ${NEWMAJOR} --minor 0 --prepopulate-path /tmp/prepopulate.json --output-path "${tmpdir}/branched.cfg"
+popd || { echo "Could not change back..."; exit 1; }
+
+echo "File located at: ${tmpdir}/branched.cfg"
