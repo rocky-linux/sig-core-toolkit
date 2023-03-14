@@ -1208,26 +1208,27 @@ class IsoBuild:
                 arch
         )
 
-        xorrs = '{}/xorriso-{}.txt'.format(
+        xorrs = '{}/xorriso-{}-{}.txt'.format(
                 lorax_base_dir,
+                iso,
                 arch
         )
+
+        # Generate exclusion list/dict
+        boot_manifest = '{}/lorax/images/boot.iso.manifest'.format(lorax_base_dir)
+
+        try:
+            with open(boot_manifest) as i:
+                ignores = set(line.lstrip("/").rstrip("\n") for line in i)
+        except Exception as e:
+            self.log.error(Color.FAIL + 'File was likely not found.')
+            raise SystemExit(e)
 
         self._write_grafts(
                 grafts,
                 xorrs,
                 files,
-                exclude=[
-                    "*/lost+found",
-                    "*/boot.iso",
-                    "*/boot.iso.manifest",
-                    "EFI/*",
-                    "images/*",
-                    "isolinux/*",
-                    "boot/*",
-                    "ppc/*",
-                    "generic.ins"
-                ]
+                exclude=ignores
         )
 
         if self.iso_map['xorrisofs']:
