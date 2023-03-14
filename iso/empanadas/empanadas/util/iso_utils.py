@@ -138,10 +138,7 @@ class IsoBuild:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-{}-{}".format(
-                    self.shortname,
-                    self.profile
-                )
+                f"latest-{self.shortname}-{self.profile}"
         )
 
         self.compose_latest_sync = os.path.join(
@@ -371,11 +368,7 @@ class IsoBuild:
 
             source_path = latest_artifacts[arch]
 
-            full_drop = '{}/lorax-{}-{}.tar.gz'.format(
-                    lorax_arch_dir,
-                    self.release,
-                    arch
-            )
+            full_drop = f'{lorax_arch_dir}/lorax-{self.release}-{arch}.tar.gz'
 
             if not os.path.exists(lorax_arch_dir):
                 os.makedirs(lorax_arch_dir, exist_ok=True)
@@ -403,10 +396,7 @@ class IsoBuild:
         self.log.info(Color.INFO + 'Beginning unpack phase...')
 
         for arch in arches_to_unpack:
-            tarname = 'lorax-{}-{}.tar.gz'.format(
-                    self.release,
-                    arch
-            )
+            tarname = f'lorax-{self.release}-{arch}.tar.gz'
 
             tarball = os.path.join(
                     self.lorax_work_dir,
@@ -523,22 +513,13 @@ class IsoBuild:
         if self.release_candidate:
             rclevel = '-' + self.rclvl
 
-        discname = '{}-{}.{}{}-{}-{}.iso'.format(
-                self.shortname,
-                self.major_version,
-                self.minor_version,
-                rclevel,
-                arch,
-                'boot'
-        )
+        discname = f'{self.shortname}-{self.major_version}.{self.minor_version}{rclevel}-{arch}-boot.iso'
 
         isobootpath = os.path.join(iso_to_go, discname)
-        manifest = '{}.manifest'.format(isobootpath)
-        link_name = '{}-{}-boot.iso'.format(self.shortname, arch)
+        manifest = f'{isoboothpath}.manifest'
+        link_name = f'{self.shortname}-{arch}-boot.iso'
         link_manifest = link_name + '.manifest'
-        latest_link_name = '{}-{}-latest-{}-boot.iso'.format(self.shortname,
-                                                   self.major_version,
-                                                   arch)
+        latest_link_name = f'{self.shortname}-{self.major_version}-latest-{arch}-boot.iso'
         latest_link_manifest = latest_link_name + '.manifest'
         isobootpath = os.path.join(iso_to_go, discname)
         linkbootpath = os.path.join(iso_to_go, link_name)
@@ -813,11 +794,11 @@ class IsoBuild:
         xorriso_template = self.tmplenv.get_template('xorriso.tmpl.txt')
         iso_readme_template = self.tmplenv.get_template('ISOREADME.tmpl')
 
-        mock_iso_path = '/var/tmp/lorax-{}.cfg'.format(self.major_version)
-        mock_sh_path = '{}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
-        iso_template_path = '{}/buildExtraImage-{}-{}.sh'.format(entries_dir, arch, image)
-        xorriso_template_path = '{}/xorriso-{}-{}.txt'.format(entries_dir, arch, image)
-        iso_readme_path = '{}/{}/README'.format(self.iso_work_dir, arch)
+        mock_iso_path = f'/var/tmp/lorax-{self.major_version}.cfg'
+        mock_sh_path = f'{entries_dir}/extraisobuild-{arch}-{image}.sh'
+        iso_template_path = f'{entries_dir}/buildExtraImage-{arch}-{image}.sh'
+        xorriso_template_path = f'{entries_dir}/xorriso-{arch}-{image}.txt'
+        iso_readme_path = f'{self.iso_work_dir}/{arch}/README'
         #print(iso_readme_path)
 
         log_root = os.path.join(
@@ -829,7 +810,7 @@ class IsoBuild:
         if not os.path.exists(log_root):
             os.makedirs(log_root, exist_ok=True)
 
-        log_path_command = '| tee -a {}/{}-{}.log'.format(log_root, arch, image)
+        log_path_command = f'| tee -a {log_root}/{arch}-{image}.log'
 
         # This is kind of a hack. Installing xorrisofs sets the alternatives to
         # it, so backwards compatibility is sort of guaranteed. But we want to
@@ -850,31 +831,10 @@ class IsoBuild:
         if self.updated_image:
             datestamp = '-' + self.updated_image_date
 
-        volid = '{}-{}-{}{}-{}-{}'.format(
-                self.shortname,
-                self.major_version,
-                self.minor_version,
-                rclevel,
-                arch,
-                volname
-        )
-
-        isoname = '{}-{}{}{}-{}-{}.iso'.format(
-                self.shortname,
-                self.revision,
-                rclevel,
-                datestamp,
-                arch,
-                image
-        )
-
-        generic_isoname = '{}-{}-{}.iso'.format(self.shortname, arch, image)
-        latest_isoname = '{}-{}-latest-{}-{}.iso'.format(
-                                               self.shortname,
-                                               self.major_version,
-                                               arch,
-                                               image
-        )
+        volid = f'{self.shortname}-{self.major_version}-{self.minor_version}{rclevel}-{arch}-{volname}'
+        isoname = f'{self.shortname}-{self.revision}{rclevel}{datestamp}-{arch}-{image}.iso'
+        generic_isoname = f'{self.shortname}-{arch}-{image}.iso'
+        latest_isoname = f'{self.shortname}-{self.major_version}-latest-{arch}-{image}.iso'
 
         lorax_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
                 ' '.join(required_pkgs),
@@ -986,7 +946,7 @@ class IsoBuild:
         have mock available.
         """
         entries_dir = os.path.join(work_root, "entries")
-        extra_iso_cmd = '/bin/bash {}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
+        extra_iso_cmd = f'/bin/bash {entries_dir}/extraisobuild-{arch}-{image}.sh'
         self.log.info('Starting mock build...')
         p = subprocess.call(shlex.split(extra_iso_cmd))
         if p != 0:
@@ -1022,7 +982,7 @@ class IsoBuild:
             arch_sync = arches.copy()
 
             for a in arch_sync:
-                entry_name = 'buildExtraImage-{}-{}.sh'.format(a, i)
+                entry_name = f'buildExtraImage-{a}-{i}.sh'
                 entry_name_list.append(entry_name)
 
                 rclevel = ''
@@ -1080,10 +1040,7 @@ class IsoBuild:
             join_all_pods = ' '.join(entry_name_list)
             time.sleep(3)
             self.log.info(Color.INFO + 'Building ' + i + ' ...')
-            pod_watcher = '{} wait {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            pod_watcher = f'{cmd} wait {join_all_pods}'
 
             watch_man = subprocess.call(
                     shlex.split(pod_watcher),
@@ -1095,10 +1052,7 @@ class IsoBuild:
             # code.
             pattern = "Exited (0)"
             for pod in entry_name_list:
-                checkcmd = '{} ps -f status=exited -f name={}'.format(
-                        cmd,
-                        pod
-                )
+                checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
                         checkcmd,
                         stdout=subprocess.PIPE,
@@ -1111,10 +1065,7 @@ class IsoBuild:
                     self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
-            rmcmd = '{} rm {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            rmcmd = f'{cmd} rm {join_all_pods}'
 
             rmpod = subprocess.Popen(
                     rmcmd,
@@ -1202,20 +1153,12 @@ class IsoBuild:
             for k, v in self._get_grafts([rd_for_var]).items():
                 files[os.path.join(repo, "repodata", k)] = v
 
-        grafts = '{}/{}-{}-grafts'.format(
-                lorax_base_dir,
-                iso,
-                arch
-        )
+        grafts = f'{lorax_base_dir}/{iso}-{arch}-grafts'
 
-        xorrs = '{}/xorriso-{}-{}.txt'.format(
-                lorax_base_dir,
-                iso,
-                arch
-        )
+        xorrs = f'{lorax_base_dir}/xorriso-{iso}-{arch}.txt'
 
         # Generate exclusion list/dict
-        boot_manifest = '{}/lorax/images/boot.iso.manifest'.format(lorax_base_dir)
+        boot_manifest = f'{lorax_base_dir}/lorax/images/boot.iso.manifest'
 
         try:
             with open(boot_manifest) as i:
@@ -1501,15 +1444,9 @@ class IsoBuild:
                         drop_name = source_path.split('/')[-3] + fsuffix
 
                     checksum_name = drop_name + '.CHECKSUM'
-                    full_drop = '{}/{}'.format(
-                            image_arch_dir,
-                            drop_name
-                    )
+                    full_drop = f'{image_arch_dir}/{drop_name}'
 
-                    checksum_drop = '{}/{}.CHECKSUM'.format(
-                            image_arch_dir,
-                            drop_name
-                    )
+                    checksum_drop = f'{image_arch_dir}/{drop_name}.CHECKSUM'
 
                     if not os.path.exists(image_arch_dir):
                         os.makedirs(image_arch_dir, exist_ok=True)
@@ -1695,10 +1632,7 @@ class LiveBuild:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-{}-{}".format(
-                    self.shortname,
-                    self.profile
-                )
+                f"latest-{self.shortname}-{self.profile}"
         )
 
         self.compose_latest_sync = os.path.join(
@@ -1821,17 +1755,9 @@ class LiveBuild:
         if self.peridot:
             kloc = 'peridot'
 
-        mock_iso_path = '/var/tmp/live-{}.cfg'.format(self.major_version)
-        mock_sh_path = '{}/liveisobuild-{}-{}.sh'.format(
-                entries_dir,
-                self.current_arch,
-                image
-        )
-        iso_template_path = '{}/buildLiveImage-{}-{}.sh'.format(
-                entries_dir,
-                self.current_arch,
-                image
-        )
+        mock_iso_path = f'/var/tmp/live-{self.major_version}.cfg'
+        mock_sh_path = f'{entries_dir}/liveisobuild-{self.current_arch}-{image}.sh'
+        iso_template_path = f'{entries_dir}/buildLiveImage-{self.current_arch}-{image}.sh'
 
         log_root = os.path.join(
                 work_root,
@@ -1844,27 +1770,12 @@ class LiveBuild:
         if not os.path.exists(log_root):
             os.makedirs(log_root, exist_ok=True)
 
-        log_path_command = '| tee -a {}/{}-{}.log'.format(
-                log_root,
-                self.current_arch,
-                image
-        )
+        log_path_command = f'| tee -a {log_root}/{self.current_arch}-{image}.log'
         required_pkgs = self.livemap['required_pkgs']
 
-        volid = '{}-{}-{}-{}'.format(
-                self.shortname,
-                self.major_version,
-                self.minor_version,
-                image
-        )
+        volid = f'{self.shortname}-{self.major_version}-{self.minor_version}-{image}'
 
-        isoname = '{}-{}-{}-{}-{}.iso'.format(
-                self.shortname,
-                self.release,
-                image,
-                self.current_arch,
-                self.date
-        )
+        isoname = f'{self.shortname}-{self.release}-{image}-{self.current_arch}-{self.date}.iso'
 
         live_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
                 ' '.join(required_pkgs),
@@ -1961,17 +1872,10 @@ class LiveBuild:
         self.log.warn(Color.WARN + 'This mode does not work properly. It will fail.')
         for i in images:
             image_name = i
-            entry_name = 'buildLiveImage-{}-{}.sh'.format(arch, i)
+            entry_name = f'buildLiveImage-{arch}-{i}.sh'
             entry_name_list.append(entry_name)
 
-            isoname = '{}/{}-{}-{}-{}-{}.iso'.format(
-                    arch,
-                    self.shortname,
-                    i,
-                    self.major_version,
-                    arch,
-                    self.date
-            )
+            isoname = f'{arch}/{self.shortname}-{i}-{self.major_version}-{arch}-{self.date}.iso'
 
             checksum_list.append(isoname)
 
@@ -1999,10 +1903,7 @@ class LiveBuild:
         time.sleep(3)
         self.log.info(Color.INFO + 'Building requested live images ...')
 
-        pod_watcher = '{} wait {}'.format(
-                cmd,
-                join_all_pods
-        )
+        pod_watcher = f'{cmd} wait {join_all_pods}'
 
         watch_man = subprocess.call(
                 shlex.split(pod_watcher),
@@ -2014,10 +1915,7 @@ class LiveBuild:
         # code.
         pattern = "Exited (0)"
         for pod in entry_name_list:
-            checkcmd = '{} ps -f status=exited -f name={}'.format(
-                    cmd,
-                    pod
-            )
+            checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
             podcheck = subprocess.Popen(
                     checkcmd,
                     stdout=subprocess.PIPE,
@@ -2030,10 +1928,7 @@ class LiveBuild:
                 self.log.error(Color.FAIL + pod)
                 bad_exit_list.append(pod)
 
-        rmcmd = '{} rm {}'.format(
-                cmd,
-                join_all_pods
-        )
+        rmcmd = f'{cmd} rm {join_all_pods}'
 
         rmpod = subprocess.Popen(
                 rmcmd,
@@ -2073,25 +1968,9 @@ class LiveBuild:
         """
         entries_dir = os.path.join(work_root, "entries")
         live_dir_arch = os.path.join(self.live_work_dir, arch)
-        isoname = '{}-{}-{}-{}-{}.iso'.format(
-                self.shortname,
-                self.release,
-                image,
-                arch,
-                self.date
-        )
-        isolink = '{}-{}-{}-{}-{}.iso'.format(
-                self.shortname,
-                self.major_version,
-                image,
-                arch,
-                'latest'
-        )
-        live_res_dir = '/var/lib/mock/{}-{}-{}/result'.format(
-                self.shortname.lower(),
-                self.major_version,
-                arch
-        )
+        isoname = f'{self.shortname}-{self.release}-{image}-{arch}-{self.date}.iso'
+        isolink = f'{self.shortname}-{self.major_version}-{image}-{arch}-latest.iso'
+        live_res_dir = f'/var/lib/mock/{self.shortname.lower()}-{self.major_version}-{arch}/result'
 
         if self.justcopyit:
             if os.path.exists(os.path.join(live_dir_arch, isoname)):
@@ -2102,7 +1981,7 @@ class LiveBuild:
                     self.log.warn(Color.WARN + 'Skipping.')
                     return
 
-        live_iso_cmd = '/bin/bash {}/liveisobuild-{}-{}.sh'.format(entries_dir, arch, image)
+        live_iso_cmd = f'/bin/bash {entries_dir}/liveisobuild-{arch}-{image}.sh'
         self.log.info('Starting mock build...')
         p = subprocess.call(shlex.split(live_iso_cmd))
         if p != 0:
