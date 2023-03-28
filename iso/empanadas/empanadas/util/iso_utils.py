@@ -1165,7 +1165,7 @@ class IsoBuild:
         # based on an issue I had filed. The above was the original part, the
         # below is a pungi "buildinstall" thing that we don't do, but may
         # include as a feature if it ever happens.
-        updatable_files = set(ArchCheck.boot_configs, ArchCheck.boot_images, ['.discinfo'])
+        updatable_files = set(ArchCheck.boot_configs + ArchCheck.boot_images + ['.discinfo'])
         ignores = set()
         updatables = set()
 
