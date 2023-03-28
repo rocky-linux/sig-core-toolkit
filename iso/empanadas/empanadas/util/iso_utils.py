@@ -1259,13 +1259,20 @@ class IsoBuild:
             fx = open(xorrspath, "w")
             for zm in sorted(result, key=self._sorting):
                 found = False
+                replace = False
                 for excl in exclude:
                     if fnmatch(zm, excl):
                         found = True
                         break
+                for upda in update:
+                    if fnmatch(zm, upda):
+                        replace = True
+                        break
                 if found:
                     continue
-                fx.write("-map %s %s\n" % (u[zm], zm))
+                mcmd = "-update" if replace else "-map"
+                #fx.write("-map %s %s\n" % (u[zm], zm))
+                fx.write("%s %s %s\n" % (mcmd, u[zm], zm))
             fx.close()
         else:
             fh = open(filepath, "w")
