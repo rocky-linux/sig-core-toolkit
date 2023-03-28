@@ -1157,12 +1157,26 @@ class IsoBuild:
 
         xorrs = f'{lorax_base_dir}/xorriso-{iso}-{arch}.txt'
 
-        # Generate exclusion list/dict
+        # Generate exclusion list/dict from boot.iso manifest
         boot_manifest = f'{lorax_base_dir}/lorax/images/boot.iso.manifest'
+        # Boot configs and images that may change
+        # It's unlikely these will be changed in empanadas, they're used as is
+        # and it works fine. This is a carry over from a recent pungi commit,
+        # based on an issue I had filed. The above was the original part, the
+        # below is a pungi "buildinstall" thing that we don't do, but may
+        # include as a feature if it ever happens.
+        updatable_files = set(ArchCheck.boot_configs, ArchCheck.boot_images, ['.discinfo'])
+        ignores = set()
+        updatables = set()
 
         try:
             with open(boot_manifest) as i:
-                ignores = set(line.lstrip("/").rstrip("\n") for line in i)
+                for line in i:
+                    path = line.lstrip("/").rstrip("\n")
+                    if path in updatable_files:
+                        updatables.add(path)
+                    else:
+                        ignores.add(path)
         except Exception as e:
             self.log.error(Color.FAIL + 'File was likely not found.')
             raise SystemExit(e)
@@ -1171,7 +1185,8 @@ class IsoBuild:
                 grafts,
                 xorrs,
                 files,
-                exclude=ignores
+                exclude=ignores,
+                update=updatables
         )
 
         if self.iso_map['xorrisofs']:
@@ -1211,12 +1226,17 @@ class IsoBuild:
 
         return result
 
-    def _write_grafts(self, filepath, xorrspath, u, exclude=None):
+    def _write_grafts(self, filepath, xorrspath, u, exclude=None, update=None):
         """
         Write out the graft points
         """
         seen = set()
+        # There are files that are on the exclude list typically.
         exclude = exclude or []
+        # There is a chance files may get updated before being placed in a
+        # variant ISO - it's rare though. most that will be different is
+        # .discinfo
+        update = update or []
         result = {}
         for zl in sorted(u, reverse=True):
             dirn = os.path.dirname(zl)

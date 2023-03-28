@@ -40,6 +40,18 @@ class ArchCheck:
         ]
     }
 
+    # These are files that can potentially change on an image.
+    boot_configs = [
+            "isolinux/isolinux.cfg",
+            "etc/yaboot.conf",
+            "ppc/ppc64/yaboot.conf",
+            "EFI/BOOT/BOOTX64.conf",
+            "EFI/BOOT/grub.cfg"
+    ]
+    boot_images = [
+            "images/efiboot.img"
+    ]
+
 class Shared:
     """
     Quick utilities that may be commonly used
