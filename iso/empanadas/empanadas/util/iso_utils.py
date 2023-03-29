@@ -35,7 +35,7 @@ import productmd.treeinfo
 from jinja2 import Environment, FileSystemLoader
 
 from empanadas.common import Color, _rootdir
-from empanadas.util import Shared, ArchCheck
+from empanadas.util import Shared, ArchCheck, Idents
 
 class IsoBuild:
     """
@@ -516,7 +516,7 @@ class IsoBuild:
         discname = f'{self.shortname}-{self.major_version}.{self.minor_version}{rclevel}-{arch}-boot.iso'
 
         isobootpath = os.path.join(iso_to_go, discname)
-        manifest = f'{isoboothpath}.manifest'
+        manifest = f'{isobootpath}.manifest'
         link_name = f'{self.shortname}-{arch}-boot.iso'
         link_manifest = link_name + '.manifest'
         latest_link_name = f'{self.shortname}-{self.major_version}-latest-{arch}-boot.iso'
@@ -1209,12 +1209,12 @@ class IsoBuild:
             if isinstance(p, dict):
                 tree = p
             else:
-                tree = self._scanning(p)
-            result = self._merging(result, tree)
+                tree = Idents.scanning(p)
+            result = Idents.merging(result, tree)
 
         for p in exclusive_paths:
-            tree = self._scanning(p)
-            result = self._merging(result, tree, exclusive=True)
+            tree = Idents.scanning(p)
+            result = Idents.merging(result, tree, exclusive=True)
 
         # Resolves possible symlinks
         for key in result.keys():
@@ -1260,7 +1260,7 @@ class IsoBuild:
         # the boot.iso manifest to exclude a file
         if self.iso_map['xorrisofs']:
             fx = open(xorrspath, "w")
-            for zm in sorted(result, key=self._sorting):
+            for zm in sorted(result, key=Idents.sorting):
                 found = False
                 replace = False
                 for upda in update:
@@ -1282,7 +1282,7 @@ class IsoBuild:
             fh = open(filepath, "w")
             self.log.info(Color.WARN + 'Nothing should be excluded in legacy ' +
                           'genisoimage. Ignoring exclude list.')
-            for zl in sorted(result, key=self._sorting):
+            for zl in sorted(result, key=Idents.sorting):
                 #found = False
                 #for excl in exclude:
                 #    if fnmatch(zl, excl):
@@ -1292,94 +1292,6 @@ class IsoBuild:
                 #    continue
                 fh.write("%s=%s\n" % (zl, u[zl]))
             fh.close()
-
-    def _scanning(self, p):
-        """
-        Scan tree
-        """
-        path = os.path.abspath(p)
-        result = {}
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                abspath = os.path.join(root, file)
-                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
-                result[relpath] = abspath
-
-            # Include empty directories too
-            if root != path:
-                abspath = os.path.join(root, "")
-                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
-                result[relpath] = abspath
-
-        return result
-
-
-    def _merging(self, tree_a, tree_b, exclusive=False):
-        """
-        Merge tree
-        """
-        result = tree_b.copy()
-        all_dirs = set(
-            [os.path.dirname(dirn).rstrip("/") for dirn in result if os.path.dirname(dirn) != ""]
-        )
-
-        for dirn in tree_a:
-            dn = os.path.dirname(dirn)
-            if exclusive:
-                match = False
-                for x in all_dirs:
-                    if dn == x or dn.startswith("%s/" % x):
-                        match = True
-                        break
-                if match:
-                    continue
-
-            if dirn in result:
-                continue
-
-            result[dirn] = tree_a[dirn]
-        return result
-
-    def _sorting(self, k):
-        """
-        Sorting using the is_rpm and is_image funcs. Images are first, extras
-        next, rpm's last.
-        """
-        rolling = (0 if self._is_image(k) else 2 if self._is_rpm(k) else 1, k)
-        return rolling
-
-    def _is_rpm(self, k):
-        """
-        Is this an RPM? :o
-        """
-        result = k.endswith(".rpm")
-        return result
-
-    def _is_image(self, k):
-        """
-        Is this an image? :o
-        """
-        if (
-                k.startswith("images/") or
-                k.startswith("isolinux/") or
-                k.startswith("EFI/") or
-                k.startswith("etc/") or
-                k.startswith("ppc/")
-           ):
-            return True
-
-        if (
-                k.endswith(".img") or
-                k.endswith(".ins")
-           ):
-            return True
-
-        return False
-
-    def _get_vol_id(self):
-        """
-        Gets a volume ID
-        """
 
     def run_pull_generic_images(self):
         """

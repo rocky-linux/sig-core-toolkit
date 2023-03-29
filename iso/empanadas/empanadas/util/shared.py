@@ -1159,7 +1159,7 @@ class Shared:
         """
         This is for normal dnf syncs. This is very slow.
         """
-        cmd = Shared.reposync_cmd()
+        cmd = Shared.reposync_cmd(logger)
         sync_single_arch = False
         arches_to_sync = data.arches
         if arch:
@@ -1261,3 +1261,100 @@ class Shared:
                 )
 
         logger.info('Syncing complete')
+
+class Idents:
+    """
+    Identifiers or locators
+    """
+    @staticmethod
+    def scanning(p):
+        """
+        Scan tree
+        """
+        path = os.path.abspath(p)
+        result = {}
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                abspath = os.path.join(root, file)
+                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
+                result[relpath] = abspath
+
+            # Include empty directories too
+            if root != path:
+                abspath = os.path.join(root, "")
+                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
+                result[relpath] = abspath
+
+        return result
+
+    @staticmethod
+    def merging(tree_a, tree_b, exclusive=False):
+        """
+        Merge tree
+        """
+        result = tree_b.copy()
+        all_dirs = set(
+            [os.path.dirname(dirn).rstrip("/") for dirn in result if os.path.dirname(dirn) != ""]
+        )
+
+        for dirn in tree_a:
+            dn = os.path.dirname(dirn)
+            if exclusive:
+                match = False
+                for x in all_dirs:
+                    if dn == x or dn.startswith("%s/" % x):
+                        match = True
+                        break
+                if match:
+                    continue
+
+            if dirn in result:
+                continue
+
+            result[dirn] = tree_a[dirn]
+        return result
+
+    @staticmethod
+    def sorting(k):
+        """
+        Sorting using the is_rpm and is_image funcs. Images are first, extras
+        next, rpm's last.
+        """
+        rolling = (0 if Idents.is_image(k) else 2 if Idents.is_rpm(k) else 1, k)
+        return rolling
+
+    @staticmethod
+    def is_rpm(k):
+        """
+        Is this an RPM? :o
+        """
+        result = k.endswith(".rpm")
+        return result
+
+    @staticmethod
+    def is_image(k):
+        """
+        Is this an image? :o
+        """
+        if (
+                k.startswith("images/") or
+                k.startswith("isolinux/") or
+                k.startswith("EFI/") or
+                k.startswith("etc/") or
+                k.startswith("ppc/")
+           ):
+            return True
+
+        if (
+                k.endswith(".img") or
+                k.endswith(".ins")
+           ):
+            return True
+
+        return False
+
+    @staticmethod
+    def get_vol_id(opts):
+        """
+        Gets a volume ID
+        """
