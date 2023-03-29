@@ -1174,9 +1174,9 @@ class IsoBuild:
                 for line in i:
                     path = line.lstrip("/").rstrip("\n")
                     if path in updatable_files:
-                        updatables.add(path)
+                        updatables.add("*/" +path)
                     else:
-                        ignores.add(path)
+                        ignores.add("*/" + path)
         except Exception as e:
             self.log.error(Color.FAIL + 'File was likely not found.')
             raise SystemExit(e)
@@ -1255,6 +1255,11 @@ class IsoBuild:
                 result[zl] = u[zl]
             seen.add(dirn)
 
+        # Note to self, we need to add a "/" to the list of files
+        # that we're either updating or ignoring..
+        # also we need to add the update logic to the classic.
+        #exclude_list = [os.path.join('/', exc) for exc in exclude]
+        #update_list = [os.path.join('/', upd) for upd in update]
         if self.iso_map['xorrisofs']:
             fx = open(xorrspath, "w")
             for zm in sorted(result, key=self._sorting):
@@ -1271,7 +1276,6 @@ class IsoBuild:
                 if found:
                     continue
                 mcmd = "-update" if replace else "-map"
-                #fx.write("-map %s %s\n" % (u[zm], zm))
                 fx.write("%s %s %s\n" % (mcmd, u[zm], zm))
             fx.close()
         else:
