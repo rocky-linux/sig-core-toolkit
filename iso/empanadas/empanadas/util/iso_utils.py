@@ -1265,15 +1265,15 @@ class IsoBuild:
             for zm in sorted(result, key=self._sorting):
                 found = False
                 replace = False
-                for excl in exclude:
-                    #if fnmatch(zm, excl):
-                    if excl in zm:
-                        found = True
-                        break
                 for upda in update:
                     #if fnmatch(zm, upda):
                     if upda in zm:
                         replace = True
+                        break
+                for excl in exclude:
+                    #if fnmatch(zm, excl):
+                    if excl in zm:
+                        found = True
                         break
                 if found:
                     continue
