@@ -1256,11 +1256,8 @@ class IsoBuild:
                 result[zl] = u[zl]
             seen.add(dirn)
 
-        # Note to self, we need to add a "/" to the list of files
-        # that we're either updating or ignoring..
-        # also we need to add the update logic to the classic.
-        #exclude_list = [os.path.join('/', exc) for exc in exclude]
-        #update_list = [os.path.join('/', upd) for upd in update]
+        # We check first if a file needs to be updated first before relying on
+        # the boot.iso manifest to exclude a file
         if self.iso_map['xorrisofs']:
             fx = open(xorrspath, "w")
             for zm in sorted(result, key=self._sorting):
@@ -1268,12 +1265,12 @@ class IsoBuild:
                 replace = False
                 for upda in update:
                     if fnmatch(zm, upda):
-                        print(f'updating: {zm} {upda}')
+                        #print(f'updating: {zm} {upda}')
                         replace = True
                         break
                 for excl in exclude:
                     if fnmatch(zm, excl):
-                        print(f'ignoring: {zm} {excl}')
+                        #print(f'ignoring: {zm} {excl}')
                         found = True
                         break
                 if found:
@@ -1283,14 +1280,16 @@ class IsoBuild:
             fx.close()
         else:
             fh = open(filepath, "w")
+            self.log.info(Color.WARN + 'Nothing should be excluded in legacy ' +
+                          'genisoimage. Ignoring exclude list.')
             for zl in sorted(result, key=self._sorting):
-                found = False
-                for excl in exclude:
-                    if fnmatch(zl, excl):
-                        found = True
-                        break
-                if found:
-                    continue
+                #found = False
+                #for excl in exclude:
+                #    if fnmatch(zl, excl):
+                #        found = True
+                #        break
+                #if found:
+                #    continue
                 fh.write("%s=%s\n" % (zl, u[zl]))
             fh.close()
 
