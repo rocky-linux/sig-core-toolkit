@@ -3,8 +3,8 @@
 #set -x
 
 if [ -n "$1" ] && [ -n "$2" ]; then
-  MAJOR=$1
-  DATE=$2
+  MAJOR="$1"
+  DATE="$2"
 else
   echo "Major version not specified"
   exit 1
@@ -18,7 +18,7 @@ if [ "$grep_val" -ne 0 ]; then
   echo "Date format incorrect. You must use: YYYYMMDD.X"
 fi
 
-export RLVER=$MAJOR
+export RLVER="${MAJOR}"
 source common
 
 drop="${VERSDROP}"
@@ -40,7 +40,7 @@ for x in "${REPO[@]}"; do
     popd || { echo "Could not change back..."; exit 1; }
   done
 done
-/usr/bin/python3 "${current}/version_parser.py"
+/usr/bin/python3 "${current}/version_parser.py" --version "${MAJOR}"
 ret_val=$?
 popd || { echo "Could not change back..."; exit 1; }
 

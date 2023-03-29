@@ -1,3 +1,5 @@
-__pycache__/                                                                                                                                                                                                         *.py[cod]
+__pycache__/
+*.py[cod]
 *$py.class
 *.so
+generate_prepopulate_from_self

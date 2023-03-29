@@ -40,6 +40,18 @@ class ArchCheck:
         ]
     }
 
+    # These are files that can potentially change on an image.
+    boot_configs = [
+            "isolinux/isolinux.cfg",
+            "etc/yaboot.conf",
+            "ppc/ppc64/yaboot.conf",
+            "EFI/BOOT/BOOTX64.conf",
+            "EFI/BOOT/grub.cfg"
+    ]
+    boot_images = [
+            "images/efiboot.img"
+    ]
+
 class Shared:
     """
     Quick utilities that may be commonly used
@@ -73,7 +85,7 @@ class Shared:
         base = os.path.basename(path)
         # This emulates our current syncing scripts that runs stat and
         # sha256sum and what not with a very specific output.
-        return "%s: %s bytes\n%s (%s) = %s\n" % (
+        return "# %s: %s bytes\n%s (%s) = %s\n" % (
                 base,
                 stat.st_size,
                 hashtype.upper(),
@@ -1141,3 +1153,208 @@ class Shared:
         logger.error('DNF syncing has been removed.')
         logger.error('Please install podman and enable parallel')
         raise SystemExit()
+
+    @staticmethod
+    def norm_dnf_sync(data, repo, sync_root, work_root, arch, logger):
+        """
+        This is for normal dnf syncs. This is very slow.
+        """
+        cmd = Shared.reposync_cmd(logger)
+        sync_single_arch = False
+        arches_to_sync = data.arches
+        if arch:
+            sync_single_arch = True
+            arches_to_sync = [arch]
+
+        logger.info(
+                Color.BOLD + '!! WARNING !! ' + Color.END + 'You are performing a '
+                'local reposync, which will incur delays in your compose.'
+        )
+
+        if data.fullrun:
+            logger.info(
+                    Color.BOLD + '!! WARNING !! ' + Color.END + 'This is a full '
+                    'sync. Expect a few days for it to complete.'
+            )
+
+        for r in repos_to_sync:
+            for a in arches_to_sync:
+                repo_name = r
+                if r in data.repo_renames:
+                    repo_name = data.repo_renames[r]
+
+                os_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'os'
+                )
+
+                debug_sync_path = os.path.join(
+                        sync_root,
+                        repo_name,
+                        a,
+                        'debug/tree'
+                )
+
+                sync_cmd = "{} -c {} --download-metadata --repoid={} -p {} --forcearch {} --norepopath".format(
+                        cmd,
+                        data.dnf_config,
+                        r,
+                        os_sync_path,
+                        a
+                )
+
+                debug_sync_cmd = "{} -c {} --download-metadata --repoid={}-debug -p {} --forcearch {} --norepopath".format(
+                        cmd,
+                        data.dnf_config,
+                        r,
+                        debug_sync_path,
+                        a
+                )
+
+                logger.info('Syncing {} {}'.format(r, a))
+                #logger.info(sync_cmd)
+                # Try to figure out where to send the actual output of this...
+                # Also consider on running a try/except here? Basically if
+                # something happens (like a repo doesn't exist for some arch,
+                # eg RT for aarch64), make a note of it somehow (but don't
+                # break the entire sync). As it stands with this
+                # implementation, if something fails, it just continues on.
+                process = subprocess.call(
+                        shlex.split(sync_cmd),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+                if not data.ignore_debug:
+                    logger.info('Syncing {} {} (debug)'.format(r, a))
+                    process_debug = subprocess.call(
+                            shlex.split(debug_sync_cmd),
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL
+                    )
+
+                # There should be a check here that if it's "all" and multilib
+                # is on, i686 should get synced too.
+
+            if not data.ignore_source:
+                source_sync_path = os.path.join(
+                    sync_root,
+                    repo_name,
+                    'source/tree'
+                )
+
+                source_sync_cmd = "{} -c {} --download-metadata --repoid={}-source -p {} --norepopath".format(
+                    cmd,
+                    data.dnf_config,
+                    r,
+                    source_sync_path
+                )
+
+
+                logger.info('Syncing {} source'.format(r))
+                process_source = subprocess.call(
+                        shlex.split(source_sync_cmd),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                )
+
+        logger.info('Syncing complete')
+
+class Idents:
+    """
+    Identifiers or locators
+    """
+    @staticmethod
+    def scanning(p):
+        """
+        Scan tree
+        """
+        path = os.path.abspath(p)
+        result = {}
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                abspath = os.path.join(root, file)
+                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
+                result[relpath] = abspath
+
+            # Include empty directories too
+            if root != path:
+                abspath = os.path.join(root, "")
+                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
+                result[relpath] = abspath
+
+        return result
+
+    @staticmethod
+    def merging(tree_a, tree_b, exclusive=False):
+        """
+        Merge tree
+        """
+        result = tree_b.copy()
+        all_dirs = set(
+            [os.path.dirname(dirn).rstrip("/") for dirn in result if os.path.dirname(dirn) != ""]
+        )
+
+        for dirn in tree_a:
+            dn = os.path.dirname(dirn)
+            if exclusive:
+                match = False
+                for x in all_dirs:
+                    if dn == x or dn.startswith("%s/" % x):
+                        match = True
+                        break
+                if match:
+                    continue
+
+            if dirn in result:
+                continue
+
+            result[dirn] = tree_a[dirn]
+        return result
+
+    @staticmethod
+    def sorting(k):
+        """
+        Sorting using the is_rpm and is_image funcs. Images are first, extras
+        next, rpm's last.
+        """
+        rolling = (0 if Idents.is_image(k) else 2 if Idents.is_rpm(k) else 1, k)
+        return rolling
+
+    @staticmethod
+    def is_rpm(k):
+        """
+        Is this an RPM? :o
+        """
+        result = k.endswith(".rpm")
+        return result
+
+    @staticmethod
+    def is_image(k):
+        """
+        Is this an image? :o
+        """
+        if (
+                k.startswith("images/") or
+                k.startswith("isolinux/") or
+                k.startswith("EFI/") or
+                k.startswith("etc/") or
+                k.startswith("ppc/")
+           ):
+            return True
+
+        if (
+                k.endswith(".img") or
+                k.endswith(".ins")
+           ):
+            return True
+
+        return False
+
+    @staticmethod
+    def get_vol_id(opts):
+        """
+        Gets a volume ID
+        """

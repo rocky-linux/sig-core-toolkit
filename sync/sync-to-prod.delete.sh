@@ -1,6 +1,10 @@
 #!/bin/bash
 # Syncs everything from staging to production
 
+if [[ "$RLREL" == "lh" ]] || [[ "$RLREL" == "beta" ]]; then
+  exit 1
+fi
+
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
 source "$(dirname "$0")/common"

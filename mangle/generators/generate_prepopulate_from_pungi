@@ -27,7 +27,7 @@ current=$(pwd)
 compose_dir="${COMPOSE_BASEDIR}/${MAJOR}/Rocky-${MAJOR}-${DATE}/compose"
 
 pushd "${compose_dir}" || { echo "Could not change directory"; exit 1; }
-/usr/bin/python3 "${current}/prepopulate_parser.py"
+/usr/bin/python3 "${current}/prepopulate_parser.py" --version ${RLVER}
 ret_val=$?
 popd || { echo "Could not change back..."; exit 1; }
 

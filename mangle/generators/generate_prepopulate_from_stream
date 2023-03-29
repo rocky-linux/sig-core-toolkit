@@ -41,7 +41,7 @@ for x in "${REPO[@]}"; do
     popd || { echo "Could not change back..."; exit 1; }
   done
 done
-/usr/bin/python3 "${current}/prepopulate_parser.py"
+/usr/bin/python3 "${current}/prepopulate_parser.py" --version ${MAJOR}
 ret_val=$?
 popd || { echo "Could not change back..."; exit 1; }
 

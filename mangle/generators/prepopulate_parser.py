@@ -7,8 +7,6 @@ import dnf
 import createrepo_c as cr
 from common import *
 
-REPOS = switcher.rlver((os.environ['RLVER']))
-
 # Source packages we do not ship or are rocky branded
 IGNORES = [
         'insights-client',
@@ -22,10 +20,16 @@ IGNORES = [
 ]
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--version', type=str, required=True)
 parser.add_argument("--pungi", help="local pungi is here", action='store_true')
-args = parser.parse_args()
+parser.add_argument('--stream', action='store_true', help="Stream koji only")
 
-if args.pungi:
+results = parser.parse_args()
+
+REPOS = switcher.rlver(results.version,
+                       stream=results.stream)
+
+if results.pungi:
     APPEND_TO_PATH = '/os'
 else:
     APPEND_TO_PATH = ''

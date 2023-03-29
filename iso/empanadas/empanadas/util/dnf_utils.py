@@ -289,7 +289,9 @@ class RepoSync:
             Shared.deploy_extra_files(self.extra_files, sync_root, global_work_root, self.log)
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
             self.tweak_treeinfo(self.repo, sync_root, self.arch)
-            self.symlink_to_latest(generated_dir)
+            #self.symlink_to_latest(generated_dir)
+            Shared.symlink_to_latest(self.shortname, self.major_version,
+                    generated_dir, self.compose_latest_dir, self.log)
 
         if self.repoclosure:
             self.repoclosure_work(sync_root, work_root, log_root)
@@ -323,7 +325,7 @@ class RepoSync:
         if self.parallel:
             self.podman_sync(repo, sync_root, work_root, log_root, global_work_root, arch)
         else:
-            Shared.dnf_sync(repo, sync_root, work_root, arch, self.log)
+            Shared.norm_dnf_sync(self, repo, sync_root, work_root, arch, self.log)
 
     def podman_sync(
             self,
@@ -708,22 +710,6 @@ class RepoSync:
                     '[' + Color.BOLD + Color.GREEN + ' OK ' + Color.END + '] '
                     'No issues detected.'
             )
-
-    def symlink_to_latest(self, generated_dir):
-        """
-        Emulates pungi and symlinks latest-Rocky-X
-
-        This link will be what is updated in full runs. Whatever is in this
-        'latest' directory is what is rsynced on to staging after completion.
-        This link should not change often.
-        """
-        try:
-            os.remove(self.compose_latest_dir)
-        except:
-            pass
-
-        self.log.info('Symlinking to latest-{}-{}...'.format(self.shortname, self.major_version))
-        os.symlink(generated_dir, self.compose_latest_dir)
 
     def repoclosure_work(self, sync_root, work_root, log_root):
         """

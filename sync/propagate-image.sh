@@ -33,6 +33,8 @@ function copy(){
   for region in $REGIONS; do 
     if find_image_by_name $region; then
       echo "Found copy of $source_ami in $region - $found_image_id - Skipping"
+      unset ami_ids[$region]
+      ami_ids[$region]=$(echo $found_image_id | tr -d "'")
       continue
     fi
     echo -n "Creating copy job for $region..."
@@ -68,15 +70,32 @@ function change_privacy(){
   local finished=false
   while ! $finished; do
     for region in "${!ami_ids[@]}"; do 
-      echo -n "Making ${ami_ids[$region]} in $region $status..."
-      aws --profile resf-ami ec2 modify-image-attribute \
+      image_id=${ami_ids[$region]}
+      echo -n "Making ${image_id} in $region $status..."
+      if aws --profile resf-ami ec2 modify-image-attribute \
         --region $region \
-        --image-id "${ami_ids[$region]}" \
-        --launch-permission "${launch_permission}" 2>/dev/null
-      if [[ $? -eq 0 ]]; then
-        unset ami_ids[$region] 
-        echo ". Done"
-        continue
+        --image-id "$image_id" \
+        --launch-permission "${launch_permission}" 2>/dev/null; then
+
+        snapshot_id=$(aws --profile resf-ami ec2 describe-images \
+          --region $region \
+          --image-ids "${image_id}" \
+          --query 'Images[*].BlockDeviceMappings[0].Ebs.SnapshotId' \
+          --output text 2>&1)
+        permissions=$(aws --profile resf-ami ec2 describe-snapshot-attribute \
+            --region $region \
+            --snapshot-id "${snapshot_id}" \
+            --attribute createVolumePermission \
+            --query 'CreateVolumePermissions[0].Group' \
+            --output text 2>&1)
+        if [[ "$permissions" == "all" ]] || aws --profile resf-ami ec2 modify-snapshot-attribute \
+            --region $region \
+            --snapshot-id "${snapshot_id}" \
+            --create-volume-permission "${launch_permission}" 2>/dev/null; then
+            unset ami_ids[$region] 
+            echo ". Done"
+            continue
+        fi
       fi
       echo ". Still pending"
     done

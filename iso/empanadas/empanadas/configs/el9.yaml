@@ -109,6 +109,7 @@
       XFCE: rocky-live-xfce.ks
       KDE: rocky-live-kde.ks
       MATE: rocky-live-mate.ks
+      Cinnamon: rocky-live-cinnamon.ks
     allowed_arches:
       - x86_64
       - aarch64

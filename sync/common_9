@@ -1,22 +1,34 @@
 # To be sourced by scripts to use
 
 # Revision must always start with a major number
-REVISION=9.1
+case "${RLREL}" in
+  stable)
+    REVISION=9.1
+    APPEND_TO_DIR="-RC4"
+    ;;
+  beta)
+    REVISION=9.2
+    APPEND_TO_DIR="-beta"
+    ;;
+  lh)
+    REVISION=9.2
+    APPEND_TO_DIR="-lookahead"
+    ;;
+  *)
+    echo "option no recognized"
+    ;;
+esac
 
+MAJOR="${REVISION%.*}"
+MINOR="${REVISION#*.}"
 ARCHES=(x86_64 aarch64 ppc64le s390x)
-
-MAJOR="${REVISION:0:1}"
-MINOR="${REVISION:2:1}"
-
-# comment or blank if needed
-APPEND_TO_DIR="-RC4"
-
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
 
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
 RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
+RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJOR}/latest-${SHORT}-${MAJOR}"
 
 # Set all repos that have no comps/groups associated with them. This is even in
 # cases where repos will not be available by normal means. It's just for
@@ -25,7 +37,6 @@ NONMODS_REPOS=(
   extras
   Devel
   plus
-  rockyrpi
 )
 
 # These repos were originally separate from the main compose and need symlinks

@@ -35,7 +35,7 @@ import productmd.treeinfo
 from jinja2 import Environment, FileSystemLoader
 
 from empanadas.common import Color, _rootdir
-from empanadas.util import Shared, ArchCheck
+from empanadas.util import Shared, ArchCheck, Idents
 
 class IsoBuild:
     """
@@ -138,10 +138,7 @@ class IsoBuild:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-{}-{}".format(
-                    self.shortname,
-                    self.profile
-                )
+                f"latest-{self.shortname}-{self.profile}"
         )
 
         self.compose_latest_sync = os.path.join(
@@ -371,11 +368,7 @@ class IsoBuild:
 
             source_path = latest_artifacts[arch]
 
-            full_drop = '{}/lorax-{}-{}.tar.gz'.format(
-                    lorax_arch_dir,
-                    self.release,
-                    arch
-            )
+            full_drop = f'{lorax_arch_dir}/lorax-{self.release}-{arch}.tar.gz'
 
             if not os.path.exists(lorax_arch_dir):
                 os.makedirs(lorax_arch_dir, exist_ok=True)
@@ -403,10 +396,7 @@ class IsoBuild:
         self.log.info(Color.INFO + 'Beginning unpack phase...')
 
         for arch in arches_to_unpack:
-            tarname = 'lorax-{}-{}.tar.gz'.format(
-                    self.release,
-                    arch
-            )
+            tarname = f'lorax-{self.release}-{arch}.tar.gz'
 
             tarball = os.path.join(
                     self.lorax_work_dir,
@@ -523,22 +513,13 @@ class IsoBuild:
         if self.release_candidate:
             rclevel = '-' + self.rclvl
 
-        discname = '{}-{}.{}{}-{}-{}.iso'.format(
-                self.shortname,
-                self.major_version,
-                self.minor_version,
-                rclevel,
-                arch,
-                'boot'
-        )
+        discname = f'{self.shortname}-{self.major_version}.{self.minor_version}{rclevel}-{arch}-boot.iso'
 
         isobootpath = os.path.join(iso_to_go, discname)
-        manifest = '{}.manifest'.format(isobootpath)
-        link_name = '{}-{}-boot.iso'.format(self.shortname, arch)
+        manifest = f'{isobootpath}.manifest'
+        link_name = f'{self.shortname}-{arch}-boot.iso'
         link_manifest = link_name + '.manifest'
-        latest_link_name = '{}-{}-latest-{}-boot.iso'.format(self.shortname,
-                                                   self.major_version,
-                                                   arch)
+        latest_link_name = f'{self.shortname}-{self.major_version}-latest-{arch}-boot.iso'
         latest_link_manifest = latest_link_name + '.manifest'
         isobootpath = os.path.join(iso_to_go, discname)
         linkbootpath = os.path.join(iso_to_go, link_name)
@@ -813,11 +794,11 @@ class IsoBuild:
         xorriso_template = self.tmplenv.get_template('xorriso.tmpl.txt')
         iso_readme_template = self.tmplenv.get_template('ISOREADME.tmpl')
 
-        mock_iso_path = '/var/tmp/lorax-{}.cfg'.format(self.major_version)
-        mock_sh_path = '{}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
-        iso_template_path = '{}/buildExtraImage-{}-{}.sh'.format(entries_dir, arch, image)
-        xorriso_template_path = '{}/xorriso-{}-{}.txt'.format(entries_dir, arch, image)
-        iso_readme_path = '{}/{}/README'.format(self.iso_work_dir, arch)
+        mock_iso_path = f'/var/tmp/lorax-{self.major_version}.cfg'
+        mock_sh_path = f'{entries_dir}/extraisobuild-{arch}-{image}.sh'
+        iso_template_path = f'{entries_dir}/buildExtraImage-{arch}-{image}.sh'
+        xorriso_template_path = f'{entries_dir}/xorriso-{arch}-{image}.txt'
+        iso_readme_path = f'{self.iso_work_dir}/{arch}/README'
         #print(iso_readme_path)
 
         log_root = os.path.join(
@@ -829,7 +810,7 @@ class IsoBuild:
         if not os.path.exists(log_root):
             os.makedirs(log_root, exist_ok=True)
 
-        log_path_command = '| tee -a {}/{}-{}.log'.format(log_root, arch, image)
+        log_path_command = f'| tee -a {log_root}/{arch}-{image}.log'
 
         # This is kind of a hack. Installing xorrisofs sets the alternatives to
         # it, so backwards compatibility is sort of guaranteed. But we want to
@@ -850,31 +831,10 @@ class IsoBuild:
         if self.updated_image:
             datestamp = '-' + self.updated_image_date
 
-        volid = '{}-{}-{}{}-{}-{}'.format(
-                self.shortname,
-                self.major_version,
-                self.minor_version,
-                rclevel,
-                arch,
-                volname
-        )
-
-        isoname = '{}-{}{}{}-{}-{}.iso'.format(
-                self.shortname,
-                self.revision,
-                rclevel,
-                datestamp,
-                arch,
-                image
-        )
-
-        generic_isoname = '{}-{}-{}.iso'.format(self.shortname, arch, image)
-        latest_isoname = '{}-{}-latest-{}-{}.iso'.format(
-                                               self.shortname,
-                                               self.major_version,
-                                               arch,
-                                               image
-        )
+        volid = f'{self.shortname}-{self.major_version}-{self.minor_version}{rclevel}-{arch}-{volname}'
+        isoname = f'{self.shortname}-{self.revision}{rclevel}{datestamp}-{arch}-{image}.iso'
+        generic_isoname = f'{self.shortname}-{arch}-{image}.iso'
+        latest_isoname = f'{self.shortname}-{self.major_version}-latest-{arch}-{image}.iso'
 
         lorax_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
                 ' '.join(required_pkgs),
@@ -986,7 +946,7 @@ class IsoBuild:
         have mock available.
         """
         entries_dir = os.path.join(work_root, "entries")
-        extra_iso_cmd = '/bin/bash {}/extraisobuild-{}-{}.sh'.format(entries_dir, arch, image)
+        extra_iso_cmd = f'/bin/bash {entries_dir}/extraisobuild-{arch}-{image}.sh'
         self.log.info('Starting mock build...')
         p = subprocess.call(shlex.split(extra_iso_cmd))
         if p != 0:
@@ -1022,7 +982,7 @@ class IsoBuild:
             arch_sync = arches.copy()
 
             for a in arch_sync:
-                entry_name = 'buildExtraImage-{}-{}.sh'.format(a, i)
+                entry_name = f'buildExtraImage-{a}-{i}.sh'
                 entry_name_list.append(entry_name)
 
                 rclevel = ''
@@ -1080,10 +1040,7 @@ class IsoBuild:
             join_all_pods = ' '.join(entry_name_list)
             time.sleep(3)
             self.log.info(Color.INFO + 'Building ' + i + ' ...')
-            pod_watcher = '{} wait {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            pod_watcher = f'{cmd} wait {join_all_pods}'
 
             watch_man = subprocess.call(
                     shlex.split(pod_watcher),
@@ -1095,10 +1052,7 @@ class IsoBuild:
             # code.
             pattern = "Exited (0)"
             for pod in entry_name_list:
-                checkcmd = '{} ps -f status=exited -f name={}'.format(
-                        cmd,
-                        pod
-                )
+                checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
                         checkcmd,
                         stdout=subprocess.PIPE,
@@ -1111,10 +1065,7 @@ class IsoBuild:
                     self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
-            rmcmd = '{} rm {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            rmcmd = f'{cmd} rm {join_all_pods}'
 
             rmpod = subprocess.Popen(
                     rmcmd,
@@ -1202,32 +1153,41 @@ class IsoBuild:
             for k, v in self._get_grafts([rd_for_var]).items():
                 files[os.path.join(repo, "repodata", k)] = v
 
-        grafts = '{}/{}-{}-grafts'.format(
-                lorax_base_dir,
-                iso,
-                arch
-        )
+        grafts = f'{lorax_base_dir}/{iso}-{arch}-grafts'
 
-        xorrs = '{}/xorriso-{}.txt'.format(
-                lorax_base_dir,
-                arch
-        )
+        xorrs = f'{lorax_base_dir}/xorriso-{iso}-{arch}.txt'
+
+        # Generate exclusion list/dict from boot.iso manifest
+        boot_manifest = f'{lorax_base_dir}/lorax/images/boot.iso.manifest'
+        # Boot configs and images that may change
+        # It's unlikely these will be changed in empanadas, they're used as is
+        # and it works fine. This is a carry over from a recent pungi commit,
+        # based on an issue I had filed. The above was the original part, the
+        # below is a pungi "buildinstall" thing that we don't do, but may
+        # include as a feature if it ever happens.
+        updatable_files = set(ArchCheck.boot_configs + ArchCheck.boot_images + ['.discinfo'])
+        ignores = set()
+        updatables = set()
+
+        try:
+            with open(boot_manifest) as i:
+        #        ignores = set(line.lstrip("/").rstrip("\n") for line in i)
+                for line in i:
+                    path = line.lstrip("/").rstrip("\n")
+                    if path in updatable_files:
+                        updatables.add(path)
+                    else:
+                        ignores.add(path)
+        except Exception as e:
+            self.log.error(Color.FAIL + 'File was likely not found.')
+            raise SystemExit(e)
 
         self._write_grafts(
                 grafts,
                 xorrs,
                 files,
-                exclude=[
-                    "*/lost+found",
-                    "*/boot.iso",
-                    "*/boot.iso.manifest",
-                    "EFI/*",
-                    "images/*",
-                    "isolinux/*",
-                    "boot/*",
-                    "ppc/*",
-                    "generic.ins"
-                ]
+                exclude=ignores,
+                update=updatables
         )
 
         if self.iso_map['xorrisofs']:
@@ -1249,12 +1209,12 @@ class IsoBuild:
             if isinstance(p, dict):
                 tree = p
             else:
-                tree = self._scanning(p)
-            result = self._merging(result, tree)
+                tree = Idents.scanning(p)
+            result = Idents.merging(result, tree)
 
         for p in exclusive_paths:
-            tree = self._scanning(p)
-            result = self._merging(result, tree, exclusive=True)
+            tree = Idents.scanning(p)
+            result = Idents.merging(result, tree, exclusive=True)
 
         # Resolves possible symlinks
         for key in result.keys():
@@ -1267,12 +1227,17 @@ class IsoBuild:
 
         return result
 
-    def _write_grafts(self, filepath, xorrspath, u, exclude=None):
+    def _write_grafts(self, filepath, xorrspath, u, exclude=None, update=None):
         """
         Write out the graft points
         """
         seen = set()
+        # There are files that are on the exclude list typically.
         exclude = exclude or []
+        # There is a chance files may get updated before being placed in a
+        # variant ISO - it's rare though. most that will be different is
+        # .discinfo
+        update = update or []
         result = {}
         for zl in sorted(u, reverse=True):
             dirn = os.path.dirname(zl)
@@ -1291,118 +1256,42 @@ class IsoBuild:
                 result[zl] = u[zl]
             seen.add(dirn)
 
+        # We check first if a file needs to be updated first before relying on
+        # the boot.iso manifest to exclude a file
         if self.iso_map['xorrisofs']:
             fx = open(xorrspath, "w")
-            for zm in sorted(result, key=self._sorting):
+            for zm in sorted(result, key=Idents.sorting):
                 found = False
+                replace = False
+                for upda in update:
+                    if fnmatch(zm, upda):
+                        #print(f'updating: {zm} {upda}')
+                        replace = True
+                        break
                 for excl in exclude:
                     if fnmatch(zm, excl):
+                        #print(f'ignoring: {zm} {excl}')
                         found = True
                         break
                 if found:
                     continue
-                fx.write("-map %s %s\n" % (u[zm], zm))
+                mcmd = "-update" if replace else "-map"
+                fx.write("%s %s %s\n" % (mcmd, u[zm], zm))
             fx.close()
         else:
             fh = open(filepath, "w")
-            for zl in sorted(result, key=self._sorting):
-                found = False
-                for excl in exclude:
-                    if fnmatch(zl, excl):
-                        found = True
-                        break
-                if found:
-                    continue
+            self.log.info(Color.WARN + 'Nothing should be excluded in legacy ' +
+                          'genisoimage. Ignoring exclude list.')
+            for zl in sorted(result, key=Idents.sorting):
+                #found = False
+                #for excl in exclude:
+                #    if fnmatch(zl, excl):
+                #        found = True
+                #        break
+                #if found:
+                #    continue
                 fh.write("%s=%s\n" % (zl, u[zl]))
             fh.close()
-
-    def _scanning(self, p):
-        """
-        Scan tree
-        """
-        path = os.path.abspath(p)
-        result = {}
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                abspath = os.path.join(root, file)
-                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
-                result[relpath] = abspath
-
-            # Include empty directories too
-            if root != path:
-                abspath = os.path.join(root, "")
-                relpath = kobo.shortcuts.relative_path(abspath, path.rstrip("/") + "/")
-                result[relpath] = abspath
-
-        return result
-
-
-    def _merging(self, tree_a, tree_b, exclusive=False):
-        """
-        Merge tree
-        """
-        result = tree_b.copy()
-        all_dirs = set(
-            [os.path.dirname(dirn).rstrip("/") for dirn in result if os.path.dirname(dirn) != ""]
-        )
-
-        for dirn in tree_a:
-            dn = os.path.dirname(dirn)
-            if exclusive:
-                match = False
-                for x in all_dirs:
-                    if dn == x or dn.startswith("%s/" % x):
-                        match = True
-                        break
-                if match:
-                    continue
-
-            if dirn in result:
-                continue
-
-            result[dirn] = tree_a[dirn]
-        return result
-
-    def _sorting(self, k):
-        """
-        Sorting using the is_rpm and is_image funcs. Images are first, extras
-        next, rpm's last.
-        """
-        rolling = (0 if self._is_image(k) else 2 if self._is_rpm(k) else 1, k)
-        return rolling
-
-    def _is_rpm(self, k):
-        """
-        Is this an RPM? :o
-        """
-        result = k.endswith(".rpm")
-        return result
-
-    def _is_image(self, k):
-        """
-        Is this an image? :o
-        """
-        if (
-                k.startswith("images/") or
-                k.startswith("isolinux/") or
-                k.startswith("EFI/") or
-                k.startswith("etc/") or
-                k.startswith("ppc/")
-           ):
-            return True
-
-        if (
-                k.endswith(".img") or
-                k.endswith(".ins")
-           ):
-            return True
-
-        return False
-
-    def _get_vol_id(self):
-        """
-        Gets a volume ID
-        """
 
     def run_pull_generic_images(self):
         """
@@ -1500,15 +1389,9 @@ class IsoBuild:
                         drop_name = source_path.split('/')[-3] + fsuffix
 
                     checksum_name = drop_name + '.CHECKSUM'
-                    full_drop = '{}/{}'.format(
-                            image_arch_dir,
-                            drop_name
-                    )
+                    full_drop = f'{image_arch_dir}/{drop_name}'
 
-                    checksum_drop = '{}/{}.CHECKSUM'.format(
-                            image_arch_dir,
-                            drop_name
-                    )
+                    checksum_drop = f'{image_arch_dir}/{drop_name}.CHECKSUM'
 
                     if not os.path.exists(image_arch_dir):
                         os.makedirs(image_arch_dir, exist_ok=True)
@@ -1694,10 +1577,7 @@ class LiveBuild:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-{}-{}".format(
-                    self.shortname,
-                    self.profile
-                )
+                f"latest-{self.shortname}-{self.profile}"
         )
 
         self.compose_latest_sync = os.path.join(
@@ -1820,17 +1700,9 @@ class LiveBuild:
         if self.peridot:
             kloc = 'peridot'
 
-        mock_iso_path = '/var/tmp/live-{}.cfg'.format(self.major_version)
-        mock_sh_path = '{}/liveisobuild-{}-{}.sh'.format(
-                entries_dir,
-                self.current_arch,
-                image
-        )
-        iso_template_path = '{}/buildLiveImage-{}-{}.sh'.format(
-                entries_dir,
-                self.current_arch,
-                image
-        )
+        mock_iso_path = f'/var/tmp/live-{self.major_version}.cfg'
+        mock_sh_path = f'{entries_dir}/liveisobuild-{self.current_arch}-{image}.sh'
+        iso_template_path = f'{entries_dir}/buildLiveImage-{self.current_arch}-{image}.sh'
 
         log_root = os.path.join(
                 work_root,
@@ -1843,27 +1715,12 @@ class LiveBuild:
         if not os.path.exists(log_root):
             os.makedirs(log_root, exist_ok=True)
 
-        log_path_command = '| tee -a {}/{}-{}.log'.format(
-                log_root,
-                self.current_arch,
-                image
-        )
+        log_path_command = f'| tee -a {log_root}/{self.current_arch}-{image}.log'
         required_pkgs = self.livemap['required_pkgs']
 
-        volid = '{}-{}-{}-{}'.format(
-                self.shortname,
-                self.major_version,
-                self.minor_version,
-                image
-        )
+        volid = f'{self.shortname}-{self.major_version}-{self.minor_version}-{image}'
 
-        isoname = '{}-{}-{}-{}-{}.iso'.format(
-                self.shortname,
-                self.release,
-                image,
-                self.current_arch,
-                self.date
-        )
+        isoname = f'{self.shortname}-{self.release}-{image}-{self.current_arch}-{self.date}.iso'
 
         live_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
                 ' '.join(required_pkgs),
@@ -1960,17 +1817,10 @@ class LiveBuild:
         self.log.warn(Color.WARN + 'This mode does not work properly. It will fail.')
         for i in images:
             image_name = i
-            entry_name = 'buildLiveImage-{}-{}.sh'.format(arch, i)
+            entry_name = f'buildLiveImage-{arch}-{i}.sh'
             entry_name_list.append(entry_name)
 
-            isoname = '{}/{}-{}-{}-{}-{}.iso'.format(
-                    arch,
-                    self.shortname,
-                    i,
-                    self.major_version,
-                    arch,
-                    self.date
-            )
+            isoname = f'{arch}/{self.shortname}-{i}-{self.major_version}-{arch}-{self.date}.iso'
 
             checksum_list.append(isoname)
 
@@ -1998,10 +1848,7 @@ class LiveBuild:
         time.sleep(3)
         self.log.info(Color.INFO + 'Building requested live images ...')
 
-        pod_watcher = '{} wait {}'.format(
-                cmd,
-                join_all_pods
-        )
+        pod_watcher = f'{cmd} wait {join_all_pods}'
 
         watch_man = subprocess.call(
                 shlex.split(pod_watcher),
@@ -2013,10 +1860,7 @@ class LiveBuild:
         # code.
         pattern = "Exited (0)"
         for pod in entry_name_list:
-            checkcmd = '{} ps -f status=exited -f name={}'.format(
-                    cmd,
-                    pod
-            )
+            checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
             podcheck = subprocess.Popen(
                     checkcmd,
                     stdout=subprocess.PIPE,
@@ -2029,10 +1873,7 @@ class LiveBuild:
                 self.log.error(Color.FAIL + pod)
                 bad_exit_list.append(pod)
 
-        rmcmd = '{} rm {}'.format(
-                cmd,
-                join_all_pods
-        )
+        rmcmd = f'{cmd} rm {join_all_pods}'
 
         rmpod = subprocess.Popen(
                 rmcmd,
@@ -2072,25 +1913,9 @@ class LiveBuild:
         """
         entries_dir = os.path.join(work_root, "entries")
         live_dir_arch = os.path.join(self.live_work_dir, arch)
-        isoname = '{}-{}-{}-{}-{}.iso'.format(
-                self.shortname,
-                self.release,
-                image,
-                arch,
-                self.date
-        )
-        isolink = '{}-{}-{}-{}-{}.iso'.format(
-                self.shortname,
-                self.major_version,
-                image,
-                arch,
-                'latest'
-        )
-        live_res_dir = '/var/lib/mock/{}-{}-{}/result'.format(
-                self.shortname.lower(),
-                self.major_version,
-                arch
-        )
+        isoname = f'{self.shortname}-{self.release}-{image}-{arch}-{self.date}.iso'
+        isolink = f'{self.shortname}-{self.major_version}-{image}-{arch}-latest.iso'
+        live_res_dir = f'/var/lib/mock/{self.shortname.lower()}-{self.major_version}-{arch}/result'
 
         if self.justcopyit:
             if os.path.exists(os.path.join(live_dir_arch, isoname)):
@@ -2101,7 +1926,7 @@ class LiveBuild:
                     self.log.warn(Color.WARN + 'Skipping.')
                     return
 
-        live_iso_cmd = '/bin/bash {}/liveisobuild-{}-{}.sh'.format(entries_dir, arch, image)
+        live_iso_cmd = f'/bin/bash {entries_dir}/liveisobuild-{arch}-{image}.sh'
         self.log.info('Starting mock build...')
         p = subprocess.call(shlex.split(live_iso_cmd))
         if p != 0:
