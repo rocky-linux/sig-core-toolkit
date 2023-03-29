@@ -1166,17 +1166,18 @@ class IsoBuild:
         # below is a pungi "buildinstall" thing that we don't do, but may
         # include as a feature if it ever happens.
         updatable_files = set(ArchCheck.boot_configs + ArchCheck.boot_images + ['.discinfo'])
-        ignores = set()
+        #ignores = set()
         updatables = set()
 
         try:
             with open(boot_manifest) as i:
-                for line in i:
-                    path = line.lstrip("/").rstrip("\n")
-                    if path in updatable_files:
-                        updatables.add(path)
-                    else:
-                        ignores.add(path)
+                ignores = set(line.lstrip("/").rstrip("\n") for line in i)
+        #        for line in i:
+        #            path = line.lstrip("/").rstrip("\n")
+        #            if path in updatable_files:
+        #                updatables.add(path)
+        #            else:
+        #                ignores.add(path)
         except Exception as e:
             self.log.error(Color.FAIL + 'File was likely not found.')
             raise SystemExit(e)
@@ -1265,14 +1266,15 @@ class IsoBuild:
             for zm in sorted(result, key=self._sorting):
                 found = False
                 replace = False
-                for upda in update:
-                    #if fnmatch(zm, upda):
-                    if upda in zm:
-                        replace = True
-                        break
+                #for upda in update:
+                #    if fnmatch(zm, upda):
+                #    #if upda in zm:
+                #        replace = True
+                #        break
                 for excl in exclude:
-                    #if fnmatch(zm, excl):
-                    if excl in zm:
+                    if fnmatch(zm, excl):
+                    #if excl in zm:
+                        print(f'ignoring: {zm} {excl}')
                         found = True
                         break
                 if found:
