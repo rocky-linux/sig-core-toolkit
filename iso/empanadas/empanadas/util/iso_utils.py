@@ -1174,9 +1174,9 @@ class IsoBuild:
                 for line in i:
                     path = line.lstrip("/").rstrip("\n")
                     if path in updatable_files:
-                        updatables.add("*/" +path)
+                        updatables.add(path)
                     else:
-                        ignores.add("*/" + path)
+                        ignores.add(path)
         except Exception as e:
             self.log.error(Color.FAIL + 'File was likely not found.')
             raise SystemExit(e)
@@ -1266,11 +1266,13 @@ class IsoBuild:
                 found = False
                 replace = False
                 for excl in exclude:
-                    if fnmatch(zm, excl):
+                    #if fnmatch(zm, excl):
+                    if excl in zm:
                         found = True
                         break
                 for upda in update:
-                    if fnmatch(zm, upda):
+                    #if fnmatch(zm, upda):
+                    if upda in zm:
                         replace = True
                         break
                 if found:
