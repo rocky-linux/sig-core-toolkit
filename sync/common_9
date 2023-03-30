@@ -11,7 +11,7 @@ case "${RLREL}" in
     APPEND_TO_DIR="-beta"
     ;;
   lh)
-    REVISION=9.2
+    REVISION=9.3
     APPEND_TO_DIR="-lookahead"
     ;;
   *)
