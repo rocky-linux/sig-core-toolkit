@@ -9,10 +9,12 @@ case "${RLREL}" in
   beta)
     REVISION=9.2
     APPEND_TO_DIR="-beta"
+    COMPOSE_APPEND="-beta"
     ;;
   lh)
     REVISION=9.3
     APPEND_TO_DIR="-lookahead"
+    COMPOSE_APPEND="-lookahead"
     ;;
   *)
     echo "option no recognized"
@@ -28,7 +30,7 @@ PRODUCTION_ROOT="/mnt/repos-production"
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
 RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
-RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJOR}/latest-${SHORT}-${MAJOR}"
+RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJOR}/latest-${SHORT}-${MAJOR}${COMPOSE_APPEND}"
 
 # Set all repos that have no comps/groups associated with them. This is even in
 # cases where repos will not be available by normal means. It's just for
