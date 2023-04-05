@@ -64,6 +64,9 @@ class IsoBuild:
             updated_image: bool = False,
             image_increment: str = '0',
             image=None,
+            s3_region=None,
+            s3_bucket=None,
+            s3_bucket_url=None,
             logger=None
     ):
         self.image = image
@@ -121,9 +124,20 @@ class IsoBuild:
             self.container = rlvars['container']
 
         # all bucket related info
-        self.s3_region = config['aws_region']
-        self.s3_bucket = config['bucket']
-        self.s3_bucket_url = config['bucket_url']
+        if s3_region:
+            self.s3_region = s3_region
+        else:
+            self.s3_region = config['aws_region']
+
+        if s3_bucket:
+            self.s3_bucket = s3_bucket
+        else:
+            self.s3_bucket = config['bucket']
+
+        if s3_bucket_url:
+            self.s3_bucket_url = s3_bucket_url
+        else:
+            self.s3_bucket_url = config['bucket_url']
 
         #if s3:
         #    self.s3 = boto3.client('s3')
