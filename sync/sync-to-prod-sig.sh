@@ -4,17 +4,19 @@
 # shellcheck disable=SC2046,1091,1090
 source "$(dirname "$0")/common"
 
-#if [[ $# -eq 0 ]] || [[ $# -eq 1 ]]; then
-#  echo "Not enough information."
-#  echo "You must use: shortname sig"
-#  exit 1
-#fi
+if [[ $# -eq 0 ]]; then
+  echo "Not enough information."
+  echo "You must use: sig"
+  exit 1
+fi
 
-cd "${STAGING_ROOT}/${SIG_CATEGORY_STUB}/${MAJOR}" || { echo "Failed to change directory"; ret_val=1; exit 1; }
+SIG=${1}
+
+cd "${STAGING_ROOT}/${SIG_CATEGORY_STUB}/${MAJOR}/${SIG}" || { echo "Failed to change directory"; ret_val=1; exit 1; }
 ret_val=$?
 
 if [ $ret_val -eq "0" ]; then
-  TARGET=${PRODUCTION_ROOT}/${SIG_CATEGORY_STUB}/${MAJOR}/
+  TARGET=${PRODUCTION_ROOT}/${SIG_CATEGORY_STUB}/${MAJOR}/${SIG}/
   mkdir -p "${TARGET}"
   # disabling because none of our files should be starting with dashes. If they
   # are something is *seriously* wrong here.
