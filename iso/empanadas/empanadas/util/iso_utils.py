@@ -1828,7 +1828,8 @@ class LiveBuild:
         bad_exit_list = []
         checksum_list = []
         entry_name_list = []
-        self.log.warn(Color.WARN + 'This mode does not work properly. It will fail.')
+        self.log.warn(Color.WARN + 'There is no support for podman in empanadas.')
+        self.log.warn(Color.WARN + "If this fails, it's on you to determine the fix.")
         for i in images:
             image_name = i
             entry_name = f'buildLiveImage-{arch}-{i}.sh'
