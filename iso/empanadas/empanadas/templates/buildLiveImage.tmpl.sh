@@ -25,13 +25,15 @@ done
 # 
 # Even so, we don't support it. These checks are to prevent (you) from
 # getting needless headaches.
+set +e
 [[ -f /run/.containerenv ]]; container_ec=$?
 grep -q "0::/$" /proc/1/cgroup; pid_ec=$?
 grep -q "0::/$" /proc/self/cgroup; self_ec=$?
 
-if [[ "$pid_ec" == "0" ]] || [[ "$container_ec" == 0 ]] || [[ "$self_ec" == 0 ]]; then
+if [[ "$pid_ec" == "0" ]] || [[ "$self_ec" == 0 ]]; then
   exit 23
 fi
+set -e
 
 cd /builddir
 
