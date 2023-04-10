@@ -16,7 +16,7 @@
     - ppc64le
     - s390x
   provide_multilib: True
-  project_id: '0048077b-1573-4cb7-8ba7-cce823857ba5'
+  project_id: 'dff20351-7d36-4f7c-9eea-7f039f5026d0'
   repo_symlinks:
     NFV: 'nfv'
   renames:
@@ -54,6 +54,7 @@
           - 'minimal'
           - 'BaseOS'
         variant: 'minimal'
+        volname: 'dvd'
       BaseOS:
         disc: False
         isoskip: True
@@ -108,6 +109,7 @@
       XFCE: rocky-live-xfce.ks
       KDE: rocky-live-kde.ks
       MATE: rocky-live-mate.ks
+      Cinnamon: rocky-live-cinnamon.ks
     allowed_arches:
       - x86_64
       - aarch64
