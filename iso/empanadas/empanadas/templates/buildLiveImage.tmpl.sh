@@ -1,6 +1,17 @@
 #!/bin/bash
 set -ex
 
+# functions
+function check_for_container() {
+  [[ -f /run/.containerenv ]]; container_ec=$?
+  grep -q "0::/$" /proc/1/cgroup; pid_ec=$?
+  grep -q "0::/$" /proc/self/cgroup; self_ec=$?
+
+  if [[ "$pid_ec" == "0" ]] || [[ "$self_ec" == 0 ]]; then
+    exit 23
+  fi
+}
+
 {% if live_iso_mode == "podman" %}
 {{ live_pkg_cmd }}
 mkdir -p {{ compose_live_work_dir }}/{{ arch }}
@@ -26,13 +37,7 @@ done
 # Even so, we don't support it. These checks are to prevent (you) from
 # getting needless headaches.
 set +e
-[[ -f /run/.containerenv ]]; container_ec=$?
-grep -q "0::/$" /proc/1/cgroup; pid_ec=$?
-grep -q "0::/$" /proc/self/cgroup; self_ec=$?
-
-if [[ "$pid_ec" == "0" ]] || [[ "$self_ec" == 0 ]]; then
-  exit 23
-fi
+check_for_container
 set -e
 
 cd /builddir

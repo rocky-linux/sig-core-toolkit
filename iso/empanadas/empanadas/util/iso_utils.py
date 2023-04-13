@@ -1307,6 +1307,19 @@ class IsoBuild:
                 fh.write("%s=%s\n" % (zl, u[zl]))
             fh.close()
 
+    def run_pull_iso_images(self):
+        """
+        Pulls ISO's made in v2
+        """
+        arches_to_unpack = self.arches
+        latest_artifacts = {}
+        if self.arch:
+            unpack_single_arch = True
+            arches_to_unpack = [self.arch]
+
+        print("not supported")
+        sys.exit(1)
+
     def run_pull_generic_images(self):
         """
         Pulls generic images built in peridot and places them where they need

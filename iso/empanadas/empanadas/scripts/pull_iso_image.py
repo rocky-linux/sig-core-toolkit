@@ -36,5 +36,4 @@ a = IsoBuild(
 )
 
 def run():
-    #a.run_pull_iso_images()
-    print('currently not supported')
+    a.run_pull_iso_images()
