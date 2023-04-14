@@ -91,6 +91,7 @@
         variants: [Base, Minimal, UBI]
       OCP:
         format: qcow2
+        variants: [Base]
   livemap:
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
     branch: 'r8'

@@ -97,6 +97,7 @@
         format: raw.xz
       OCP:
         format: qcow2
+        variants: [Base]
       Vagrant:
         format: box
         variants: [Libvirt, Vbox, VMware]
