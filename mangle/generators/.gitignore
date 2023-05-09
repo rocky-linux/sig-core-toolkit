@@ -3,3 +3,4 @@ __pycache__/
 *$py.class
 *.so
 generate_prepopulate_from_self
+generate_prepopulate_from_rpr
