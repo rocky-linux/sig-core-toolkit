@@ -6,7 +6,9 @@ function podman_setup_dirs() {
   {{ lorax_pkg_cmd }}
   mkdir -p {{ compose_work_iso_dir }}/{{ arch }}
   cd  {{ compose_work_iso_dir }}/{{ arch }}
-  test -f {{ isoname }} && { echo "ERROR: ISO ALREDY EXISTS!"; exit 1; }
+  set +e
+  test -f {{ isoname }} && { echo "ERROR: ISO ALREDY EXISTS!"; exit 32; }
+  set -e
 }
 
 function podman_create_links() {
