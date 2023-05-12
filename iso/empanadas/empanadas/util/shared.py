@@ -637,18 +637,30 @@ class Shared:
             logger.error('There was an issue downloading from %s' % s3_bucket)
 
     @staticmethod
-    def reqs_determine_latest(s3_bucket_url, release, arches, filetype, name, logger):
+    def reqs_determine_latest(s3_bucket_url, release, arches, filetype, name, logger, page_size=1000):
         """
         Using requests, determine the latest artifacts and return a list
         """
         temp = []
         data = {}
+        marker = None
 
-        try:
-            bucket_data = requests.get(s3_bucket_url)
-        except requests.exceptions.RequestException as e:
-            logger.error('The s3 bucket http endpoint is inaccessible')
-            raise SystemExit(e)
+        while True:
+            params = {}
+            if marker is not None:
+                params['marker'] = marker
+            params['delimiter'] = '/'
+            params['max-keys'] = str(page_size)
+
+            try:
+                bucket_data = requests.get(
+                        s3_bucket_url,
+                        params=params,
+                        timeout=100
+                )
+            except requests.exceptions.RequestException as e:
+                logger.error('The s3 bucket http endpoint is inaccessible')
+                raise SystemExit(e)
 
         resp = xmltodict.parse(bucket_data.content)
 
@@ -1143,7 +1155,7 @@ class Shared:
             if not Shared.tar_is_within_directory(path, member_path):
                 raise Exception("Path traversal attempted in tar file")
 
-        tar.extractall(path, members, numeric_owner)
+        tar.extractall(path=path, members=members, numeric_owner=numeric_owner)
 
     @staticmethod
     def dnf_sync(repo, sync_root, work_root, arch, logger):
