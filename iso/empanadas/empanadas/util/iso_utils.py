@@ -369,8 +369,6 @@ class IsoBuild:
                     self.log
             )
 
-        print(latest_artifacts)
-
         self.log.info(Color.INFO + 'Downloading requested artifact(s)')
         for arch in arches_to_unpack:
             lorax_arch_dir = os.path.join(
