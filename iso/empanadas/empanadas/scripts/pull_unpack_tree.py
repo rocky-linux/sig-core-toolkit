@@ -33,9 +33,9 @@ a = IsoBuild(
         force_unpack=results.force_unpack,
         force_download=results.force_download,
         compose_dir_is_here=results.local_compose,
-        s3_region=result.s3_region,
-        s3_bucket=result.s3_bucket,
-        s3_bucket_url=result.s3_bucket_url,
+        s3_region=results.s3_region,
+        s3_bucket=results.s3_bucket,
+        s3_bucket_url=results.s3_bucket_url,
         logger=results.logger,
 )
 
