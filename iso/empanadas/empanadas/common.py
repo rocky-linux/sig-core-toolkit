@@ -104,7 +104,7 @@ for conf in glob.iglob(f"{_rootdir}/sig/*.yaml"):
 
 ALLOWED_TYPE_VARIANTS = {
         "Azure": ["Base", "LVM"],
-        "Container": ["Base", "Minimal", "UBI"],
+        "Container": ["Base", "Minimal", "UBI", "WSL"],
         "EC2": ["Base", "LVM"],
         "GenericCloud": ["Base", "LVM"],
         "Vagrant": ["Libvirt", "Vbox", "VMware"],

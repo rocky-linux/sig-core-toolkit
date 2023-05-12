@@ -88,7 +88,7 @@
         primary_variant: 'Base'
       Container:
         format: tar.xz
-        variants: [Base, Minimal, UBI]
+        variants: [Base, Minimal, UBI, WSL]
       RPI:
         format: raw.xz
       OCP:

@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ jobname }}-{{ major }}-{{ architecture }}
+  name: {{ jobname }}-{{ major }}-{{ architecture }}-{{ buildTime }}
   namespace: {{ namespace }}
 spec:
   template:

@@ -26,3 +26,4 @@ popd > /dev/null || exit 2
 log "Copying to staging directory $TEMP => $OUTPUT_DIR"
 sudo rsync -vrSHP "$TEMP/" "$OUTPUT_DIR"
 sudo chown -Rv 10004:10005 "$OUTPUT_DIR"
+

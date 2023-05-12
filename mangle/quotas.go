@@ -7,12 +7,14 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/servicequotas"
 )
 
-func getQuotaCode(sqSvc *servicequotas.ServiceQuotas) string {
+func getQuotaCode(sess *session.Session) string {
+	sqSvc := servicequotas.New(sess)
 	input := &servicequotas.ListServiceQuotasInput{
 		ServiceCode: aws.String("ec2"),
 	}
@@ -71,9 +73,13 @@ func getQuotaInfo(sqSvc *servicequotas.ServiceQuotas, quotaCode string, region s
 
 	output, err := sqSvc.GetServiceQuota(input)
 	if err != nil {
-		log.Printf("Error getting quota info for %s: %s\n", region, err)
-		return nil
-		// os.Exit(1)
+		if awsErr, ok := err.(awserr.Error); ok {
+			if message := awsErr.Code(); message == "UnknownOperationException" {
+				log.Printf("[sdk] Region %s does not appear to support Service Quotas: %v", region, message)
+				return nil
+			}
+			log.Fatalf("[sdk] Error getting quota info for %s: %v\n", region, awsErr)
+		}
 	}
 
 	currentValue := *output.Quota.Value
@@ -116,6 +122,35 @@ func listQuotas(sess *session.Session, quotaCode string, regions []*string) {
 	wg.Wait()
 }
 
+func requestQuotaIncrease(sess *session.Session, quotaCode string, regions []string, quota float64) {
+	var wg sync.WaitGroup
+	wg.Add(len(regions))
+
+	for _, region := range regions {
+		go func(region string) {
+			defer wg.Done()
+			regionSqSvc := servicequotas.New(sess, &aws.Config{Region: aws.String(region)})
+			quotaInfo := getQuotaInfo(regionSqSvc, quotaCode, region)
+			if quotaInfo.CurrentQuota >= quota {
+				fmt.Printf("Quota for Public AMIs in region %s is already set to %.0f, skipping request.\n", region, quotaInfo.CurrentQuota)
+			} else {
+				input := &servicequotas.RequestServiceQuotaIncreaseInput{
+					ServiceCode:  aws.String("ec2"),
+					QuotaCode:    aws.String(quotaCode),
+					DesiredValue: aws.Float64(quota),
+				}
+				output, err := regionSqSvc.RequestServiceQuotaIncrease(input)
+				if err != nil {
+					fmt.Println("Error requesting quota increase:", err)
+					os.Exit(1)
+				}
+				fmt.Printf("Successfully submitted request with ID: %s\n", aws.StringValue(output.RequestedQuota.Id))
+			}
+		}(region)
+	}
+	wg.Wait()
+}
+
 func main() {
 	// Create session
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
@@ -125,11 +160,8 @@ func main() {
 	// Create EC2 client
 	ec2Svc := ec2.New(sess, &aws.Config{Region: aws.String("us-east-1")})
 
-	// Create Service Quotas client
-	sqSvc := servicequotas.New(sess)
-
 	// Get the quota code for Public AMIs once
-	quotaCode := getQuotaCode(sqSvc)
+	quotaCode := getQuotaCode(sess)
 
 	// Get all regions
 	regions, err := getRegions(ec2Svc)
@@ -142,5 +174,5 @@ func main() {
 	listQuotas(sess, quotaCode, regions)
 
 	// Request quota increase for all regions
-	// requestQuotaIncrease(sqSvc, quotaCode, regions)
+	// requestQuotaIncrease(sess, quotaCode, regions)
 }
