@@ -303,7 +303,7 @@ class RepoSync:
         # tweak_treeinfo calls out to a method that does. This should not
         # cause issues as the method is fairly static in nature.
         if self.refresh_treeinfo and not self.fullrun:
-            self.deploy_treeinfo(self.repo, sync_root, self.arch)
+            self.deploy_treeinfo(self.repo, sync_root, self.arch, refresh=True)
             self.tweak_treeinfo(self.repo, sync_root, self.arch)
 
         self.deploy_metadata(sync_root)
@@ -927,7 +927,7 @@ class RepoSync:
             readme_file.close()
 
 
-    def deploy_treeinfo(self, repo, sync_root, arch):
+    def deploy_treeinfo(self, repo, sync_root, arch, refresh=False):
         """
         Deploys initial treeinfo files. These have the potential of being
         overwritten by our ISO process, which is fine. If there is a treeinfo
@@ -1003,8 +1003,7 @@ class RepoSync:
                         'kickstart/media.repo'
                 )
 
-
-                if not os.path.exists(os_tree_path):
+                if not os.path.exists(os_tree_path) or (os.path.exists(os_tree_path) and refresh):
                     try:
                         Shared.treeinfo_new_write(
                                 os_tree_path,
@@ -1023,7 +1022,7 @@ class RepoSync:
                 else:
                     self.log.warn(Color.WARN + repo_name + ' ' + a + ' os .treeinfo already exists')
 
-                if not os.path.exists(os_disc_path):
+                if not os.path.exists(os_disc_path) or (os.path.exists(os_disc_path) and refresh):
                     try:
                         Shared.discinfo_write(
                                 self.timestamp,
@@ -1041,7 +1040,7 @@ class RepoSync:
                             ' os .discinfo already exists'
                     )
 
-                if not os.path.exists(os_media_path):
+                if not os.path.exists(os_media_path) or (os.path.exists(os_media_path) and refresh):
                     try:
                         Shared.media_repo_write(
                                 self.timestamp,
@@ -1059,7 +1058,7 @@ class RepoSync:
                     )
 
                 # Kickstart part of the repos
-                if not os.path.exists(ks_tree_path):
+                if not os.path.exists(ks_tree_path) or (os.path.exists(ks_tree_path) and refresh):
                     try:
                         Shared.treeinfo_new_write(
                                 ks_tree_path,
@@ -1080,7 +1079,7 @@ class RepoSync:
                             ' kickstart .treeinfo already exists'
                     )
 
-                if not os.path.exists(ks_disc_path):
+                if not os.path.exists(ks_disc_path) or (os.path.exists(ks_disc_path) and refresh):
                     try:
                         Shared.discinfo_write(
                                 self.timestamp,
@@ -1098,7 +1097,7 @@ class RepoSync:
                             ' kickstart .discinfo already exists'
                     )
 
-                if not os.path.exists(ks_media_path):
+                if not os.path.exists(ks_media_path) or (os.path.exists(ks_media_path) and refresh):
                     try:
                         Shared.media_repo_write(
                                 self.timestamp,
@@ -1137,7 +1136,7 @@ class RepoSync:
                             'debug/tree/media.repo'
                     )
 
-                    if not os.path.exists(debug_tree_path):
+                    if not os.path.exists(debug_tree_path) or (os.path.exists(debug_tree_path) and refresh):
                         try:
                             Shared.treeinfo_new_write(
                                     debug_tree_path,
@@ -1158,7 +1157,7 @@ class RepoSync:
                                 ' debug .treeinfo already exists'
                         )
 
-                    if not os.path.exists(debug_disc_path):
+                    if not os.path.exists(debug_disc_path) or (os.path.exists(debug_disc_path) and refresh):
                         try:
                             Shared.discinfo_write(
                                     self.timestamp,
@@ -1176,7 +1175,7 @@ class RepoSync:
                                 ' debug .discinfo already exists'
                         )
 
-                    if not os.path.exists(debug_media_path):
+                    if not os.path.exists(debug_media_path) or (os.path.exists(debug_media_path) and refresh):
                         try:
                             Shared.media_repo_write(
                                     self.timestamp,
@@ -1213,7 +1212,7 @@ class RepoSync:
                         'source/tree/media.repo'
                 )
 
-                if not os.path.exists(source_tree_path):
+                if not os.path.exists(source_tree_path) or (os.path.exists(source_tree_path) and refresh):
                     try:
                         Shared.treeinfo_new_write(
                                 source_tree_path,
@@ -1230,7 +1229,7 @@ class RepoSync:
                 else:
                     self.log.warn(Color.WARN + repo_name + ' source os .treeinfo already exists')
 
-                if not os.path.exists(source_disc_path):
+                if not os.path.exists(source_disc_path) or (os.path.exists(source_disc_path) and refresh):
                     try:
                         Shared.discinfo_write(
                                 self.timestamp,
@@ -1244,7 +1243,7 @@ class RepoSync:
                 else:
                     self.log.warn(Color.WARN + repo_name + ' source .discinfo already exists')
 
-                if not os.path.exists(source_media_path):
+                if not os.path.exists(source_media_path) or (os.path.exists(source_media_path) and refresh):
                     try:
                         Shared.media_repo_write(
                                 self.timestamp,
@@ -1326,6 +1325,14 @@ class RepoSync:
                 except Exception as e:
                     self.log.error(Color.FAIL + 'There was an error writing kickstart treeinfo.')
                     self.log.error(e)
+
+    def refresh_compose_treeinfo(self):
+        """
+        It is rare that this should be called.
+        """
+        sync_root = self.compose_latest_sync
+        self.deploy_treeinfo(self.repo, sync_root, self.arch, refresh=True)
+        self.tweak_treeinfo(self.repo, sync_root, self.arch)
 
     def run_compose_closeout(self):
         """

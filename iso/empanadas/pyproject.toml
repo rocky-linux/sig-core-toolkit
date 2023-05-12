@@ -36,6 +36,7 @@ finalize_compose = "empanadas.scripts.finalize_compose:run"
 pull-cloud-image = "empanadas.scripts.pull_cloud_image:run"
 generate_compose = "empanadas.scripts.generate_compose:run"
 peridot_repoclosure = "empanadas.scripts.peridot_repoclosure:run"
+refresh_all_treeinfo = "empanadas.scripts.refresh_all_treeinfo:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
