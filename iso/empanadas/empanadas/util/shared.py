@@ -636,6 +636,7 @@ class Shared:
         except:
             logger.error('There was an issue downloading from %s' % s3_bucket)
 
+
     @staticmethod
     def reqs_determine_latest(s3_bucket_url, release, arches, filetype, name, logger, page_size=1000):
         """
@@ -645,37 +646,52 @@ class Shared:
         data = {}
         marker = None
 
+        # Hardcoding this for now until we can come up with a better solution
+        if 'lorax' in name:
+            prefix = "buildiso"
+        else:
+            prefix = "buildimage"
+
         while True:
             params = {}
-            if marker is not None:
+            if marker:
                 params['marker'] = marker
-            params['delimiter'] = '/'
+            params['prefix'] = f"{prefix}-{release.split('.')[0]}-"
             params['max-keys'] = str(page_size)
 
             try:
-                bucket_data = requests.get(
-                        s3_bucket_url,
-                        params=params,
-                        timeout=100
-                )
-            except requests.exceptions.RequestException as e:
+                bucket_data = requests.get(s3_bucket_url, params=params, timeout=100)
+            except requests.exceptions.RequestException as exception:
                 logger.error('The s3 bucket http endpoint is inaccessible')
-                raise SystemExit(e)
+                raise SystemExit(exception) from exception
 
-        resp = xmltodict.parse(bucket_data.content)
+            resp = xmltodict.parse(bucket_data.content)
 
-        for y in resp['ListBucketResult']['Contents']:
-            if y['Key'].endswith(filetype) and release in y['Key'] and name in y['Key']:
-                temp.append(y['Key'])
+            if 'Contents' in resp['ListBucketResult'].keys():
+                for y in resp['ListBucketResult']['Contents']:
+                    if y['Key'].endswith(filetype) and release in y['Key'] and name in y['Key']:
+                        temp.append(y['Key'])
 
-        for arch in arches:
-            temps = []
-            for y in temp:
-                if arch in y:
-                    temps.append(y)
-            temps.sort(reverse=True)
-            if len(temps) > 0:
-                data[arch] = temps[0]
+            for arch in arches:
+                temps = []
+                for y in temp:
+                    if arch in y:
+                        temps.append(y)
+                temps.sort(reverse=True)
+                if len(temps) > 0:
+                    data[arch] = temps[0]
+
+            truncated = resp['ListBucketResult'].get('IsTruncated')
+
+            # break from loop if there are no more results
+            if truncated == 'false':
+                break
+
+            # If truncated was true, we must set the marker for the next request to the last key of the current response
+            # ListObjects does not return NextMarker unless using Delimiter.. which is annoying
+            next_key = resp['ListBucketResult']['Contents'][-1].get('Key')
+            logger.info(Color.INFO + 'requesting another page starting with key: %s', next_key)
+            marker = next_key
 
         return data
 
