@@ -119,7 +119,7 @@ def valid_type_variant(_type: str, variant: str="") -> bool:
             raise Exception(f"{_type} Type expects no variant type.")
         return True
     if variant not in ALLOWED_TYPE_VARIANTS[_type]:
-        if variant.capitalize() in ALLOWED_TYPE_VARIANTS[_type]:
+        if variant and variant.capitalize() in ALLOWED_TYPE_VARIANTS[_type]:
             raise Exception(f"Capitalization mismatch. Found: ({_type}, {variant}). Expected: ({_type}, {variant.capitalize()})")
         raise Exception(f"Type/Variant Combination is not allowed: ({_type}, {variant})")
     return True
