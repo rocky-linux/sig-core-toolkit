@@ -4,7 +4,7 @@
 case "${RLREL}" in
   stable)
     REVISION=9.2
-    APPEND_TO_DIR="-RC4"
+    APPEND_TO_DIR="-RC1"
     ;;
   beta)
     REVISION=9.3

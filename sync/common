@@ -114,6 +114,11 @@ function rsync_delete_prod() {
   sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable --delete "${REV}/" "${TARGET}"
 }
 
+function perform_hardlink() {
+  TARGET="${1}"
+  hardlink -x '.*\.xml.*' "${TARGET}"
+}
+
 export -f parallel_rsync_no_delete_staging
 export -f parallel_rsync_no_delete_prod
 export -f parallel_rsync_delete_staging
@@ -122,3 +127,4 @@ export -f rsync_no_delete_staging
 export -f rsync_no_delete_prod
 export -f rsync_delete_staging
 export -f rsync_delete_prod
+export -f perform_hardlink
