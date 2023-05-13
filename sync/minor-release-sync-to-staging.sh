@@ -10,10 +10,16 @@ source $(dirname "$0")/common
 # Major Version (eg, 8)
 MAJ=${RLVER}
 
+if [ "${MAJ}" == "9" ]; then
+  echo "Does not work for Rocky Linux 9. Please use sync-to-staging"
+  exit 32
+fi
+
 # sync all pieces of a release, including extras, nfv, etc
 for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   echo "${COMPOSE}: Syncing"
-  pushd "${RELEASE_COMPOSE_ROOT}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
+  SYNCSRC="/mnt/compose/${MAJ}/latest-${COMPOSE}-${MAJ}"
+  pushd "${SYNCSRC}/compose" || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   if [[ "${COMPOSE}" == "Rocky" ]]; then
     # ISO Work before syncing
@@ -39,30 +45,20 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
       done
       popd || { echo "Could not change directory"; break; }
     done
+    mkdir -p live/x86_64
+    ln -s live Live
   fi
+  popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
   mkdir -p "${TARGET}"
-  # disabling because none of our files should be starting with dashes. If they
-  # are something is *seriously* wrong here.
-  # shellcheck disable=SC2035
-  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
-      {} "${TARGET}"
-
-  if [[ "${COMPOSE}" == "Rocky" ]]; then
-    cp COMPOSE_ID "${TARGET}"
-    chown 10004:10005 "${TARGET}/COMPOSE_ID"
-    rsync -av --chown=10004:10005 --progress --relative --human-readable metadata "${TARGET}"
+  pushd "${SYNCSRC}" || { echo "${COMPOSE}: Failed to change directory"; break; }
+  if [[ "${COMPOSE}" != "Rocky" ]]; then
+    rsync_no_delete_staging_with_excludes "${TARGET}" "metadata"
+  else
+    rsync_no_delete_staging "${TARGET}"
   fi
-
-  # Return back to where we started
-  popd || { echo "${COMPOSE}: Failed to change back"; break; }
-
-  # Create extra stuff
-  pushd "${TARGET}" || { echo "${COMPOSE}: Failed to change directory"; break;  }
-  mkdir -p Live/x86_64
-  ln -s Live live
-  popd || { echo "${COMPOSE}: Failed to change back"; break;  }
+  popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
 
 

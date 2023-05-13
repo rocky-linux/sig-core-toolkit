@@ -23,6 +23,6 @@ if [ $ret_val -eq "0" ]; then
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
   mkdir -p "${TARGET}"
   rsync_no_delete_staging "${TARGET}"
-  echo "Hardlinking staging directory"
+  echo "Hardlinking staging directory (${TARGET})"
   perform_hardlink "${TARGET}"
 fi
