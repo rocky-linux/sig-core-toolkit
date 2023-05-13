@@ -1,3 +1,4 @@
+#!/bin/bash
 # To be sourced by scripts to use
 
 # Variables that can be overriden should be noted with optional context. It is
@@ -65,3 +66,59 @@ MODS=(
 # Used to iterate over ISOs?
 # Override: Allowed
 VARIANTS=(boot minimal dvd1)
+
+# Syncing functions
+function parallel_rsync_no_delete_staging() {
+  TARGET="${1}"
+  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable {} "${TARGET}"
+}
+
+function parallel_rsync_no_delete_prod() {
+  TARGET="${1}"
+  sudo -l && find ./ -mindepth 1 -maxdepth 1 -type d -exec find {}/ -mindepth 1 -maxdepth 1 -type d \;|sed 's/^..//g' | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable {} "${TARGET}"
+  # shellcheck disable=SC2035
+  sudo -l && find ** -maxdepth 0 -type l | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable {} "${TARGET}"
+}
+
+function parallel_rsync_delete_staging() {
+  TARGET="${1}"
+  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable --delete {} "${TARGET}"
+}
+
+function parallel_rsync_delete_prod() {
+  TARGET="${1}"
+  sudo -l && find ./ -mindepth 1 -maxdepth 1 -type d -exec find {}/ -mindepth 1 -maxdepth 1 -type d \;|sed 's/^..//g' | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable --delete {} "${TARGET}"
+  # shellcheck disable=SC2035
+  sudo -l && find ** -maxdepth 0 -type l | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable {} "${TARGET}"
+}
+
+function rsync_no_delete_staging() {
+  TARGET="${1}"
+  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable compose/ "${TARGET}"
+}
+
+function rsync_no_delete_prod() {
+  REV="${1}"
+  TARGET="${2}"
+  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable "${REV}/" "${TARGET}"
+}
+
+function rsync_delete_staging() {
+  TARGET="${1}"
+  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable --delete compose/ "${TARGET}"
+}
+
+function rsync_delete_prod() {
+  REV="${1}"
+  TARGET="${2}"
+  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable --delete "${REV}/" "${TARGET}"
+}
+
+export -f parallel_rsync_no_delete_staging
+export -f parallel_rsync_no_delete_prod
+export -f parallel_rsync_delete_staging
+export -f parallel_rsync_delete_prod
+export -f rsync_no_delete_staging
+export -f rsync_no_delete_prod
+export -f rsync_delete_staging
+export -f rsync_delete_prod

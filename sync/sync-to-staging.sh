@@ -15,27 +15,28 @@ fi
 # Major Version (eg, 8)
 MAJ=${RLVER}
 
-cd "${RELEASE_COMPOSE_ROOT}/compose" || { echo "Failed to change directory"; ret_val=1; exit 1; }
+#cd "${RELEASE_COMPOSE_ROOT}/compose" || { echo "Failed to change directory"; ret_val=1; exit 1; }
+cd "${RELEASE_COMPOSE_ROOT}/" || { echo "Failed to change directory"; ret_val=1; exit 1; }
 ret_val=$?
 
 if [ $ret_val -eq "0" ]; then
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
   mkdir -p "${TARGET}"
+  rsync_no_delete_staging "${TARGET}"
   # disabling because none of our files should be starting with dashes. If they
   # are something is *seriously* wrong here.
-  # shellcheck disable=SC2035
-  sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
-      {} "${TARGET}"
+  #sudo -l && find **/* -maxdepth 0 -type d | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable \
+  #    {} "${TARGET}"
 
   # This is temporary until we implement rsync into empanadas
-  if [[ "${COMPOSE}" == "Rocky" ]]; then
-    if [ -f "COMPOSE_ID" ]; then
-      cp COMPOSE_ID "${TARGET}"
-      chown 10004:10005 "${TARGET}/COMPOSE_ID"
-    fi
+  #if [[ "${COMPOSE}" == "Rocky" ]]; then
+  #  if [ -f "COMPOSE_ID" ]; then
+  #    cp COMPOSE_ID "${TARGET}"
+  #    chown 10004:10005 "${TARGET}/COMPOSE_ID"
+  #  fi
 
-    if [ -d "metadata" ]; then
-      rsync -av --chown=10004:10005 --progress --relative --human-readable metadata "${TARGET}"
-    fi
-  fi
+#    if [ -d "metadata" ]; then
+#      rsync -av --chown=10004:10005 --progress --relative --human-readable metadata "${TARGET}"
+#    fi
+#  fi
 fi
