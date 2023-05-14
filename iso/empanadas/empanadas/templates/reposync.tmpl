@@ -16,9 +16,13 @@ fi
 
 if [ "$ret_val" -eq 0 ]; then
   recs=$(grep '\[FAILED\]' {{ sync_log }})
+  rems=$(grep 'Public key for .* is not installed' {{ sync_log }})
   if [[ -n "${recs}" ]]; then
     echo "SOME PACKAGES DID NOT DOWNLOAD" | tee -a {{ sync_log }}
     exit 1
+  elif [[ -n "${rems}" ]]; then
+    echo "PACKAGES WERE REMOVED DUE TO KEY VIOLATION" | tee -a {{ sync_log }}
+    exit 2
   else
     # This is kind of a hack too.
     #FOUND=$(grep -A20 'git\.rockylinux\.org' {{ sync_log }} | egrep -c '^\([0-9]+\/[0-9]+\)|\[SKIPPED\]|\.rpm')
