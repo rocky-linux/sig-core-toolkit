@@ -964,6 +964,7 @@ class Shared:
             compose_latest_sync,
             compose_dir_is_here: bool = False,
             hashed: bool = False,
+            extra_repos: list = None
         ):
         """
         Builds the repo dictionary
@@ -997,7 +998,25 @@ class Shared:
 
             repolist.append(repodata)
 
+        if extra_repos:
+            repolist.append(repo for repo in Shared.parse_extra_repos(extra_repos))
+
         return repolist
+
+    @staticmethod
+    def parse_extra_repos(extra_repos: list) -> list:
+        # must be in format URL[,PRIORITY]
+        result = []
+        for idx, candidate in enumerate(extra_repos):
+            url, priority = candidate.split(',')
+            if not priority:
+                priority = 100
+            result.append({
+                'name': f"extra_repo_{idx}",
+                'url': url,
+                'priority': priority
+                })
+        return result
 
     @staticmethod
     def composeinfo_write(
