@@ -133,7 +133,7 @@ class ImageBuild:
                     ["cp", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.raw"],
                     ["xz",  f"{self.outdir}/{self.outname}.raw"]
             ]
-        if self.image_type in ["GenericCloud", "OCP"]:
+        if self.image_type in ["GenericCloud", "OCP", "GenericArm"]:
             self.stage_commands = [
                     ["qemu-img", "convert", "-c", "-f", "raw", "-O", "qcow2", lambda: f"{STORAGE_DIR}/{self.target_uuid}.body", f"{self.outdir}/{self.outname}.qcow2"]
             ]
@@ -244,7 +244,7 @@ class ImageBuild:
         args = []
         if self.image_type in ["Container"]:
             args = ["--parameter", "offline_icicle", "true"]
-        if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure", "OCP", "RPI"]:
+        if self.image_type in ["GenericCloud", "EC2", "Vagrant", "Azure", "OCP", "RPI", "GenericArm"]:
             args = ["--parameter", "generate_icicle", "false"]
         return args
 
