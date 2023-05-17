@@ -112,7 +112,7 @@ ALLOWED_TYPE_VARIANTS = {
     "GenericCloud": ["Base", "LVM"],
     "Vagrant": ["Libvirt", "Vbox", "VMware"],
     "OCP": ["Base"],
-    "RPI": None,
+    "RPI": ["Base"],
     "GenericArm": ["Minimal"],
 }
 

@@ -324,7 +324,7 @@ class ImageBuild:
     def package(self) -> int: 
         # Some build types don't need to be packaged by imagefactory
         # @TODO remove business logic if possible
-        if self.image_type in ["GenericCloud", "EC2", "Azure", "Vagrant", "OCP", "RPI"]:
+        if self.image_type in ["GenericCloud", "EC2", "Azure", "Vagrant", "OCP", "RPI", "GenericArm"]:
             self.target_uuid = self.base_uuid if hasattr(self, 'base_uuid') else ""
 
         if self.target_uuid:
