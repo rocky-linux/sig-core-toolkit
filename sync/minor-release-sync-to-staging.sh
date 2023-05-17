@@ -42,9 +42,17 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
           "$(stat -c %s ${file})" \
           "$(sha256sum --tag ${file})" \
         | sudo tee -a CHECKSUM;
+
+        printf "# %s: %s bytes\n%s\n" \
+          "${file}" \
+          "$(stat -c %s ${file})" \
+          "$(sha256sum --tag ${file})" \
+        | sudo tee -a "${file}.CHECKSUM"
+
       done
       popd || { echo "Could not change directory"; break; }
     done
+    rm -rf Minimal
     mkdir -p live/x86_64
     ln -s live Live
   fi
@@ -100,4 +108,6 @@ echo "Setting symlink to ${REV}"
 pushd "${STAGING_ROOT}/${CATEGORY_STUB}" || exit
 /bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/latest-8"
 ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" latest-8
+echo "Attempting hard link"
+perform_hardlink "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
 popd || exit

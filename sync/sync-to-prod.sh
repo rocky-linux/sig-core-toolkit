@@ -17,7 +17,7 @@ ret_val=$?
 if [ $ret_val -eq "0" ]; then
   TARGET="${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV:0:3}"
   mkdir -p "${TARGET}"
-  rsync_no_delete_prod "${REV}" "${TARGET}"
+  rsync_delete_prod "${REV}" "${TARGET}"
   echo "Syncing to prod completed. Please run the file list script."
 fi
 

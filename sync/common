@@ -97,10 +97,32 @@ function rsync_no_delete_staging() {
   sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable compose/ "${TARGET}"
 }
 
+function rsync_no_delete_staging_pungi() {
+  local TARGET="${1}"
+  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable \
+    --exclude ppc \
+    --exclude images \
+    --exclude boot \
+    --exclude .discinfo \
+    --exclude .treeinfo \
+    --exclude EFI \
+    --exclude isolinux \
+    --exclude media.repo \
+    --exclude EULA \
+    --exclude LICENSE \
+    --exclude COMMUNITY-CHARTER \
+    --exclude extra_files.json \
+    --exclude Minimal \
+    compose/ "${TARGET}"
+}
+
 function rsync_no_delete_staging_with_excludes() {
   local TARGET="${1}"
   local EXCLUDE="${2}"
-  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable --exclude "${EXCLUDE}" compose/ "${TARGET}"
+  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable \
+    --exclude "${EXCLUDE}" \
+    --exclude Minimal \
+    compose/ "${TARGET}"
 }
 
 function rsync_no_delete_prod() {
