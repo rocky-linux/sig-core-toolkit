@@ -3,11 +3,11 @@
 # Revision must always start with a major number
 case "${RLREL}" in
   stable)
-    REVISION=8.7
+    REVISION=8.8
     APPEND_TO_DIR="-RC1"
     ;;
   beta)
-    REVISION=8.8
+    REVISION=8.9
     APPEND_TO_DIR="-BETA"
     COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
@@ -17,7 +17,7 @@ case "${RLREL}" in
     COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
   *)
-    echo "option no recognized"
+    echo "option not recognized"
     ;;
 esac
 
