@@ -103,7 +103,7 @@ if [ $ret_val -eq "0" ]; then
 
     echo "** Updating modules"
     for arch in "${ARCHES[@]}"; do
-      for mod_repo in "${MODS_REPOS[@]}"; do
+      for mod_repo in "${MODS[@]}"; do
         echo "Trying ${arch} ${mod_repo}..."
         MOD_PATH="${TARGET}/${mod_repo}/${arch}/os/repodata"
         MOD_YAML="/mnt/compose/${RLVER}_metadata/${arch}/${mod_repo}-modules.yaml"
