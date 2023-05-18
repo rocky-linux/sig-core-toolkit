@@ -57,7 +57,7 @@ if [ $ret_val -eq "0" ]; then
     test -d "${TARGET}/${src_repo}"
     ret_val=$?
     if [ $ret_val -eq "0" ]; then
-      createrepo_only "${TARGET}/${src_repo}" "${REVISION}"
+      createrepo_update "${TARGET}/${src_repo}" "${REVISION}"
       fix_metadata "${TARGET}/${src_repo}/repodata/repomd.xml"
       sign_data "${TARGET}/${src_repo}/repodata/repomd.xml"
     else
@@ -75,7 +75,7 @@ if [ $ret_val -eq "0" ]; then
       test -d "${TARGET}/${debug_repo}"
       ret_val=$?
       if [ $ret_val -eq "0" ]; then
-        createrepo_only "${TARGET}/${debug_repo}" "${REVISION}"
+        createrepo_update "${TARGET}/${debug_repo}" "${REVISION}"
         fix_metadata "${TARGET}/${debug_repo}/repodata/repomd.xml"
         sign_data "${TARGET}/${debug_repo}/repodata/repomd.xml"
       else
@@ -132,7 +132,7 @@ if [ $ret_val -eq "0" ]; then
       test -d "${TARGET}/${arch_repo}"
       ret_val=$?
       if [ $ret_val -eq "0" ]; then
-        createrepo_only "${TARGET}/${arch_repo}" "${REVISION}"
+        createrepo_update "${TARGET}/${arch_repo}" "${REVISION}"
         fix_metadata "${TARGET}/${arch_repo}/repodata/repomd.xml"
         sign_data "${TARGET}/${arch_repo}/repodata/repomd.xml"
       else

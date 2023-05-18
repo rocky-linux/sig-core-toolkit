@@ -226,6 +226,14 @@ function createrepo_only() {
     --workers 12
 }
 
+function createrepo_update() {
+  local TARGET="${1}"
+  local TARGET_REV="${2}"
+  createrepo --update "${TARGET}" \
+    "--distro=cpe:/o:rocky:rocky:${TARGET_REV:0:1},Rocky Linux ${TARGET_REV:0:1}" \
+    --workers 12
+}
+
 function createrepo_comps() {
   local TARGET="${1}"
   local TARGET_REV="${2}"
@@ -287,6 +295,7 @@ export -f rsync_delete_prod_dry
 
 export -f perform_hardlink
 export -f createrepo_only
+export -f createrepo_update
 export -f createrepo_comps
 export -f modifyrepo_module
 export -f sign_data
