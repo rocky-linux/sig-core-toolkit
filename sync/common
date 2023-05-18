@@ -92,6 +92,7 @@ function parallel_rsync_delete_prod() {
   sudo -l && find ** -maxdepth 0 -type l | parallel --will-cite -j 18 sudo rsync -av --chown=10004:10005 --progress --relative --human-readable {} "${TARGET}"
 }
 
+# normal rsync
 function rsync_no_delete_staging() {
   local TARGET="${1}"
   sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable compose/ "${TARGET}"
@@ -156,6 +157,67 @@ function perform_hardlink() {
   hardlink -x '.*\.xml.*' "${TARGET}"
 }
 
+# dry rsync
+function rsync_no_delete_staging_dry() {
+  local TARGET="${1}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable compose/ "${TARGET}"
+}
+
+function rsync_no_delete_staging_pungi_dry() {
+  local TARGET="${1}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
+    --exclude ppc \
+    --exclude images \
+    --exclude boot \
+    --exclude .discinfo \
+    --exclude .treeinfo \
+    --exclude EFI \
+    --exclude isolinux \
+    --exclude media.repo \
+    --exclude EULA \
+    --exclude LICENSE \
+    --exclude COMMUNITY-CHARTER \
+    --exclude extra_files.json \
+    --exclude Minimal \
+    compose/ "${TARGET}"
+}
+
+function rsync_no_delete_staging_with_excludes_dry() {
+  local TARGET="${1}"
+  local EXCLUDE="${2}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
+    --exclude "${EXCLUDE}" \
+    --exclude Minimal \
+    compose/ "${TARGET}"
+}
+
+function rsync_delete_staging_with_excludes_dry() {
+  local TARGET="${1}"
+  local EXCLUDE="${2}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
+    --exclude "${EXCLUDE}" \
+    --exclude Minimal \
+    compose/ "${TARGET}"
+}
+
+function rsync_no_delete_prod_dry() {
+  local REV="${1}"
+  local TARGET="${2}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable "${REV}/" "${TARGET}"
+}
+
+function rsync_delete_staging_dry() {
+  local TARGET="${1}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable --delete compose/ "${TARGET}"
+}
+
+function rsync_delete_prod_dry() {
+  local REV="${1}"
+  local TARGET="${2}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable --delete "${REV}/" "${TARGET}"
+}
+
+
 function createrepo_only() {
   local TARGET="${1}"
   local TARGET_REV="${2}"
@@ -208,12 +270,21 @@ export -f parallel_rsync_no_delete_staging
 export -f parallel_rsync_no_delete_prod
 export -f parallel_rsync_delete_staging
 export -f parallel_rsync_delete_prod
+# normal rsync
 export -f rsync_no_delete_staging
 export -f rsync_no_delete_staging_with_excludes
 export -f rsync_no_delete_prod
 export -f rsync_delete_staging
 export -f rsync_delete_staging_with_excludes
 export -f rsync_delete_prod
+# dry rsync
+export -f rsync_no_delete_staging_dry
+export -f rsync_no_delete_staging_with_excludes_dry
+export -f rsync_no_delete_prod_dry
+export -f rsync_delete_staging_dry
+export -f rsync_delete_staging_with_excludes_dry
+export -f rsync_delete_prod_dry
+
 export -f perform_hardlink
 export -f createrepo_only
 export -f createrepo_comps
