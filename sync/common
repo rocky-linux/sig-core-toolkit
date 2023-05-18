@@ -147,6 +147,54 @@ function perform_hardlink() {
   hardlink -x '.*\.xml.*' "${TARGET}"
 }
 
+function createrepo_only() {
+  local TARGET="${1}"
+  local TARGET_REV="${2}"
+  createrepo "${TARGET}" \
+    "--distro=cpe:/o:rocky:rocky:${TARGET_REV:0:1},Rocky Linux ${TARGET_REV:0:1}" \
+    --workers 12
+}
+
+function createrepo_comps() {
+  local TARGET="${1}"
+  local TARGET_REV="${2}"
+  local TARGET_COMPS="${3}"
+  createrepo --update "${TARGET}" \
+    --groupfile="${TARGET_COMPS}" \
+    --xz --revision="${TARGET_REV}" \
+    "--distro=cpe:/o:rocky:rocky:${TARGET_REV:0:1},Rocky Linux ${TARGET_REV:0:1}" \
+    --workers 12 --checksum=sha256
+}
+
+function modifyrepo_module() {
+  local TARGET="${1}"
+  local TARGET_YAML="${2}"
+  /bin/cp "${TARGET_YAML}" /tmp/modules.yaml
+  modifyrepo --mdtype=modules /tmp/modules.yaml \
+    "${TARGET}" --compress --compress-type=xz
+
+  /bin/rm /tmp/modules.yaml
+}
+
+function sign_data() {
+  local TARGET="${1}"
+  test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
+    "${TARGET}"
+}
+
+function fix_metadata() {
+  local TARGET="${1}"
+  sed -i '/<open-size><\/open-size>/d' "${TARGET}"
+}
+
+function createrepo_updates() {
+  local TARGET="${1}"
+  local TARGET_REV="${2}"
+  createrepo "${TARGET}" \
+    "--distro=cpe:/o:rocky:rocky:${TARGET_REV:0:1},Rocky Linux ${TARGET_REV:0:1}" \
+    --workers 12 --update
+}
+
 export -f parallel_rsync_no_delete_staging
 export -f parallel_rsync_no_delete_prod
 export -f parallel_rsync_delete_staging
@@ -157,3 +205,8 @@ export -f rsync_no_delete_prod
 export -f rsync_delete_staging
 export -f rsync_delete_prod
 export -f perform_hardlink
+export -f createrepo_only
+export -f createrepo_comps
+export -f modifyrepo_module
+export -f sign_data
+export -f createrepo_updates
