@@ -35,7 +35,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
       for file in *.iso; do
         printf "# %s: %s bytes\n%s\n" \
           "${file}" \
-          "$(stat -c %s ${file})" \
+          "$(stat -c %s ${file} -L)" \
           "$(sha256sum --tag ${file})" \
         | sudo tee -a CHECKSUM;
       done
