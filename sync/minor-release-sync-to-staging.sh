@@ -82,7 +82,7 @@ for ARCH in "${ARCHES[@]}"; do
     SOURCE="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${REPO}/${ARCH}/os"
     TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${REPO}/${ARCH}/kickstart"
     echo "Making golden kickstart directory"
-    cp -na "${SOURCE}" "${TARGET}"
+    rsync -vrlptDSH --chown=10004:10005 --progress --human-readable "${SOURCE}/" "${TARGET}"
   done
 done
 
