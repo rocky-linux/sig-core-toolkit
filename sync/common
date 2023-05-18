@@ -94,12 +94,12 @@ function parallel_rsync_delete_prod() {
 
 function rsync_no_delete_staging() {
   local TARGET="${1}"
-  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable compose/ "${TARGET}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable compose/ "${TARGET}"
 }
 
 function rsync_no_delete_staging_pungi() {
   local TARGET="${1}"
-  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable \
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
     --exclude ppc \
     --exclude images \
     --exclude boot \
@@ -119,7 +119,7 @@ function rsync_no_delete_staging_pungi() {
 function rsync_no_delete_staging_with_excludes() {
   local TARGET="${1}"
   local EXCLUDE="${2}"
-  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable \
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
     --exclude "${EXCLUDE}" \
     --exclude Minimal \
     compose/ "${TARGET}"
@@ -128,7 +128,7 @@ function rsync_no_delete_staging_with_excludes() {
 function rsync_delete_staging_with_excludes() {
   local TARGET="${1}"
   local EXCLUDE="${2}"
-  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable \
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
     --exclude "${EXCLUDE}" \
     --exclude Minimal \
     compose/ "${TARGET}"
@@ -137,18 +137,18 @@ function rsync_delete_staging_with_excludes() {
 function rsync_no_delete_prod() {
   local REV="${1}"
   local TARGET="${2}"
-  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable "${REV}/" "${TARGET}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable "${REV}/" "${TARGET}"
 }
 
 function rsync_delete_staging() {
   local TARGET="${1}"
-  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable --delete compose/ "${TARGET}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable --delete compose/ "${TARGET}"
 }
 
 function rsync_delete_prod() {
   local REV="${1}"
   local TARGET="${2}"
-  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable --delete "${REV}/" "${TARGET}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable --delete "${REV}/" "${TARGET}"
 }
 
 function perform_hardlink() {
