@@ -125,6 +125,15 @@ function rsync_no_delete_staging_with_excludes() {
     compose/ "${TARGET}"
 }
 
+function rsync_delete_staging_with_excludes() {
+  local TARGET="${1}"
+  local EXCLUDE="${2}"
+  sudo -l && rsync -vrlptDSH --chown=10004:10005 --progress --human-readable \
+    --exclude "${EXCLUDE}" \
+    --exclude Minimal \
+    compose/ "${TARGET}"
+}
+
 function rsync_no_delete_prod() {
   local REV="${1}"
   local TARGET="${2}"
@@ -203,6 +212,7 @@ export -f rsync_no_delete_staging
 export -f rsync_no_delete_staging_with_excludes
 export -f rsync_no_delete_prod
 export -f rsync_delete_staging
+export -f rsync_delete_staging_with_excludes
 export -f rsync_delete_prod
 export -f perform_hardlink
 export -f createrepo_only
