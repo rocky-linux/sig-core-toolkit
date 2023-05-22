@@ -29,6 +29,7 @@ COMPOSE_ROOT="/mnt/compose"
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
 SIG_CATEGORY_STUB="mirror/pub/sig"
+VAULT_STUB="mirror/vault/rocky"
 
 # Override: Required
 #RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
@@ -132,7 +133,24 @@ function rsync_delete_staging_with_excludes() {
   sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
     --exclude "${EXCLUDE}" \
     --exclude Minimal \
+    --delete \
     compose/ "${TARGET}"
+}
+
+function rsync_delete_subdirectory() {
+  local SUBDIR="${1}"
+  local TARGET="${2}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
+   --delete \
+   "compose/${SUBDIR}/" "${TARGET}"
+}
+
+function rsync_delete_generic() {
+  local SOURCE="${1}"
+  local TARGET="${2}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
+    --delete \
+    "${SOURCE}/" "${TARGET}"
 }
 
 function rsync_no_delete_prod() {
@@ -288,6 +306,8 @@ export -f rsync_no_delete_prod
 export -f rsync_delete_staging
 export -f rsync_delete_staging_with_excludes
 export -f rsync_delete_prod
+export -f rsync_delete_subdirectory
+export -f rsync_delete_generic
 # dry rsync
 export -f rsync_no_delete_staging_dry
 export -f rsync_no_delete_staging_with_excludes_dry
