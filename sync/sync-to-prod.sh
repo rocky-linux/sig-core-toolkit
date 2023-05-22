@@ -15,7 +15,7 @@ cd "${STAGING_ROOT}/${CATEGORY_STUB}" || { echo "Failed to change directory"; re
 ret_val=$?
 
 if [ $ret_val -eq "0" ]; then
-  TARGET="${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV:0:3}"
+  TARGET="${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV/-*/}"
   mkdir -p "${TARGET}"
   rsync_delete_prod "${REV}" "${TARGET}"
   echo "Syncing to prod completed. Please run the file list script."
