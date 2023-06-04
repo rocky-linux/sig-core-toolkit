@@ -65,26 +65,27 @@ class Shared:
         try:
             checksum = hashlib.new(hashtype)
         except ValueError:
-            logger.error("Invalid hash type: %s" % hashtype)
+            logger.error("Invalid hash type: %s", hashtype)
             return False
 
         try:
-            input_file = open(path, "rb")
-        except IOError as e:
-            logger.error("Could not open file %s: %s" % (path, e))
+            with open(path, "rb") as input_file:
+                while True:
+                    chunk = input_file.read(8192)
+                    if not chunk:
+                        break
+                    checksum.update(chunk)
+
+                input_file.close()
+        except IOError as exc:
+            logger.error("Could not open file %s: %s", path, exc)
             return False
 
-        while True:
-            chunk = input_file.read(8192)
-            if not chunk:
-                break
-            checksum.update(chunk)
-
-        input_file.close()
         stat = os.stat(path)
         base = os.path.basename(path)
         # This emulates our current syncing scripts that runs stat and
         # sha256sum and what not with a very specific output.
+        # pylint: disable=consider-using-f-string
         return "# %s: %s bytes\n%s (%s) = %s\n" % (
                 base,
                 stat.st_size,

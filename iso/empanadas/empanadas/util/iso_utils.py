@@ -308,17 +308,17 @@ class IsoBuild:
                 bugurl=self.bugurl,
         )
 
-        mock_iso_entry = open(mock_iso_path, "w+")
-        mock_iso_entry.write(mock_iso_template_output)
-        mock_iso_entry.close()
+        with open(mock_iso_path, "w+") as mock_iso_entry:
+            mock_iso_entry.write(mock_iso_template_output)
+            mock_iso_entry.close()
 
-        mock_sh_entry = open(mock_sh_path, "w+")
-        mock_sh_entry.write(mock_sh_template_output)
-        mock_sh_entry.close()
+        with open(mock_sh_path, "w+") as mock_sh_entry:
+            mock_sh_entry.write(mock_sh_template_output)
+            mock_sh_entry.close()
 
-        iso_template_entry = open(iso_template_path, "w+")
-        iso_template_entry.write(iso_template_output)
-        iso_template_entry.close()
+        with open(iso_template_path, "w+") as iso_template_entry:
+            iso_template_entry.write(iso_template_output)
+            iso_template_entry.close()
 
         os.chmod(mock_sh_path, 0o755)
         os.chmod(iso_template_path, 0o755)
@@ -890,9 +890,9 @@ class IsoBuild:
 
         if opts['use_xorrisofs']:
             # Generate a xorriso compatible dialog
-            xp = open(grafts)
-            xorpoint = xp.read()
-            xp.close()
+            with open(grafts) as xp:
+                xorpoint = xp.read()
+                xp.close()
             xorriso_template_output = xorriso_template.render(
                     boot_iso=boot_iso,
                     isoname=isoname,
@@ -900,9 +900,9 @@ class IsoBuild:
                     graft=xorpoint,
                     arch=arch,
             )
-            xorriso_template_entry = open(xorriso_template_path, "w+")
-            xorriso_template_entry.write(xorriso_template_output)
-            xorriso_template_entry.close()
+            with open(xorriso_template_path, "w+") as xorriso_template_entry:
+                xorriso_template_entry.write(xorriso_template_output)
+                xorriso_template_entry.close()
             opts['graft_points'] = xorriso_template_path
 
         make_image = '{} {}'.format(
@@ -934,21 +934,21 @@ class IsoBuild:
                 arch=arch
         )
 
-        mock_iso_entry = open(mock_iso_path, "w+")
-        mock_iso_entry.write(mock_iso_template_output)
-        mock_iso_entry.close()
+        with open(mock_iso_path, "w+") as mock_iso_entry:
+            mock_iso_entry.write(mock_iso_template_output)
+            mock_iso_entry.close()
 
-        mock_sh_entry = open(mock_sh_path, "w+")
-        mock_sh_entry.write(mock_sh_template_output)
-        mock_sh_entry.close()
+        with open(mock_sh_path, "w+") as mock_sh_entry:
+            mock_sh_entry.write(mock_sh_template_output)
+            mock_sh_entry.close()
 
-        iso_template_entry = open(iso_template_path, "w+")
-        iso_template_entry.write(iso_template_output)
-        iso_template_entry.close()
+        with open(iso_template_path, "w+") as iso_template_entry:
+            iso_template_entry.write(iso_template_output)
+            iso_template_entry.close()
 
-        iso_readme_entry = open(iso_readme_path, "w+")
-        iso_readme_entry.write(iso_readme_template_output)
-        iso_readme_entry.close()
+        with open(iso_readme_path, "w+") as iso_readme_entry:
+            iso_readme_entry.write(iso_readme_template_output)
+            iso_readme_entry.close()
 
         os.chmod(mock_sh_path, 0o755)
         os.chmod(iso_template_path, 0o755)
@@ -1273,39 +1273,39 @@ class IsoBuild:
         # We check first if a file needs to be updated first before relying on
         # the boot.iso manifest to exclude a file
         if self.iso_map['xorrisofs']:
-            fx = open(xorrspath, "w")
-            for zm in sorted(result, key=Idents.sorting):
-                found = False
-                replace = False
-                for upda in update:
-                    if fnmatch(zm, upda):
-                        #print(f'updating: {zm} {upda}')
-                        replace = True
-                        break
-                for excl in exclude:
-                    if fnmatch(zm, excl):
-                        #print(f'ignoring: {zm} {excl}')
-                        found = True
-                        break
-                if found:
-                    continue
-                mcmd = "-update" if replace else "-map"
-                fx.write("%s %s %s\n" % (mcmd, u[zm], zm))
-            fx.close()
+            with open(xorrspath, "w") as fx:
+                for zm in sorted(result, key=Idents.sorting):
+                    found = False
+                    replace = False
+                    for upda in update:
+                        if fnmatch(zm, upda):
+                            #print(f'updating: {zm} {upda}')
+                            replace = True
+                            break
+                    for excl in exclude:
+                        if fnmatch(zm, excl):
+                            #print(f'ignoring: {zm} {excl}')
+                            found = True
+                            break
+                    if found:
+                        continue
+                    mcmd = "-update" if replace else "-map"
+                    fx.write("%s %s %s\n" % (mcmd, u[zm], zm))
+                fx.close()
         else:
-            fh = open(filepath, "w")
-            self.log.info(Color.WARN + 'Nothing should be excluded in legacy ' +
-                          'genisoimage. Ignoring exclude list.')
-            for zl in sorted(result, key=Idents.sorting):
-                #found = False
-                #for excl in exclude:
-                #    if fnmatch(zl, excl):
-                #        found = True
-                #        break
-                #if found:
-                #    continue
-                fh.write("%s=%s\n" % (zl, u[zl]))
-            fh.close()
+            with open(filepath, "w") as fh:
+                self.log.info('%sNothing should be excluded in legacy ' \
+                              'genisoimage. Ignoring exclude list.', Color.WARN)
+                for zl in sorted(result, key=Idents.sorting):
+                    #found = False
+                    #for excl in exclude:
+                    #    if fnmatch(zl, excl):
+                    #        found = True
+                    #        break
+                    #if found:
+                    #    continue
+                    fh.write(f"{zl}={u[zl]}\n")
+                fh.close()
 
     def run_pull_iso_images(self):
         """
