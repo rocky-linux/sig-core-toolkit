@@ -141,6 +141,9 @@ if [ $ret_val -eq "0" ]; then
     done
   fi
 
-  echo "** Hardlinking staging directory (${TARGET})"
-  perform_hardlink "${TARGET}"
+  if [[ "${SHORT}" == "Rocky" ]]; then
+    echo "** Hardlinking staging directory (${TARGET})"
+    perform_hardlink "${TARGET}"
+  fi
+  echo "** Syncing completed"
 fi
