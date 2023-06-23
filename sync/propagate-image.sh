@@ -14,7 +14,6 @@ REGIONS=$(aws --profile resf-ami ec2 describe-regions \
 	--all-regions \
 	--query "Regions[].{Name:RegionName}" \
 	--output text | grep -vE "$source_region")
-REGIONS="ap-southeast-4"
 
 SOURCE_AMI_NAME=$(aws --profile resf-ami ec2 describe-images \
 	--region "$source_region" --image-ids "$source_ami" --query 'Images[0].Name' \
