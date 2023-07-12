@@ -40,7 +40,27 @@ class common:
         }
         return REPOS
 
+    def rl10(self):
+        REPOS = {
+                'AppStream': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
+                'BaseOS': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
+                'CRB': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
+                'HighAvailability': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
+                'NFV': ['x86_64'],
+                'ResilientStorage': ['ppc64le', 's390x', 'x86_64'],
+                'RT': ['x86_64'],
+                'SAP': ['ppc64le', 's390x', 'x86_64'],
+                'SAPHANA': ['ppc64le', 'x86_64']
+        }
+        return REPOS
+
     def rl9all(self):
+        REPOS = {
+                'all': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
+        }
+        return REPOS
+
+    def rl10all(self):
         REPOS = {
                 'all': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
         }
@@ -56,6 +76,12 @@ class common:
     def c9s(self):
         REPOS = {
                 'c9s-build': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
+        }
+        return REPOS
+
+    def c10s(self):
+        REPOS = {
+                'c10s-build': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
         }
         return REPOS
 
