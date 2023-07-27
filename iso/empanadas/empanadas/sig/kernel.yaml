@@ -1,0 +1,49 @@
+---
+kernel:
+  '8':
+    profile: 'kernel'
+    project_id: '13172560-6e5d-4e65-ae71-750f99096856'
+    addtional_dirs: []
+    repo:
+      kernel-lts:
+        allowed_arches:
+          - aarch64
+          - x86_64
+      kernel-mainline:
+        allowed_arches:
+          - aarch64
+          - x86_64
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-kernel.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-kernel/-/raw/r8/'
+      branch: 'r8'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Kernel'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Kernel'
+  '9':
+    profile: 'kernel'
+    project_id: '708f99fe-7e89-4241-959a-4ff259786b4a'
+    addtional_dirs: []
+    repo:
+      kernel-lts:
+        allowed_arches:
+          - aarch64
+          - x86_64
+          - ppc64le
+          - s390x
+      kernel-mainline:
+        allowed_arches:
+          - aarch64
+          - x86_64
+          - ppc64le
+          - s390x
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-kernel.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-kernel/-/raw/r9/'
+      branch: 'r9'
+      gpg:
+        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Kernel'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Kernel'
+...
