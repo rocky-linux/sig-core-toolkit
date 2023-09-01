@@ -13,3 +13,4 @@ Directories
 -----------
 
 * generators -> A directory of python and bash scripts for pungi/peridot data generation
+* ipa -> IPA specific scripts and utilities
