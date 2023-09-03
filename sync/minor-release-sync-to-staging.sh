@@ -71,7 +71,7 @@ done
 
 
 # Create symlinks for repos that were once separate from the main compose
-for LINK in "${LINK_REPOS[@]}"; do
+for LINK in "${!LINK_REPOS[@]}"; do
   ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${LINK}" \
     "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${LINK_REPOS[$LINK]}"
 done
