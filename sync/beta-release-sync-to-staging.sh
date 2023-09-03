@@ -6,10 +6,16 @@
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
 export SHORT=Rocky
+export RLREL=beta
 source $(dirname "$0")/common
 
 # Major Version (eg, 8)
 MAJ=${RLVER}
+
+if [[ "${RLVER}" -ne "8" ]]; then
+  echo "This is only used for Rocky Linux 8 releases."
+  exit 1
+fi
 
 # sync all pieces of a release, including extras, nfv, etc
 for COMPOSE in "${NONSIG_COMPOSE[@]}"; do

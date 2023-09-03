@@ -14,6 +14,7 @@ fi
 
 if [[ "${RLVER}" -eq "8" ]]; then
   echo "This is only used for Rocky Linux 9+ releases."
+  exit 1
 fi
 
 # Major Version (eg, 8)
