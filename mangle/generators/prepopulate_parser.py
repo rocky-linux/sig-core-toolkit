@@ -23,11 +23,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--version', type=str, required=True)
 parser.add_argument("--pungi", help="local pungi is here", action='store_true')
 parser.add_argument('--stream', action='store_true', help="Stream koji only")
+parser.add_argument('--all', action='store_true', help="All repo")
 
 results = parser.parse_args()
 
 REPOS = switcher.rlver(results.version,
-                       stream=results.stream)
+                       stream=results.stream, all_repo=results.all)
 
 if results.pungi:
     APPEND_TO_PATH = '/os'

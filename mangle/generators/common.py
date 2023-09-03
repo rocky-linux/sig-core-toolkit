@@ -3,7 +3,7 @@ import sys
 class common:
     def rlver(self, rlver, stream=False, all_repo=False):
         default = "Not Supported"
-        if stream and all_repo:
+        if (stream and all_repo):
             print("incompatible options used")
             sys.exit(1)
 
@@ -54,6 +54,12 @@ class common:
         }
         return REPOS
 
+    def rl8all(self):
+        REPOS = {
+                'dist-rocky8-lookahead-build': ['aarch64', 'x86_64', 'i386'],
+        }
+        return REPOS
+
     def rl9all(self):
         REPOS = {
                 'all': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
@@ -82,6 +88,12 @@ class common:
     def c10s(self):
         REPOS = {
                 'c10s-build': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
+        }
+        return REPOS
+
+    def r8lh(self):
+        REPOS = {
+                'dist-rocky8-lookahead-build': ['aarch64', 'i386', 'x86_64'],
         }
         return REPOS
 
