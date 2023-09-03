@@ -56,7 +56,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   mkdir -p "${TARGET}"
   pushd "${SYNCSRC}" || { echo "${COMPOSE}: Failed to change directory"; break; }
   if [[ "${COMPOSE}" != "Rocky" ]]; then
-    rsync_delete_staging_with_excludes "${TARGET}" "metadata"
+    rsync_no_delete_staging_with_excludes "${TARGET}" "metadata"
   else
     rsync_delete_staging "${TARGET}"
   fi
