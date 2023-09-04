@@ -77,3 +77,12 @@ for ARCH in "${ARCHES[@]}"; do
   treeinfoModder "${ARCH}"
   treeinfoSaver "${ARCH}"
 done
+
+# Change Symlink if required
+echo "Setting symlink to ${REV}"
+pushd "${STAGING_ROOT}/${CATEGORY_STUB}" || exit
+/bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/8-BETA"
+ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" 8-BETA
+echo "Attempting hard link"
+perform_hardlink "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
+popd || exit
