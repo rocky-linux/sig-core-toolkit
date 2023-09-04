@@ -67,7 +67,6 @@ NONSIG_COMPOSE=(
   Rocky
   Extras
   Rocky-devel
-  Plus
 )
 
 declare -A SIG_COMPOSE
