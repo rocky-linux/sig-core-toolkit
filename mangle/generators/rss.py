@@ -190,6 +190,8 @@ def main(options):
                 repoobj.disable()
             else:
                 repoobj.enable()
+                if options.module_hotfixes:
+                    repoobj.set_or_append_opt_value('module_hotfixes', '1')
                 repoobj.load_metadata_other = True
 
     print('Getting repo data')
@@ -207,14 +209,23 @@ def main(options):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--filename', type=str, default='repo-rss.xml')
-    parser.add_argument('--link', type=str, default='http://yum.baseurl.org')
-    parser.add_argument('--title', type=str, default='RSS Repository - Recent Packages')
-    parser.add_argument('--description', type=str, default='Most recent packages in Repositories')
-    parser.add_argument('--days', type=int, default=7)
-    parser.add_argument('--tempcache', action='store_true')
-    parser.add_argument('--arches', action='append', default=[])
-    parser.add_argument('--config', type=str, default='')
+    parser.add_argument('--filename', type=str, default='repo-rss.xml',
+                        description='File patch to export to')
+    parser.add_argument('--link', type=str, default='http://yum.baseurl.org',
+                        description='URL link to repository root')
+    parser.add_argument('--title', type=str, default='RSS Repository - Recent Packages',
+                        description='Title of the feed')
+    parser.add_argument('--description', type=str, default='Most recent packages in Repositories',
+                        description='Description of the feed')
+    parser.add_argument('--days', type=int, default=7, description='Number of days to look back')
+    parser.add_argument('--tempcache', action='store_true',
+                        description='Temporary cache location (automatically on if not root)')
+    parser.add_argument('--module-hotfixes', action='store_true',
+                        description='Only use this to catch all module packages')
+    parser.add_argument('--arches', action='append', default=[],
+                        description='List of architectures to care about')
+    parser.add_argument('--config', type=str, default='',
+                        description='A dnf configuration to use if you do not want to use the default')
     parser.add_argument('repoids', metavar='N', type=str, nargs='+')
     results = parser.parse_args()
 
