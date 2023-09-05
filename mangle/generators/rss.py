@@ -100,7 +100,7 @@ class RepoRSS:
         link = package.remote_location()
         item.newChild(None, 'link', self.xmlescape(link))
         changelog = ''
-        cnt = 0
+        count = 0
         if package.changelogs is not None:
             changelog_list = package.changelogs
         else:
@@ -110,8 +110,9 @@ class RepoRSS:
             if count > 3:
                 changelog += '...'
                 break
-            (date, author, desc) = meta
-            date = time.strftime(changelog_format, time.gmtime(float(date)))
+            date = meta['timestamp'].strftime(changelog_format)
+            author = meta['author']
+            desc = meta['text']
             changelog += f'{date} - {author}\n{desc}\n\n'
         # pylint: disable=line-too-long,consider-using-f-string
         description = '<p><strong>{}</strong> - {}</p>\n\n'.format(self.xmlescape(package.name), self.xmlescape(package.summary))
@@ -189,6 +190,7 @@ def main(options):
                 repoobj.disable()
             else:
                 repoobj.enable()
+                repoobj.load_metadata_other = True
 
     print('Getting repo data')
     try:
