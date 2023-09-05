@@ -191,7 +191,11 @@ def main(options):
             else:
                 repoobj.enable()
                 if options.module_hotfixes:
-                    repoobj.set_or_append_opt_value('module_hotfixes', '1')
+                    try:
+                        repoobj.set_or_append_opt_value('module_hotfixes', '1')
+                    except:
+                        print('Warning: dnf library is too old to support setting values')
+
                 repoobj.load_metadata_other = True
 
     print('Getting repo data')
