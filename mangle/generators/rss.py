@@ -110,7 +110,6 @@ class RepoRSS:
         etbobj.end('generator')
         # end generator
 
-        rfc822_format = "%a, %d %b %Y %X GMT"
         changelog_format = "%a, %d %b %Y GMT"
         for package in packages:
             package_hex = binascii.hexlify(package.chksum[1]).decode()
@@ -130,10 +129,10 @@ class RepoRSS:
                 if count > 3:
                     changelog += '...'
                     break
-                date = meta['timestamp'].strftime(changelog_format)
+                cl_date = meta['timestamp'].strftime(changelog_format)
                 author = meta['author']
                 desc = meta['text']
-                changelog += f'{date} - {author}\n{desc}\n\n'
+                changelog += f'{cl_date} - {author}\n{desc}\n\n'
             description = f'<p><strong>{package.name}</strong> - {package.summary}</p>\n\n'
             description += '<p>%s</p>\n\n<p><strong>Change Log:</strong></p>\n\n' % description.replace("\n", "<br />\n")
             description += f'<pre>{changelog}</pre>'
@@ -147,7 +146,7 @@ class RepoRSS:
             # end title
             # start pubDate
             etbobj.start('pubDate', {})
-            etbobj.data(date)
+            etbobj.data(time.strftime(rfc822_format, date))
             etbobj.end('pubDate')
             # end pubDate
             # start guid
