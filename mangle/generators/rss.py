@@ -215,7 +215,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--filename', type=str, default='repo-rss.xml',
                         help='File patch to export to')
-    parser.add_argument('--link', type=str, default='http://yum.baseurl.org',
+    parser.add_argument('--link', type=str, default='https://github.com/rpm-software-management/dnf',
                         help='URL link to repository root')
     parser.add_argument('--title', type=str, default='RSS Repository - Recent Packages',
                         help='Title of the feed')
