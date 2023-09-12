@@ -2,6 +2,8 @@
 # -*-:python; coding:utf-8; -*-
 # author: Louis Abel <label@rockylinux.org>
 # modified version of repo-rss from yum utils
+# changelog
+#  -> 20230912: do not xmlescape entire description variable
 
 import sys
 import os
@@ -116,7 +118,7 @@ class RepoRSS:
             title = xmlescape(str(package))
             date = time.gmtime(float(package.buildtime))
             description = package.description
-            link = package.remote_location()
+            link = xmlescape(package.remote_location())
             # form description
             changelog = ''
             count = 0
@@ -133,9 +135,9 @@ class RepoRSS:
                 author = meta['author']
                 desc = meta['text']
                 changelog += f'{cl_date} - {author}\n{desc}\n\n'
-            description = f'<p><strong>{package.name}</strong> - {package.summary}</p>\n\n'
-            description += '<p>%s</p>\n\n<p><strong>Change Log:</strong></p>\n\n' % description.replace("\n", "<br />\n")
-            description += f'<pre>{changelog}</pre>'
+            description = '<p><strong>{}</strong> - {}</p>\n\n'.format(xmlescape(package.name), xmlescape(package.summary))
+            description += '<p>%s</p>\n\n<p><strong>Change Log:</strong></p>\n\n' % xmlescape(description.replace("\n", "<br />\n"))
+            description += '<pre>{}</pre>'.format(xmlescape(changelog))
 
             # start item
             etbobj.start('item', {})
@@ -161,7 +163,7 @@ class RepoRSS:
             # end link
             # start description
             etbobj.start('description', {})
-            etbobj.data(xmlescape(description))
+            etbobj.data(description)
             etbobj.end('description')
             # end description
             etbobj.end('item')
