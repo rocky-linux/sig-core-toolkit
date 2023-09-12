@@ -117,7 +117,10 @@ class RepoRSS:
             package_hex = binascii.hexlify(package.chksum[1]).decode()
             title = xmlescape(str(package))
             date = time.gmtime(float(package.buildtime))
-            description = package.description
+            pkg_description = package.description
+            # package.description is sometimes a NoneType. Don't know why.
+            if not pkg_description:
+                pkg_description = ''
             link = xmlescape(package.remote_location())
             # form description
             changelog = ''
@@ -136,7 +139,7 @@ class RepoRSS:
                 desc = meta['text']
                 changelog += f'{cl_date} - {author}\n{desc}\n\n'
             description = '<p><strong>{}</strong> - {}</p>\n\n'.format(xmlescape(package.name), xmlescape(package.summary))
-            description += '<p>%s</p>\n\n<p><strong>Change Log:</strong></p>\n\n' % xmlescape(to_unicode(description.replace("\n", "<br />\n")))
+            description += '<p>%s</p>\n\n<p><strong>Change Log:</strong></p>\n\n' % xmlescape(to_unicode(pkg_description.replace("\n", "<br />\n")))
             description += xmlescape('<pre>{}</pre>'.format(xmlescape(to_unicode(changelog))))
 
             # start item
