@@ -136,8 +136,8 @@ class RepoRSS:
                 desc = meta['text']
                 changelog += f'{cl_date} - {author}\n{desc}\n\n'
             description = '<p><strong>{}</strong> - {}</p>\n\n'.format(xmlescape(package.name), xmlescape(package.summary))
-            description += '<p>%s</p>\n\n<p><strong>Change Log:</strong></p>\n\n' % xmlescape(description.replace("\n", "<br />\n"))
-            description += '<pre>{}</pre>'.format(xmlescape(changelog))
+            description += '<p>%s</p>\n\n<p><strong>Change Log:</strong></p>\n\n' % xmlescape(to_unicode(description.replace("\n", "<br />\n")))
+            description += xmlescape('<pre>{}</pre>'.format(xmlescape(to_unicode(changelog))))
 
             # start item
             etbobj.start('item', {})
