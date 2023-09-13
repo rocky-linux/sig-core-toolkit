@@ -7,9 +7,11 @@
 
 import sys
 import os
+import re
 import argparse
 import time
 import binascii
+import base64
 # The old yum-utils repo-rss used string manipulation. We're instead going to
 # use the XML python library to do the work for us. This is cleaner, imo.
 from xml.sax.saxutils import escape as xmlescape
@@ -29,6 +31,27 @@ def to_unicode(string: str) -> str:
     if isinstance(string, str):
         return string
     return str(string)
+
+def to_base64(string: str) -> str:
+    """
+    Converts a string to base64, but we put single quotes around it. This makes
+    it easier to regex the value.
+    """
+    string_bytes = string.encode('utf-8')
+    string_conv = base64.b64encode(string_bytes)
+    base64_str = "'" + string_conv.decode('utf-8') + "'"
+    return str(base64_str)
+
+def from_base64(string: str) -> str:
+    """
+    Takes a base64 value and returns a string. We also strip off any single
+    quotes that can happen.
+    """
+    stripped = string.replace("'", "")
+    conv_bytes = stripped.encode('utf-8')
+    convd_bytes = base64.b64decode(conv_bytes)
+    decoded = convd_bytes.decode('utf-8')
+    return decoded
 
 class DnfQuiet(dnf.Base):
     """
@@ -141,6 +164,7 @@ class RepoRSS:
             description = '<p><strong>{}</strong> - {}</p>\n\n'.format(xmlescape(package.name), xmlescape(package.summary))
             description += '<p>%s</p>\n\n<p><strong>Change Log:</strong></p>\n\n' % xmlescape(to_unicode(pkg_description.replace("\n", "<br />\n")))
             description += xmlescape('<pre>{}</pre>'.format(xmlescape(to_unicode(changelog))))
+            base64_description = to_base64(description)
 
             # start item
             etbobj.start('item', {})
@@ -166,7 +190,7 @@ class RepoRSS:
             # end link
             # start description
             etbobj.start('description', {})
-            etbobj.data(description)
+            etbobj.data(base64_description)
             etbobj.end('description')
             # end description
             etbobj.end('item')
@@ -180,9 +204,23 @@ class RepoRSS:
         etree = ElementTree(rss)
         some_string = tostring(etree.getroot(), encoding='utf-8')
         xmlstr = minidom.parseString(some_string).toprettyxml(indent="  ")
-        #etree.write(file, encoding='utf-8')
-        with open(file, 'w+', encoding='utf-8') as f:
-            f.write(xmlstr)
+
+        # When writing to the file, we split the string by the newlines. This
+        # appears as a list. We loop through the list and find <description>',
+        # the reason is because we did a base64 encoding of the package
+        # description to keep the etree from encoding the HTML. We decode it
+        # and then write it back, along with everything else line by line. This
+        # is very inefficient, but as far as I can tell, there's no way with
+        # the built in xml library in python to keep it from doing this.
+        base64_regex = r"'(.*)'"
+        with open(f'{file}', 'w+', encoding='utf-8') as f:
+            for line in xmlstr.splitlines():
+                new_line = line
+                if "<description>'" in line:
+                    result = re.search(base64_regex, line)
+                    record = from_base64(result.group(0))
+                    new_line = line.replace(result.group(0), record)
+                f.write(new_line + '\n')
             f.close()
 
 def make_rss_feed(filename, title, link, description, recent):
