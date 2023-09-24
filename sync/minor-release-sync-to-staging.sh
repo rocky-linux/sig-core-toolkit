@@ -28,6 +28,10 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
     # Sort the ISO's
     for ARCH in "${ARCHES[@]}"; do
       for x in BaseOS Minimal; do
+        if [[ "${x}" != "BaseOS" ]]; then
+          echo "${x} ${ARCH}: Removing unnecessary boot image"
+          /bin/rm -v "${x}/${ARCH}/iso/"*boot*
+        fi
         echo "${x} ${ARCH}: Moving ISO images"
         mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
       done
