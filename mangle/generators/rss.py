@@ -272,6 +272,10 @@ def main(options):
         print('repo data failure')
         sys.exit(1)
 
+    if options.disable_all_modules:
+        modobj = dnf.module.module_base.ModuleBase(dnfobj)
+        modobj.disable(['*'])
+
     sack_query = dnfobj.sack.query().available()
     #recent = sack_query.filter(latest_per_arch=1)
     recent = dnfobj.get_recent(days=days)
@@ -300,6 +304,8 @@ if __name__ == "__main__":
                         help='List of architectures to care about')
     parser.add_argument('--config', type=str, default='',
                         help='A dnf configuration to use if you do not want to use the default')
+    parser.add_argument('--disable-all-modules', action='store_true',
+                        help='Disables all modules. Useful for getting newer than 8 data.')
     parser.add_argument('repoids', metavar='N', type=str, nargs='+')
     results = parser.parse_args()
 
