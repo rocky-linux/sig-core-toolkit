@@ -89,6 +89,10 @@ def set_releasever(releasever):
     """
     Sets a release version
     """
+    check_for_rel = re.search(regex, releasever)
+    if not check_for_rel:
+        print(f'Release version does not conform to X.Y or it does not start with {dist}')
+        sys.exit(1)
     print(f'Setting releasever to {releasever}')
     with open('/etc/dnf/vars/releasever', 'w') as f:
         f.write(releasever)
@@ -138,12 +142,12 @@ def repoutil(results):
         if results.use_baseurl and results.use_mirrorlist:
             print('You cannot set both baseurl and mirrorlist.')
             sys.exit(1)
-    
+
         if results.use_baseurl:
             switch_to_baseurl()
         elif results.use_mirrorlist:
             switch_to_mirrorlist()
-    
+
         if len(results.releasever) > 0:
             set_releasever(results.releasever)
 
