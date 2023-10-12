@@ -20,7 +20,9 @@ REPOS = switcher.rlver(results.version,
 # Source packages we do not ship or are rocky branded
 IGNORES = [
         'insights-client',
+        'redhat-cloud-client-configuration',
         'rhc',
+        'rhc-worker-playbook',
         'centos-indexhtml',
         'centos-logos',
         'centos-stream-release',
