@@ -3,11 +3,11 @@
 # Revision must always start with a major number
 case "${RLREL}" in
   stable)
-    REVISION=9.2
+    REVISION=9.3
     APPEND_TO_DIR="-RC1"
     ;;
   beta)
-    REVISION=9.3
+    REVISION=9.4
     APPEND_TO_DIR="-beta"
     COMPOSE_APPEND="-beta"
     ;;

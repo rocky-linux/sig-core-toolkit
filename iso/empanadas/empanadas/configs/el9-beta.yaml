@@ -1,10 +1,10 @@
 ---
 '9-beta':
-  fullname: 'Rocky Linux 9.2'
-  revision: '9.2'
+  fullname: 'Rocky Linux 9.3'
+  revision: '9.3'
   rclvl: 'BETA1'
   major: '9'
-  minor: '2'
+  minor: '3'
   profile: '9-beta'
   disttag: 'el9'
   bugurl: 'https://bugs.rockylinux.org'
@@ -16,7 +16,7 @@
     - ppc64le
     - s390x
   provide_multilib: True
-  project_id: 'dff20351-7d36-4f7c-9eea-7f039f5026d0'
+  project_id: '6202c09e-6252-4d3a-bcd3-9c7751682970'
   repo_symlinks:
     NFV: 'nfv'
   renames:

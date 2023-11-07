@@ -1,10 +1,10 @@
 ---
 '9':
-  fullname: 'Rocky Linux 9.2'
-  revision: '9.2'
+  fullname: 'Rocky Linux 9.3'
+  revision: '9.3'
   rclvl: 'RC1'
   major: '9'
-  minor: '2'
+  minor: '3'
   profile: '9'
   disttag: 'el9'
   bugurl: 'https://bugs.rockylinux.org'
