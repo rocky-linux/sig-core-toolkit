@@ -1,0 +1,14 @@
+#!/bin/bash
+# Wrapper for ipaauditor.py info
+
+__classic_output="
+Note: You are running on an older system that does not support python3 with
+FreeIPA, such as RHEL/CentOS 6 or 7. Information provided will be limited.
+
+Local host name:    $(hostname -f)
+Joined to domain:   $(awk '/domain/ {print $3}' /etc/ipa/default.conf)
+Joined as:          $(awk '/host/ {print $3}' /etc/ipa/default.conf)
+Registered DC:      $(awk '/server/ {print $3}' /etc/ipa/default.conf)
+"
+
+echo "$__classic_output"

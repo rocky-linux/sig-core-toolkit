@@ -110,15 +110,19 @@ class IPAInfo:
             return results
         return ['Unknown']
 
-etc_ipa_default = EtcIPADefault.read()
-domain_status = SssctlInfo.domain_status(etc_ipa_default['ipa_domain'])
-current_dc = SssctlInfo.current_dc(etc_ipa_default['ipa_domain'])
-current_hostname = etc_ipa_default['local_host_name']
-current_domain = etc_ipa_default['ipa_domain']
-hostgroups = '\n                   '.join(IPAInfo.get_host_groups(current_hostname))
+    @staticmethod
+    def get_ipa_info():
+        """
+        Gets the actual info
+        """
 
-def main():
-    output = f'''
+        etc_ipa_default = EtcIPADefault.read()
+        domain_status = SssctlInfo.domain_status(etc_ipa_default['ipa_domain'])
+        current_dc = SssctlInfo.current_dc(etc_ipa_default['ipa_domain'])
+        current_hostname = etc_ipa_default['local_host_name']
+        current_domain = etc_ipa_default['ipa_domain']
+        hostgroups = '\n                   '.join(IPAInfo.get_host_groups(current_hostname))
+        output = f'''
 Local host name:   {etc_ipa_default['local_host_name']}
 Joined to domain:  {etc_ipa_default['ipa_domain']}
 Joined as:         {etc_ipa_default['ipa_joined_name']}
@@ -127,7 +131,11 @@ Current DC:        {current_dc}
 Domain Status:     {domain_status}
 Host Group(s):     {hostgroups}
 '''
-    print(output)
+        print(output)
+
+
+def main():
+    IPAInfo.get_ipa_info()
 
 if __name__ == '__main__':
     main()
