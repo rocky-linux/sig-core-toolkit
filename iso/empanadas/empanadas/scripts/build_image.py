@@ -257,9 +257,9 @@ class ImageBuild:
     def kickstart_imagefactory_args(self) -> List[str]:
 
         if not self.kickstart_path.is_file():
-            log.warn(f"Kickstart file is not available: {self.kickstart_path}")
+            log.warning(f"Kickstart file is not available: {self.kickstart_path}")
             if not debug:
-                log.warn("Exiting because debug mode is not enabled.")
+                log.warning("Exiting because debug mode is not enabled.")
                 exit(2)
 
         return ["--file-parameter", "install_script", str(self.kickstart_path)]

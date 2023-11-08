@@ -462,7 +462,7 @@ class IsoBuild:
         if not force_unpack:
             file_check = os.path.join(unpack_dir, 'lorax/.treeinfo')
             if os.path.exists(file_check):
-                self.log.warn(Color.WARN + 'Artifact (' + arch + ') already unpacked')
+                self.log.warning(Color.WARN + 'Artifact (' + arch + ') already unpacked')
                 return
 
         self.log.info('Unpacking %s' % tarball)
@@ -498,7 +498,7 @@ class IsoBuild:
         if not force_unpack:
             file_check = os.path.join(path_to_image, '.treeinfo')
             if os.path.exists(file_check):
-                self.log.warn(Color.WARN + 'Lorax image for ' + image + ' already exists')
+                self.log.warning(Color.WARN + 'Lorax image for ' + image + ' already exists')
                 return
 
         self.log.info('Copying base lorax to %s directory...' % image)
@@ -544,7 +544,7 @@ class IsoBuild:
         if not force_unpack:
             file_check = isobootpath
             if os.path.exists(file_check):
-                self.log.warn(Color.WARN + 'Boot image (' + discname + ') already exists')
+                self.log.warning(Color.WARN + 'Boot image (' + discname + ') already exists')
                 return
 
         self.log.info('Copying %s boot iso to work directory...' % arch)
@@ -643,7 +643,7 @@ class IsoBuild:
                 found_files.append('/images/boot.iso')
 
             if len(found_files) > 0:
-                self.log.warn(Color.WARN + 'Images and data for ' + repo + ' and ' + arch + ' already exists.')
+                self.log.warning(Color.WARN + 'Images and data for ' + repo + ' and ' + arch + ' already exists.')
                 return
 
         self.log.info(Color.INFO + 'Copying images and data for ' + repo + ' ' + arch)
@@ -1371,7 +1371,7 @@ class IsoBuild:
 
                 # latest_artifacts should have at least 1 result if has_variants, else == 1
                 if not len(latest_artifacts[name][variantname]) > 0:
-                    self.log.warn(Color.WARN + 'No images found for ' + variantname +
+                    self.log.warning(Color.WARN + 'No images found for ' + variantname +
                             '. This means it will be skipped.')
 
             del imagename
@@ -1403,7 +1403,7 @@ class IsoBuild:
                     )
 
                     if arch not in keysect:
-                        self.log.warn(Color.WARN + 'This architecture (' + arch + ') does not exist for this image orvar is a string.')
+                        self.log.warning(Color.WARN + 'This architecture (' + arch + ') does not exist for this image orvar is a string.')
                         continue
 
                     source_path = keysect[arch]
@@ -1648,7 +1648,7 @@ class LiveBuild:
         self.log.info(self.revision)
 
         if not os.path.exists(self.compose_latest_dir):
-            self.log.warn(Color.WARN + 'A compose directory was not found ' +
+            self.log.warning(Color.WARN + 'A compose directory was not found ' +
                     'here. If there is a failure, it may be due to it ' +
                     'missing. You may want to generate a fake compose if ' +
                     'you are simply making your own live images and you run ' +
@@ -1841,8 +1841,8 @@ class LiveBuild:
         bad_exit_list = []
         checksum_list = []
         entry_name_list = []
-        self.log.warn(Color.WARN + 'There is no support for podman in empanadas.')
-        self.log.warn(Color.WARN + "If this fails, it's on you to determine the fix.")
+        self.log.warning(Color.WARN + 'There is no support for podman in empanadas.')
+        self.log.warning(Color.WARN + "If this fails, it's on you to determine the fix.")
         for i in images:
             image_name = i
             entry_name = f'buildLiveImage-{arch}-{i}.sh'
@@ -1947,11 +1947,11 @@ class LiveBuild:
 
         if self.justcopyit:
             if os.path.exists(os.path.join(live_dir_arch, isoname)):
-                self.log.warn(Color.WARN + 'Image already exists.')
+                self.log.warning(Color.WARN + 'Image already exists.')
                 if self.force_build:
-                    self.log.warn(Color.WARN + 'Building anyway.')
+                    self.log.warning(Color.WARN + 'Building anyway.')
                 else:
-                    self.log.warn(Color.WARN + 'Skipping.')
+                    self.log.warning(Color.WARN + 'Skipping.')
                     return
 
         live_iso_cmd = f'/bin/bash {entries_dir}/liveisobuild-{arch}-{image}.sh'
@@ -1962,11 +1962,11 @@ class LiveBuild:
             self.log.error('See the logs for more information.')
             raise SystemExit()
 
-        self.log.warn(
+        self.log.warning(
                 Color.WARN + 'This is meant for builds done in peridot or ' +
                 'locally for an end user.'
         )
-        self.log.warn(
+        self.log.warning(
                 Color.WARN +
                 'If you are looping images, your built image may get ' +
                 'overwritten. Ensure you have justcopyit enabled to avoid this.'

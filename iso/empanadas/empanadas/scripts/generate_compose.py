@@ -1,5 +1,6 @@
 # This script can be called to do single syncs or full on syncs.
 
+import os
 import argparse
 import logging
 import sys
@@ -16,6 +17,7 @@ parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
 parser.add_argument('--sig', type=str, help="SIG Name if applicable")
 parser.add_argument('--symlink', action='store_true', help="symlink to latest")
+parser.add_argument('--copy-old-compose', action='store_true', help="Runs an rsync from previous compose")
 parser.add_argument('--logger', type=str)
 
 # Parse them
@@ -59,16 +61,21 @@ def run():
             date_stamp,
             logger
     )
+    compose_latest_dir = os.path.join(
+            config['compose_root'],
+            major,
+            "latest-{}-{}".format(
+                shortname,
+                profile,
+            )
+    )
+    if results.copy_old_compose:
+        if os.path.exists(compose_latest_dir):
+            previous_compose_path = os.path.realpath(compose_latest_dir)
+        else:
+            log.warning('No symlink exists; we cannot copy from the old compose')
 
     if results.symlink:
-        compose_latest_dir = os.path.join(
-                config['compose_root'],
-                major,
-                "latest-{}-{}".format(
-                    shortname,
-                    profile,
-                )
-        )
         if os.path.exists(compose_latest_dir):
             os.remove(compose_latest_dir)
 

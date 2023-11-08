@@ -621,7 +621,7 @@ class Shared:
         s3 = boto3.client('s3')
         if os.path.exists(dest):
             if not force_download:
-                logger.warn(
+                logger.warning(
                         '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
                         'Artifact at ' + dest + ' already exists'
                 )
@@ -703,7 +703,7 @@ class Shared:
         """
         if os.path.exists(dest):
             if not force_download:
-                logger.warn(
+                logger.warning(
                         '[' + Color.BOLD + Color.YELLOW + 'WARN' + Color.END + '] ' +
                         'Artifact at ' + dest + ' already exists'
                 )
@@ -1157,7 +1157,7 @@ class Shared:
                 shutil.copy2(src, extra_files_dir)
                 shutil.copy2(src, metadata_dir)
             except:
-                logger.warn(Color.WARN + 'Extra file not copied: ' + src)
+                logger.warning(Color.WARN + 'Extra file not copied: ' + src)
 
         try:
             shutil.rmtree(tmpclone)

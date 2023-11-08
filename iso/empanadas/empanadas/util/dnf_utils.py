@@ -280,7 +280,7 @@ class RepoSync:
             raise SystemExit()
 
         if self.fullrun and self.refresh_extra_files:
-            self.log.warn(Color.WARN + 'A full run implies extra files are also deployed.')
+            self.log.warning(Color.WARN + 'A full run implies extra files are also deployed.')
 
         if not self.skip_all:
             self.sync(self.repo, sync_root, work_root, log_root, global_work_root, self.arch)
@@ -1020,7 +1020,7 @@ class RepoSync:
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.WARN + repo_name + ' ' + a + ' os .treeinfo already exists')
+                    self.log.warning(Color.WARN + repo_name + ' ' + a + ' os .treeinfo already exists')
 
                 if not os.path.exists(os_disc_path) or (os.path.exists(os_disc_path) and refresh):
                     try:
@@ -1036,7 +1036,7 @@ class RepoSync:
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.WARN + repo_name + ' ' + a +
+                    self.log.warning(Color.WARN + repo_name + ' ' + a +
                             ' os .discinfo already exists'
                     )
 
@@ -1053,7 +1053,7 @@ class RepoSync:
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.WARN + repo_name + ' ' + a +
+                    self.log.warning(Color.WARN + repo_name + ' ' + a +
                             ' os media.repo already exists'
                     )
 
@@ -1075,7 +1075,7 @@ class RepoSync:
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.WARN + repo_name + ' ' + a +
+                    self.log.warning(Color.WARN + repo_name + ' ' + a +
                             ' kickstart .treeinfo already exists'
                     )
 
@@ -1093,7 +1093,7 @@ class RepoSync:
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.FAIL + repo_name + ' ' + a +
+                    self.log.warning(Color.FAIL + repo_name + ' ' + a +
                             ' kickstart .discinfo already exists'
                     )
 
@@ -1110,7 +1110,7 @@ class RepoSync:
                         )
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.WARN + repo_name + ' ' + a +
+                    self.log.warning(Color.WARN + repo_name + ' ' + a +
                             ' kickstart media.repo already exists'
                     )
 
@@ -1153,7 +1153,7 @@ class RepoSync:
                             )
                             self.log.error(e)
                     else:
-                        self.log.warn(Color.WARN + r + ' ' + a +
+                        self.log.warning(Color.WARN + r + ' ' + a +
                                 ' debug .treeinfo already exists'
                         )
 
@@ -1171,7 +1171,7 @@ class RepoSync:
                             )
                             self.log.error(e)
                     else:
-                        self.log.warn(Color.WARN + r + ' ' + a +
+                        self.log.warning(Color.WARN + r + ' ' + a +
                                 ' debug .discinfo already exists'
                         )
 
@@ -1188,7 +1188,7 @@ class RepoSync:
                             )
                             self.log.error(e)
                     else:
-                        self.log.warn(Color.WARN + repo_name + ' ' + a +
+                        self.log.warning(Color.WARN + repo_name + ' ' + a +
                                 ' debug media.repo already exists'
                         )
 
@@ -1227,7 +1227,7 @@ class RepoSync:
                         self.log.error(Color.FAIL + repo_name + ' source os .treeinfo could not be written')
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.WARN + repo_name + ' source os .treeinfo already exists')
+                    self.log.warning(Color.WARN + repo_name + ' source os .treeinfo already exists')
 
                 if not os.path.exists(source_disc_path) or (os.path.exists(source_disc_path) and refresh):
                     try:
@@ -1241,7 +1241,7 @@ class RepoSync:
                         self.log.error(Color.FAIL + repo_name + ' source os .discinfo could not be written')
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.WARN + repo_name + ' source .discinfo already exists')
+                    self.log.warning(Color.WARN + repo_name + ' source .discinfo already exists')
 
                 if not os.path.exists(source_media_path) or (os.path.exists(source_media_path) and refresh):
                     try:
@@ -1254,7 +1254,7 @@ class RepoSync:
                         self.log.error(Color.FAIL + repo_name + ' source os media.repo could not be written')
                         self.log.error(e)
                 else:
-                    self.log.warn(Color.WARN + repo_name + ' source media.repo already exists')
+                    self.log.warning(Color.WARN + repo_name + ' source media.repo already exists')
 
     def tweak_treeinfo(self, repo, sync_root, arch):
         """
@@ -1911,7 +1911,7 @@ class SigRepoSync:
             raise SystemExit()
 
         if self.fullrun and self.refresh_extra_files:
-            self.log.warn(Color.WARN + 'A full run implies extra files are also deployed.')
+            self.log.warning(Color.WARN + 'A full run implies extra files are also deployed.')
 
         self.sync(self.sigrepo, sync_root, work_root, log_root, global_work_root, self.arch)
 
