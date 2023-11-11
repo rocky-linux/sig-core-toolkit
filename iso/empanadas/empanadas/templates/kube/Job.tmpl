@@ -13,6 +13,7 @@ spec:
       containers:
       - name: {{ jobname }}-{{ major }}-{{ architecture }}
         image: {{ imageName }}
+        imagePullPolicy: Always
         command: ["/bin/bash", "-c"]
         args:
           - |
