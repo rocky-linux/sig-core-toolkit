@@ -44,4 +44,4 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ghcr.io/rocky-linux/sig-core-toolkit:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=inline
