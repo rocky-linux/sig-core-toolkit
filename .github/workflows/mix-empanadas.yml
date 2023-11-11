@@ -42,6 +42,6 @@ jobs:
           context: ./iso/empanadas
           file: ./iso/empanadas/Containerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: git.resf.org/sig_core/toolkit:latest
+          tags: ghcr.io/rocky-linux/sig-core-toolkit:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
