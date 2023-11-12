@@ -517,7 +517,8 @@ class Shared:
         Returns a list for the fpsync command
         """
         cmd = '/usr/bin/fpsync'
-        rsync_switches = '-av --numeric-ids --no-compress --chown=10004:10005'
+        #rsync_switches = '-av --numeric-ids --no-compress --chown=10004:10005'
+        rsync_switches = '-v --numeric-ids --no-compress --chown=10004:10005'
         if not os.path.exists(cmd):
             message = 'fpsync not found'
             retval = 1
