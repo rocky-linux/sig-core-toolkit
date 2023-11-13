@@ -18,7 +18,7 @@ ret_val=$?
 if [ $ret_val -eq "0" ]; then
   TARGET="${PRODUCTION_ROOT}/${VAULT_STUB}/${REV}"
   mkdir -p "${TARGET}"
-  rsync_no_delete_prod "${REV}" "${TARGET}"
+  rsync_no_delete_prod_no_repodata "${REV}" "${TARGET}"
   echo "Syncing to the vault completed. Please run the file list script."
 fi
 

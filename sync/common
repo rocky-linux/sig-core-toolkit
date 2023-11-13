@@ -159,6 +159,12 @@ function rsync_no_delete_prod() {
   sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable "${REV}/" "${TARGET}"
 }
 
+function rsync_no_delete_prod_no_repodata() {
+  local REV="${1}"
+  local TARGET="${2}"
+  sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable --exclude repodata "${REV}/" "${TARGET}"
+}
+
 function rsync_delete_staging() {
   local TARGET="${1}"
   sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable --delete compose/ "${TARGET}"
@@ -303,6 +309,7 @@ export -f parallel_rsync_delete_prod
 export -f rsync_no_delete_staging
 export -f rsync_no_delete_staging_with_excludes
 export -f rsync_no_delete_prod
+export -f rsync_no_delete_prod_no_repodata
 export -f rsync_delete_staging
 export -f rsync_delete_staging_with_excludes
 export -f rsync_delete_prod
