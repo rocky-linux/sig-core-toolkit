@@ -63,6 +63,7 @@ class RepoSync:
             just_pull_everything: bool = False,
             extra_dnf_args=None,
             reposync_clean_old: bool = False,
+            fpsync: bool = False,
             logger=None
         ):
         self.nofail = nofail
@@ -76,6 +77,7 @@ class RepoSync:
         self.repoclosure = repoclosure
         self.refresh_extra_files = refresh_extra_files
         self.refresh_treeinfo = refresh_treeinfo
+        self.fpsync = fpsync
         # Enables podman syncing, which should effectively speed up operations
         self.parallel = parallel
         # This makes it so every repo is synced at the same time.
@@ -1406,7 +1408,7 @@ class RepoSync:
         # Standard ISOs
         self.log.info(Color.INFO + 'Starting to sync ISOs to compose')
 
-        if os.path.exists('/usr/bin/fpsync'):
+        if os.path.exists('/usr/bin/fpsync') and self.fpsync:
             self.log.info(Color.INFO + 'Starting up fpsync')
             message, ret = Shared.fpsync_method(iso_root, sync_iso_root, tmp_dir)
         elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
@@ -1430,7 +1432,7 @@ class RepoSync:
         if os.path.exists(live_root):
             self.log.info(Color.INFO + 'Starting to sync live images to compose')
 
-            if os.path.exists('/usr/bin/fpsync'):
+            if os.path.exists('/usr/bin/fpsync') and self.fpsync:
                 message, ret = Shared.fpsync_method(live_root, sync_live_root, tmp_dir)
             elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
                 message, ret = Shared.rsync_method(live_root, sync_live_root)
@@ -1444,7 +1446,7 @@ class RepoSync:
         if os.path.exists(images_root):
             self.log.info(Color.INFO + 'Starting to sync cloud images to compose')
 
-            if os.path.exists('/usr/bin/fpsync'):
+            if os.path.exists('/usr/bin/fpsync') and self.fpsync:
                 message, ret = Shared.fpsync_method(images_root, sync_images_root, tmp_dir)
             elif os.path.exists('/usr/bin/parallel') and os.path.exists('/usr/bin/rsync'):
                 message, ret = Shared.rsync_method(images_root, sync_images_root)

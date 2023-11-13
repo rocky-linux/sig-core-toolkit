@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 # All of our options
 parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
 parser.add_argument('--arch', type=str, help="Architecture")
+parser.add_argument('--fpsync', type=str, help="Use fpsync instead of rsync")
 parser.add_argument('--logger', type=str)
 
 # Parse them
@@ -28,6 +29,7 @@ a = RepoSync(
         config,
         major=major,
         arch=results.arch,
+        fpsync=results.fpsync,
         logger=results.logger,
 )
 

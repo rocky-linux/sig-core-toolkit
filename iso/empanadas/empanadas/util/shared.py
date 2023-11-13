@@ -564,12 +564,29 @@ class Shared:
         """
         find_cmd = '/usr/bin/find'
         parallel_cmd = '/usr/bin/parallel'
-        rsync_cmd = '/usr/bin/rsync'
+        cmd = '/usr/bin/rsync'
         switches = '-av --chown=10004:10005 --progress --relative --human-readable'
+        rsync_cmd = '{} {} {}/ {}'.format(cmd, switches, src, dest)
 
-        os.makedirs(dest, exist_ok=True)
+        #os.makedirs(dest, exist_ok=True)
+        process = subprocess.call(
+                shlex.split(rsync_cmd),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+        )
+        if process != 0:
+            message = 'Syncing (rsync) failed'
+            retval = process
+            return message, retval
 
-        return 'Not available', 1
+        if os.path.exists(dest):
+            message = 'Syncing (rsync) succeeded'
+            retval = process
+        else:
+            message = 'Path synced does not seem to exist for some reason.'
+            retval = 1
+
+        return message, retval
 
     @staticmethod
     def s3_determine_latest(s3_bucket, release, arches, filetype, name, logger):
