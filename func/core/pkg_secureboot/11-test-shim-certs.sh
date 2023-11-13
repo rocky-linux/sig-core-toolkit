@@ -8,7 +8,12 @@ if [ ! -d /sys/firmware/efi ]; then
     exit 0
   fi
 else
-  p_installPackageNormal pesign
-  pesign --show-signature --in /boot/efi/EFI/rocky/shim.efi | grep -Eq "Microsoft Windows UEFI Driver Publisher"
-  r_checkExitStatus $?
+  if [[ "$rl_arch" == "x86_64" ]]; then
+    p_installPackageNormal pesign
+    pesign --show-signature --in /boot/efi/EFI/rocky/shim.efi | grep -Eq "Microsoft Windows UEFI Driver Publisher"
+    r_checkExitStatus $?
+  else
+    r_log "secureboot" "x86_64 is the only supported secureboot arch at this time"
+    exit 0
+  fi
 fi
