@@ -565,7 +565,7 @@ class Shared:
         find_cmd = '/usr/bin/find'
         parallel_cmd = '/usr/bin/parallel'
         cmd = '/usr/bin/rsync'
-        switches = '-vrlptDSH --chown=10004:10005 --progress --relative --human-readable'
+        switches = '-vrlptDSH --chown=10004:10005 --progress --human-readable'
         rsync_cmd = '{} {} {}/ {}'.format(cmd, switches, src, dest)
 
         #os.makedirs(dest, exist_ok=True)
