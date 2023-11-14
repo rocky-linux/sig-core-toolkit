@@ -4,6 +4,7 @@ r_log "archive" "Test tar create and extract"
 TARDIR="/var/tmp/tartest"
 FILE1="$TARDIR/test.1.txt"
 FILE2="$TARDIR/test.2.txt"
+trap '/bin/rm -rf /var/tmp/tarfile.tar $TARDIR' EXIT
 
 mkdir -p $TARDIR
 cat > $FILE1 <<EOF
@@ -32,5 +33,3 @@ if [ $RES1 == 0 ] && [ $RES2 == 0 ]; then
 fi
 
 r_checkExitStatus $ret_val
-
-/bin/rm -rf /var/tmp/tarfile.tar $TARDIR

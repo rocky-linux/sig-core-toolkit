@@ -2,6 +2,7 @@
 r_log "archive" "Testing zforce"
 
 BASEFILE="/var/tmp/abcdefg"
+trap '/bin/rm "$BASEFILE.gz"' EXIT
 /bin/rm $BASEFILE* &>/dev/null
 
 cat > $BASEFILE <<EOF
@@ -14,5 +15,3 @@ mv $BASEFILE.gz $BASEFILE
 zforce $BASEFILE || r_checkExitStatus 1
 [ -e "$BASEFILE.gz" ]
 r_checkExitStatus $?
-
-/bin/rm "$BASEFILE.gz"

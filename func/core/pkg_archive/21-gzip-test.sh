@@ -4,6 +4,9 @@ r_log "archive" "Test gzip/zcat/gunzip"
 FILE=/var/tmp/gzip-test.txt
 MD5HASH=e6331c582fbad6653832860f469f7d1b
 
+# clean up
+trap '/bin/rm $FILE* &> /dev/null && /bin/rm -rf /var/tmp/gziptest &> /dev/null' EXIT
+
 # Double check that stuff is cleared out
 /bin/rm $FILE* &> /dev/null
 /bin/rm -rf /var/tmp/gziptest &> /dev/null
@@ -107,7 +110,3 @@ tar -czf $FILE.tgz $FILE &> /dev/null
 gunzip $FILE.tgz
 [ -e $FILE.tar ]
 r_checkExitStatus $?
-
-# clean up
-/bin/rm $FILE* &> /dev/null
-/bin/rm -rf /var/tmp/gziptest &> /dev/null

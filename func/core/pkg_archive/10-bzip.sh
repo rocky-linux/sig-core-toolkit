@@ -1,6 +1,7 @@
 #!/bin/bash
 r_log "archive" "Test bzip/bzcat/bunzip"
 FILE=/var/tmp/bziptest.txt
+trap '/bin/rm -f ${FILE}' EXIT
 
 cat > "$FILE" <<EOF
 testing text
@@ -23,5 +24,3 @@ fi
 grep -q 'testing text' "${FILE}"
 
 r_checkExitStatus $?
-
-/bin/rm -f "${FILE}*"

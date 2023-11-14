@@ -1,6 +1,7 @@
 #!/bin/bash
 r_log "archive" "Check xzcmp and xzdiff"
 BASEFILE="/var/tmp/xztest"
+trap '/bin/rm -f ${BASEFILE}*' EXIT
 /bin/rm -f ${BASEFILE}
 
 cat > ${BASEFILE}.1 <<EOF
@@ -15,5 +16,3 @@ r_log "archive" "Check xzcmp"
 
 r_log "archive" "Check xzdiff"
 /bin/zdiff ${BASEFILE}.1.xz ${BASEFILE}.2.xz || r_checkExitStatus 1
-
-/bin/rm -f ${BASEFILE}*

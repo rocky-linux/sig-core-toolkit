@@ -4,6 +4,7 @@ r_log "archive" "Test zip create and extract"
 ZIPDIR="/var/tmp/ziptest"
 FILE1="$ZIPDIR/test.1.txt"
 FILE2="$ZIPDIR/test.2.txt"
+trap '/bin/rm -rf /var/tmp/zipfile.zip $ZIPDIR' EXIT
 
 mkdir -p $ZIPDIR
 cat > $FILE1 <<EOF
@@ -31,6 +32,4 @@ if [ $RES1 == 0 ] && [ $RES2 == 0 ]; then
   ret_val=0
 fi
 
-r_checkExitStatus $ret_val
-
-/bin/rm -rf /var/tmp/zipfile.zip $ZIPDIR
+r_checkExitStatus "$ret_val"
