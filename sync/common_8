@@ -76,7 +76,7 @@ SIG_COMPOSE=(
 )
 
 # These repos have modules
-export MODS=(
+MODS=(
   AppStream
   PowerTools
 )
