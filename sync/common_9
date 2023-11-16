@@ -37,7 +37,7 @@ RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJOR}/latest-${SHORT}-${MAJOR}${COMPOSE
 # consistency.
 NONMODS_REPOS=(
   extras
-  Devel
+  devel
   plus
 )
 

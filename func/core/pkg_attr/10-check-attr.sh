@@ -2,6 +2,8 @@
 ATTRTEST="/var/tmp/attrtest.img"
 ATTRMNT="/mnt/attrtest"
 
+trap 'umount /mnt/attrtest ; /bin/rm -f ${ATTRTEST} ; /bin/rm -rf ${ATTRMNT}' EXIT
+
 r_log "attr" "Checking that *attr works"
 dd if=/dev/zero of="${ATTRTEST}" bs=1024000 count=100 &>/dev/null
 r_checkExitStatus $?
@@ -14,8 +16,3 @@ setfattr -n user.test "${ATTRMNT}/testfile"
 getfattr "${ATTRMNT}/testfile" | grep -oq "user.test"
 
 r_checkExitStatus $?
-
-# Cleanup
-umount /mnt/attrtest
-/bin/rm -f "${ATTRTEST}"
-/bin/rm -rf "${ATTRMNT}"
