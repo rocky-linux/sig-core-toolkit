@@ -76,7 +76,7 @@ SIG_COMPOSE=(
 )
 
 # These repos have modules
-MODS=(
+export MODS=(
   AppStream
   CRB
 )
