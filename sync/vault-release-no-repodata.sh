@@ -28,7 +28,7 @@ if [ "$RLVER" -eq "9" ]; then
   for repo in "${MODS[@]}"; do
     for arch in "${ARCHES[@]}"; do
       mkdir -p "${TARGET}/${repo}/${arch}/os/repodata"
-      cp "${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV}/${repo}/${arch}/os/repodata/*MODULES.yaml.gz" "/tmp/${repo}-${arch}-${DATE}.modules.yaml.gz"
+      cp "${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV}/${repo}/${arch}/os/repodata/"*MODULES.yaml.gz "/tmp/${repo}-${arch}-${DATE}.modules.yaml.gz"
       pushd /tmp || exit 1
       gunzip "/tmp/${repo}-${arch}-${DATE}.modules.yaml.gz"
       popd || exit 1
@@ -38,7 +38,7 @@ if [ "$RLVER" -eq "9" ]; then
   # groups
   for repo in "${MODS_REPOS[@]}"; do
     for arch in "${ARCHES[@]}"; do
-      createrepo_comps "${TARGET}/${repo}/${arch}/os" "${REV}" "${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV}/${repo}/${arch}/os/repodata/*GROUPS.xml"
+      createrepo_comps "${TARGET}/${repo}/${arch}/os" "${REV}" "${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV}/${repo}/${arch}/os/repodata/"*GROUPS.xml
     done
   done
   # no groups
