@@ -45,6 +45,7 @@ if [ "$RLVER" -eq "9" ]; then
   for repo in "${NONMODS_REPOS[@]}"; do
     for arch in "${ARCHES[@]}"; do
       createrepo_update "${TARGET}/${repo}/${arch}/os" "${REV}"
+      createrepo_update "${TARGET}/${repo}/${arch}/debug" "${REV}"
     done
   done
 fi
