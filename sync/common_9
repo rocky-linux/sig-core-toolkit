@@ -78,7 +78,7 @@ SIG_COMPOSE=(
 # These repos have modules
 MODS=(
   AppStream
-  PowerTools
+  CRB
 )
 
 # functions
