@@ -59,10 +59,10 @@ REV="${REVISION}${APPEND_TO_DIR}"
 # updates repo for both their regular packages *and* their modularity repos.
 # This obviously makes sense and I can only hope Red Hat decides to bring that
 # back in some way.
-MODS=(
-  AppStream
-  PowerTools
-)
+#MODS=(
+#  AppStream
+#  PowerTools
+#)
 
 # Used to iterate over ISOs?
 # Override: Allowed
