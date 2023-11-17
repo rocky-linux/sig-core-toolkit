@@ -5,8 +5,8 @@
 set -o pipefail
 
 # Vars
-MOCK_CFG="/var/tmp/lorax-{{ major }}.cfg"
-MOCK_ROOT="/var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}"
+MOCK_CFG="/var/tmp/lorax-{{ releasever }}.cfg"
+MOCK_ROOT="/var/lib/mock/{{ shortname|lower }}-{{ releasever }}-{{ arch }}"
 MOCK_RESL="${MOCK_ROOT}/result"
 MOCK_CHRO="${MOCK_ROOT}/root"
 MOCK_LOG="${MOCK_RESL}/mock-output.log"
@@ -39,7 +39,7 @@ mock \
 
 mock_ret_val=$?
 if [ $mock_ret_val -eq 0 ]; then
-  # Copy resulting data to /var/lib/mock/{{ shortname|lower }}-{{ major }}-{{ arch }}/result
+  # Copy resulting data to /var/lib/mock/{{ shortname|lower }}-{{ releasever }}-{{ arch }}/result
   mkdir -p "${MOCK_RESL}"
   cp "${MOCK_CHRO}${BUILDDIR}/${LORAX_TAR}" "${MOCK_RESL}"
 else

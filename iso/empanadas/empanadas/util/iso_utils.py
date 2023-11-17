@@ -253,7 +253,7 @@ class IsoBuild:
         mock_sh_template = self.tmplenv.get_template('isobuild.tmpl.sh')
         iso_template = self.tmplenv.get_template('buildImage.tmpl.sh')
 
-        mock_iso_path = '/var/tmp/lorax-' + self.major_version + '.cfg'
+        mock_iso_path = '/var/tmp/lorax-' + self.release + '.cfg'
         mock_sh_path = '/var/tmp/isobuild.sh'
         iso_template_path = '/var/tmp/buildImage.sh'
 
@@ -275,6 +275,7 @@ class IsoBuild:
         mock_iso_template_output = mock_iso_template.render(
                 arch=self.current_arch,
                 major=self.major_version,
+                releasever=self.release,
                 fullname=self.fullname,
                 shortname=self.shortname,
                 required_pkgs=required_pkgs,
@@ -286,6 +287,7 @@ class IsoBuild:
         mock_sh_template_output = mock_sh_template.render(
                 arch=self.current_arch,
                 major=self.major_version,
+                releasever=self.release,
                 isolation=self.mock_isolation,
                 builddir=self.mock_work_root,
                 shortname=self.shortname,
@@ -527,7 +529,7 @@ class IsoBuild:
         if self.release_candidate:
             rclevel = '-' + self.rclvl
 
-        discname = f'{self.shortname}-{self.major_version}.{self.minor_version}{rclevel}-{arch}-boot.iso'
+        discname = f'{self.shortname}-{self.release}{rclevel}-{arch}-boot.iso'
 
         isobootpath = os.path.join(iso_to_go, discname)
         manifest = f'{isobootpath}.manifest'
@@ -846,7 +848,7 @@ class IsoBuild:
             datestamp = '-' + self.updated_image_date
 
         volid = f'{self.shortname}-{self.major_version}-{self.minor_version}{rclevel}-{arch}-{volname}'
-        isoname = f'{self.shortname}-{self.revision}{rclevel}{datestamp}-{arch}-{image}.iso'
+        isoname = f'{self.shortname}-{self.release}{rclevel}{datestamp}-{arch}-{image}.iso'
         generic_isoname = f'{self.shortname}-{arch}-{image}.iso'
         latest_isoname = f'{self.shortname}-{self.major_version}-latest-{arch}-{image}.iso'
 
@@ -1727,7 +1729,7 @@ class LiveBuild:
         if self.peridot:
             kloc = 'peridot'
 
-        mock_iso_path = f'/var/tmp/live-{self.major_version}.cfg'
+        mock_iso_path = f'/var/tmp/live-{self.release}.cfg'
         mock_sh_path = f'{entries_dir}/liveisobuild-{self.current_arch}-{image}.sh'
         iso_template_path = f'{entries_dir}/buildLiveImage-{self.current_arch}-{image}.sh'
 
@@ -1745,7 +1747,7 @@ class LiveBuild:
         log_path_command = f'| tee -a {log_root}/{self.current_arch}-{image}.log'
         required_pkgs = self.livemap['required_pkgs']
 
-        volid = f'{self.shortname}-{self.major_version}-{self.minor_version}-{image}'
+        volid = f'{self.shortname}-{self.release}-{image}'
 
         isoname = f'{self.shortname}-{self.release}-{image}-{self.current_arch}-{self.date}.iso'
 
@@ -1775,6 +1777,7 @@ class LiveBuild:
         mock_iso_template_output = mock_iso_template.render(
                 arch=self.current_arch,
                 major=self.major_version,
+                releasever=self.release,
                 fullname=self.fullname,
                 shortname=self.shortname,
                 required_pkgs=required_pkgs,
@@ -1788,6 +1791,7 @@ class LiveBuild:
         mock_sh_template_output = mock_sh_template.render(
                 arch=self.current_arch,
                 major=self.major_version,
+                releasever=self.release,
                 isolation=self.mock_isolation,
                 builddir=self.mock_work_root,
                 shortname=self.shortname,
@@ -1943,7 +1947,7 @@ class LiveBuild:
         live_dir_arch = os.path.join(self.live_work_dir, arch)
         isoname = f'{self.shortname}-{self.release}-{image}-{arch}-{self.date}.iso'
         isolink = f'{self.shortname}-{self.major_version}-{image}-{arch}-latest.iso'
-        live_res_dir = f'/var/lib/mock/{self.shortname.lower()}-{self.major_version}-{arch}/result'
+        live_res_dir = f'/var/lib/mock/{self.shortname.lower()}-{self.release}-{arch}/result'
 
         if self.justcopyit:
             if os.path.exists(os.path.join(live_dir_arch, isoname)):
