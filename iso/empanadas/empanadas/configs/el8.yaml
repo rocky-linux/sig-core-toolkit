@@ -1,10 +1,10 @@
 ---
 '8':
   fullname: 'Rocky Linux 8'
-  revision: '8.8'
+  revision: '8.9'
   rclvl: 'RC1'
   major: '8'
-  minor: '8'
+  minor: '9'
   profile: '8'
   disttag: 'el8'
   bugurl: 'https://bugs.rockylinux.org'
