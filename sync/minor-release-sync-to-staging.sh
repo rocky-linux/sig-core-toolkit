@@ -41,15 +41,9 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
           "${file}" \
           "$(stat -c %s ${file} -L)" \
           "$(sha256sum --tag ${file})" \
-        | sudo tee -a CHECKSUM;
-
-        printf "# %s: %s bytes\n%s\n" \
-          "${file}" \
-          "$(stat -c %s ${file} -L)" \
-          "$(sha256sum --tag ${file})" \
         | sudo tee -a "${file}.CHECKSUM"
-
       done
+      cat *.CHECKSUM > CHECKSUM
       popd || { echo "Could not change directory"; break; }
     done
     rm -rf Minimal
