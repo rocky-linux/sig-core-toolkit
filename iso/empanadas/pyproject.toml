@@ -7,7 +7,7 @@ authors = ["Louis Abel <label@rockylinux.org>", "Neil Hanlon <neil@rockylinux.or
 [tool.poetry.dependencies]
 python = ">=3.7,<4"
 rpm = ">=0.1.0"
-MarkupSafe = "<=2.1.3"
+MarkupSafe = "==2.0.1"
 PyYAML = "~6.0.1"
 Jinja2 = "~2"
 productmd = "~1.37"
