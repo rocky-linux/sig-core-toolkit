@@ -178,7 +178,7 @@ function rsync_delete_prod() {
 
 function perform_hardlink() {
   local TARGET="${1}"
-  hardlink -x '.*\.xml.*' "${TARGET}"
+  hardlink -x '.*\.xml.*' -x ".*\.treeinfo" -x ".*\.discinfo" "${TARGET}"
 }
 
 # dry rsync
