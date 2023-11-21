@@ -2,6 +2,7 @@
 r_log "coreutils" "Ensure wc works as expected"
 r_log "coreutils" "This should have already been done with uniq"
 # Context: we should probably test some switches...
+trap "/bin/rm /var/tmp/wc" EXIT
 
 cat > /var/tmp/wc <<EOF
 Rocky
@@ -21,5 +22,3 @@ wc -L /var/tmp/wc | grep -q 8 && \
 wc -w /var/tmp/wc | grep -q 8
 
 r_checkExitStatus $?
-
-/bin/rm /var/tmp/wc

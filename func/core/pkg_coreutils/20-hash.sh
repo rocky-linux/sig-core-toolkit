@@ -1,5 +1,6 @@
 #!/bin/bash
 r_log "coreutils" "Test hash sum tools"
+trap '/bin/rm ${HASHFILE}' EXIT
 
 HASHFILE=/var/tmp/obsidian
 echo "Green Obsidian is our release name" > ${HASHFILE}
@@ -22,5 +23,3 @@ r_checkExitStatus $?
 r_log "coreutils" "Test sha512sum"
 /usr/bin/sha512sum ${HASHFILE} | grep -q e50554c29a5cb7bd04279d3c0918e486024c79c4b305a2e360a97d4021dacf56ce0d17fa6e6a0e81ad03d5fb74fbe2d50cce6081c2c277f22b958cdae978a2f5
 r_checkExitStatus $?
-
-/bin/rm ${HASHFILE}

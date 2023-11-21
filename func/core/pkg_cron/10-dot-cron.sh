@@ -1,6 +1,8 @@
 #!/bin/bash
 r_log "cron" "Testing hourly cron jobs"
 
+trap '/bin/rm /etc/cron.{weekly,daily,hourly}/rocky.sh' EXIT
+
 cat > /etc/cron.hourly/rocky.sh <<EOF
 #!/bin/bash
 echo "obsidian"
@@ -34,5 +36,3 @@ chmod +x /etc/cron.weekly/rocky.sh
 
 run-parts /etc/cron.weekly | grep -q "obsidian"
 r_checkExitStatus $?
-
-/bin/rm /etc/cron.{weekly,daily,hourly}/rocky.sh

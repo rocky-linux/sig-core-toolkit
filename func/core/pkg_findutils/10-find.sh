@@ -2,6 +2,7 @@
 r_log "findutils" "Testing basic find stuff"
 
 TMPDIR=/var/tmp/find
+trap '/bin/rm -rf $TMPDIR' EXIT
 
 [ -e $TMPDIR ] && rm -rf "$TMPDIR"
 
@@ -37,8 +38,4 @@ r_log "findutils" "Perform for xargs test: fails with spaces in the name"
 # shellcheck disable=SC2038
 find "$TMPDIR" -type f | xargs ls &> /dev/null && { r_log "findutils" "Why did this get a 0 exit?"; exit "$FAIL"; }
 ret_val=$?
-if [ "$ret_val" -ne 0 ]; then
-  r_checkExitStatus $?
-fi
-
-rm -rf "$TMPDIR"
+r_checkExitStatus $ret_val

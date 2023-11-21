@@ -15,3 +15,4 @@ r_checkExitStatus $?
 
 r_log "cracklib" "Testing a complicated password"
 echo -e "2948_Obaym-" | cracklib-check | grep -q "OK"
+r_checkExitStatus $?

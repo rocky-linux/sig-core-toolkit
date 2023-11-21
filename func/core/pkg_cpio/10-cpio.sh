@@ -5,6 +5,8 @@ OUTTER=/var/tmp/cpio/out
 INNER=/var/tmp/cpio/in
 PASSER=/var/tmp/cpio/pass
 
+trap '/bin/rm -rf /var/tmp/cpio' EXIT
+
 # Nothing should be here. Clean up first.
 [ -d /var/tmp/cpio ] && /bin/rm -rf /var/tmp/cpio
 
