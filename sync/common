@@ -30,6 +30,7 @@ COMPOSE_ROOT="/mnt/compose"
 CATEGORY_STUB="mirror/pub/rocky"
 SIG_CATEGORY_STUB="mirror/pub/sig"
 VAULT_STUB="mirror/vault/rocky"
+SIG_VAULT_STUB="mirror/vault/sig"
 
 # Override: Required
 #RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"

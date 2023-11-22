@@ -4,15 +4,18 @@
 case "${RLREL}" in
   stable)
     REVISION=8.9
+    PREREV=8.8
     APPEND_TO_DIR="-RC2"
     ;;
   beta)
-    REVISION=8.9
+    REVISION=8.10
+    PREREV=8.9
     APPEND_TO_DIR="-BETA"
     COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
   lh)
     REVISION=8.10
+    PREREV=8.9
     APPEND_TO_DIR="-LookAhead"
     COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
