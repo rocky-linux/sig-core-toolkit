@@ -416,6 +416,23 @@ class Shared:
         return cmd
 
     @staticmethod
+    def rsync_cmd(logger) -> str:
+        """
+        This generates the rsync command. This is used for general syncing
+        operations.
+        """
+        cmd = None
+        if os.path.exists("/usr/bin/rsync"):
+            cmd = "/usr/bin/rsync"
+        else:
+            logger.error(Color.FAIL + '/usr/bin/rsync was not found. Good bye.')
+            raise SystemExit("\n\n/usr/bin/rsync was not found.\n\nPlease "
+                    " ensure that you have installed the necessary packages on "
+                    " this system. "
+            )
+        return cmd
+
+    @staticmethod
     def generate_conf(
             shortname,
             major_version,
@@ -562,15 +579,15 @@ class Shared:
         Returns a string for the rsync command plus parallel. Yes, this is a
         hack.
         """
-        find_cmd = '/usr/bin/find'
-        parallel_cmd = '/usr/bin/parallel'
+        #find_cmd = '/usr/bin/find'
+        #parallel_cmd = '/usr/bin/parallel'
         cmd = '/usr/bin/rsync'
         switches = '-vrlptDSH --chown=10004:10005 --progress --human-readable'
-        rsync_cmd = '{} {} {}/ {}'.format(cmd, switches, src, dest)
+        rsync_command = f'{Shared.rsync_cmd} {switches} {src}/ {dest}'
 
         #os.makedirs(dest, exist_ok=True)
         process = subprocess.call(
-                shlex.split(rsync_cmd),
+                shlex.split(rsync_command),
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
         )
@@ -588,6 +605,7 @@ class Shared:
 
         return message, retval
 
+    # pylint: disable=too-many-locals,too-many-arguments
     @staticmethod
     def s3_determine_latest(s3_bucket, release, arches, filetype, name, logger):
         """
@@ -1424,3 +1442,8 @@ class Idents:
         """
         Gets a volume ID
         """
+
+class Syncs:
+    """
+    Various rsync abilities, converted from the sync dir in the toolkit
+    """
