@@ -583,7 +583,7 @@ class Shared:
         #parallel_cmd = '/usr/bin/parallel'
         cmd = '/usr/bin/rsync'
         switches = '-vrlptDSH --chown=10004:10005 --progress --human-readable'
-        rsync_command = f'{Shared.rsync_cmd} {switches} {src}/ {dest}'
+        rsync_command = f'{cmd} {switches} {src}/ {dest}'
 
         #os.makedirs(dest, exist_ok=True)
         process = subprocess.call(
