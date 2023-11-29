@@ -1,5 +1,6 @@
 #!/bin/bash
 r_log "httpd" "Test basic authentication functionality"
+trap "rm /etc/httpd/conf.d/test-basic-auth.conf ; m_serviceCycler httpd reload" EXIT
 
 cat > /etc/httpd/conf.d/test-basic-auth.conf <<EOF
 ## Core basic auth test
@@ -18,6 +19,3 @@ echo "Basic Auth Test" > /var/www/html/basic_auth/index.html
 m_serviceCycler httpd cycle
 curl -s -u tester:tester http://localhost/basic_auth/ | grep -q 'Basic Auth Test' > /dev/null 2>&1
 r_checkExitStatus $?
-
-rm /etc/httpd/conf.d/test-basic-auth.conf
-m_serviceCycler httpd reload

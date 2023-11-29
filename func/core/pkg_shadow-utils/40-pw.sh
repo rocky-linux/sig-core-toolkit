@@ -1,4 +1,11 @@
 #!/bin/bash
+function cleanup() {
+  pwconv
+  rm -rf /var/tmp/pwunconv /var/tmp/pwconv
+}
+
+trap cleanup EXIT
+
 r_log "shadow" "Check that pwck can use correct files"
 pwck -rq ./common/files/correct-passwd ./common/files/correct-shadow
 r_checkExitStatus $?
@@ -10,7 +17,7 @@ if [ "$ret_val" -eq 0 ]; then
   r_log "shadow" "They're correct."
   exit 1
 fi
-r_checkExitStatus 0
+r_checkExitStatus $ret_val
 
 r_log "shadow" "Check that pwconv is functional"
 mkdir -p /var/tmp/pwconv

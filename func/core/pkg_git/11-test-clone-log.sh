@@ -1,5 +1,6 @@
 #!/bin/bash
 r_log "git" "Test basic git clones"
+trap 'rm -rf $TMPREPO' EXIT
 
 WORKDIR=$(pwd)
 TMPREPO=/var/tmp/repo

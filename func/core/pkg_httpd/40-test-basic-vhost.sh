@@ -1,5 +1,12 @@
 #!/bin/bash
+function cleanup() {
+  rm /etc/httpd/conf.d/vhost.conf
+  sed -i '/127.0.0.1 coretest/d' /etc/hosts
+  m_serviceCycler httpd reload
+}
+
 r_log "httpd" "Test basic vhost functionality"
+trap cleanup EXIT
 
 echo "127.0.0.1 coretest" >> /etc/hosts
 cat > /etc/httpd/conf.d/vhost.conf << EOF
@@ -19,7 +26,3 @@ m_serviceCycler httpd cycle
 curl -s http://coretest/ | grep -q 'core vhost test page' > /dev/null 2>&1
 
 r_checkExitStatus $?
-
-rm /etc/httpd/conf.d/vhost.conf
-sed -i '/127.0.0.1 coretest/d' /etc/hosts
-m_serviceCycler httpd reload
