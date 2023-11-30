@@ -2,6 +2,17 @@
 r_log "postfix" "Test postfix with TLS"
 DROPDIR=/var/tmp/postfix
 
+function cleanup() {
+  mv /etc/postfix/main.cf.backup /etc/postfix/main.cf
+  mv /etc/dovecot/dovecot.conf.backup /etc/dovecot/dovecot.conf
+  rm /etc/pki/tls/certs/mail.crt
+  rm /etc/pki/tls/private/mail.key
+  rm -rf $DROPDIR/mail.*
+  rm -rf /var/tmp/postfix
+}
+
+trap cleanup EXIT
+
 cp -a /etc/postfix/main.cf /etc/postfix/main.cf.backup
 cp -a /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf.backup
 
@@ -59,11 +70,4 @@ r_log "postfix" "Testing that postfix offers STARTTLS"
 echo "ehlo test" | nc -w 3 127.0.0.1 25 | grep -q "STARTTLS"
 ret_val=$?
 
-mv /etc/postfix/main.cf.backup /etc/postfix/main.cf
-mv /etc/dovecot/dovecot.conf.backup /etc/dovecot/dovecot.conf
-rm /etc/pki/tls/certs/mail.crt
-rm /etc/pki/tls/certs/mail.key
-rm -rf $DROPDIR/mail.*
-rm -rf /var/tmp/postfix
-
-r_checkExitStatus $?
+r_checkExitStatus $ret_val

@@ -27,7 +27,7 @@ popd || exit 1
 
 r_log "cpio" "Test basic passthrough"
 pushd "$INNER" || exit 1
-find /tmp | cpio -pd "$PASSER"
+find . | cpio -pd "$PASSER"
 r_checkExitStatus $?
 popd || exit 1
 

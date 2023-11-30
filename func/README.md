@@ -5,22 +5,20 @@ These are a set of scripts that are designed to test the core functionality
 of a Rocky Linux system. They are designed to work on current versions of
 Rocky and are used to test a system as a Release Engineering self-QA but
 can be used by others for their own personal testing (under the assumption
-that you just want to see what happens, we don't judge :).
+that you just want to see what happens, we don't judge.
 
-These tests *must* pass for a release to be considered "Core Validated"
-Checking against the upstream repositories for package matches are not enough
-and are/will be addressed by other tools.
+These tests *must* pass for a X.0 release to be considered "Core Validated".
 
 * common  -> Functions that our scripts and tests may or may not use. Templates
              and other files should come here too under common/files and
              scripts that use them should reference them as `./common/files/...`
 * core    -> Core functionality and testing. For example, packages and service
              functionality.
-* lib     -> Library tests (these may be done elsewhere)
+* lib     -> Library tests (these may be done elsewhere, such as openqa)
 * log     -> Log output. This repository has example logs of running on Rocky
              Linux.
 * modules -> Tests for module streams and their basic tests
-* stacks  -> Software stacks, think like LAMP.
+* stacks  -> Software stacks, think like LAMP (may be done elsewhere, such as openqa)
 
 How to Run
 ----------
@@ -153,6 +151,9 @@ system.
 ### Should EPEL be enabled?
 No. The point is to test Rocky packages, not EPEL. There are also package
 differences that will break (eg: nc -> nmap-ncat vs netcat).
+
+### What about CRB or extras?
+It may say it's a failure, but it will continue anyway.
 
 Current Tree
 ------------

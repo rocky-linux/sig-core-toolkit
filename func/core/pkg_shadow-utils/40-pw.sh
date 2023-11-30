@@ -15,9 +15,11 @@ pwck -rq ./common/files/incorrect-passwd ./common/files/incorrect-shadow
 ret_val=$?
 if [ "$ret_val" -eq 0 ]; then
   r_log "shadow" "They're correct."
-  exit 1
+  r_checkExitStatus 1
+else
+  r_log "shadow" "They're incorrect."
+  r_checkExitStatus 0
 fi
-r_checkExitStatus $ret_val
 
 r_log "shadow" "Check that pwconv is functional"
 mkdir -p /var/tmp/pwconv
