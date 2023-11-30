@@ -79,10 +79,10 @@ for torrent_directory in "${TORRENT_DOWNLOAD_DIR}"/Rocky-"${REVISION}"-*; do
         continue
     fi
 
-    torrenttools create                                                 \
-        --announce "${TORRENT_TRACKERS[@]}" --name "${name}"            \
-        --exclude "${TORRENT_EXCLUDES}" --output "${TORRENT_START_DIR}" \
-        --threads "${THREADS}" --comment "${TORRENT_COMMENT}"           \
+    torrenttools create                                                                          \
+        --announce "${TORRENT_TRACKERS[@]}" --name "${name}"                                     \
+        --exclude "${TORRENT_EXCLUDES}" --output "${TORRENT_START_DIR}/${torrent_directory##*/}" \
+        --threads "${THREADS}" --comment "${TORRENT_COMMENT}"                                    \
         "${torrent_directory}"
     res=$?
     if [[ $res -ne 0 ]]; then
