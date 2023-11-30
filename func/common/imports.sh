@@ -46,6 +46,15 @@ function r_checkEPELEnabled() {
   return $?
 }
 
+function r_checkTmpNoExec() {
+  grep 'tmp' /etc/fstab | grep -q noexec
+  tmpexec=$?
+
+  if [ "$tmpexec" -eq "0" ]; then
+    r_log "internal" "WARN: noexec is set for temporary directories. Some tests may fail."
+  fi 
+}
+
 ################################################################################
 # Functions that deal with (p)ackages
 
@@ -216,6 +225,7 @@ export -f r_log
 export -f r_checkExitStatus
 export -f r_processor
 export -f r_checkEPELEnabled
+export -f r_checkTmpNoExec
 export -f p_installPackageNormal
 export -f p_installPackageNoWeaks
 export -f p_removePackage

@@ -38,6 +38,8 @@ if [[ "$is_epel" == "0" ]]; then
   exit 1
 fi
 
+r_checkTmpNoExec
+
 r_log "internal" "Starting Release Engineering Core Tests"
 
 ################################################################################
