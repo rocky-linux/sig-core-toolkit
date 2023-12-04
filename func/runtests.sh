@@ -62,7 +62,7 @@ fi
 # TODO: get some stacks and lib in there
 
 r_processor <(/usr/bin/find ./core -type f | sort -t'/')
-#r_processor <(/usr/bin/find ./lib -type f | sort -t'/')
+r_processor <(/usr/bin/find ./lib -type f | sort -t'/')
 #r_processor <(/usr/bin/find ./stacks -type f | sort -t'/')
 
 r_log "internal" "Core Tests completed"

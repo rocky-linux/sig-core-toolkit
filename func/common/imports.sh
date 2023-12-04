@@ -113,7 +113,11 @@ function p_getPackageArch() {
 }
 
 function p_getDist() {
-  rpm -q "$(rpm -qf /etc/redhat-release)" --queryformat '%{version}\n' | cut -d'.' -f1
+  rpm -q --whatprovides redhat-release --queryformat '%{version}\n' | cut -d'.' -f1
+}
+
+function p_getMinorVersion() {
+  rpm -q --whatprovides redhat-release --queryformat '%{version}\n' | cut -d'.' -f2
 }
 
 ################################################################################
@@ -218,8 +222,10 @@ function m_recycleLog() {
 
 rl_ver=$(p_getDist)
 rl_arch=$(m_getArch)
+rl_minor_ver=$(p_getMinorVersion)
 export rl_ver
 export rl_arch
+export rl_minor_ver
 
 export -f r_log
 export -f r_checkExitStatus
@@ -234,6 +240,7 @@ export -f p_resetModule
 export -f p_getPackageRelease
 export -f p_getPackageArch
 export -f p_getDist
+export -f p_getMinorVersion
 export -f m_serviceCycler
 export -f m_checkForPort
 export -f m_assertCleanExit
