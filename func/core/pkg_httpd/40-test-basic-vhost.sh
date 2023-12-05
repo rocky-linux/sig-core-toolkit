@@ -21,6 +21,8 @@ EOF
 
 mkdir -p /var/www/vhost/coretest
 echo "core vhost test page" > /var/www/vhost/coretest/index.html
+# This isn't normally needed, it should just work
+restorecon -R /var/www/vhost
 m_serviceCycler httpd cycle
 
 curl -s http://coretest/ | grep -q 'core vhost test page' > /dev/null 2>&1

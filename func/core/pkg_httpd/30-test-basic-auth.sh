@@ -16,6 +16,8 @@ EOF
 htpasswd -c -b /etc/httpd/htpasswd tester tester
 mkdir -p /var/www/html/basic_auth
 echo "Basic Auth Test" > /var/www/html/basic_auth/index.html
+# This isn't normally needed, it should just work
+restorecon -R /var/www/html
 m_serviceCycler httpd cycle
 curl -s -u tester:tester http://localhost/basic_auth/ | grep -q 'Basic Auth Test' > /dev/null 2>&1
 r_checkExitStatus $?
