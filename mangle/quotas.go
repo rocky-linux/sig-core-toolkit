@@ -96,9 +96,19 @@ func getQuotaInfo(sqSvc *servicequotas.ServiceQuotas, quotaCode string, region s
 	var status string
 	var caseId string
 	if len(requestOutput.RequestedQuotas) > 0 {
-		desiredValue = *requestOutput.RequestedQuotas[len(requestOutput.RequestedQuotas)-1].DesiredValue
-		status = *requestOutput.RequestedQuotas[len(requestOutput.RequestedQuotas)-1].Status
-		caseId = *requestOutput.RequestedQuotas[len(requestOutput.RequestedQuotas)-1].CaseId
+		lastQuota := requestOutput.RequestedQuotas[len(requestOutput.RequestedQuotas)-1]
+		desiredValue = *lastQuota.DesiredValue
+		status = *lastQuota.Status
+		switch {
+		case status == "PENDING":
+			caseId = "N/A"
+		case status == "APPROVED":
+			caseId = "APPROVED"
+		case lastQuota.CaseId == nil:
+			panic("Unhandled case status. Please report this")
+		default:
+			caseId = *lastQuota.CaseId
+		}
 	}
 	return &QuotaInfo{currentValue, desiredValue, status, caseId}
 }
@@ -122,7 +132,7 @@ func listQuotas(sess *session.Session, quotaCode string, regions []*string) {
 	wg.Wait()
 }
 
-func requestQuotaIncrease(sess *session.Session, quotaCode string, regions []string, quota float64) {
+func requestQuotaIncrease(sess *session.Session, quotaCode string, regions []*string, quota float64) {
 	var wg sync.WaitGroup
 	wg.Add(len(regions))
 
@@ -146,7 +156,7 @@ func requestQuotaIncrease(sess *session.Session, quotaCode string, regions []str
 				}
 				fmt.Printf("Successfully submitted request with ID: %s\n", aws.StringValue(output.RequestedQuota.Id))
 			}
-		}(region)
+		}(*region)
 	}
 	wg.Wait()
 }
@@ -174,5 +184,5 @@ func main() {
 	listQuotas(sess, quotaCode, regions)
 
 	// Request quota increase for all regions
-	// requestQuotaIncrease(sess, quotaCode, regions)
+	//requestQuotaIncrease(sess, quotaCode, regions, 50)
 }
