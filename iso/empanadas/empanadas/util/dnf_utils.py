@@ -1806,16 +1806,17 @@ class SigRepoSync:
         )
 
         # This is temporary for now.
-        self.log = logging.getLogger("sigreposync")
-        self.log.setLevel(getattr(logging, logger.upper(), 'INFO'))
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.INFO)
-        formatter = logging.Formatter(
-                '%(asctime)s :: %(name)s :: %(message)s',
-                '%Y-%m-%d %H:%M:%S'
-        )
-        handler.setFormatter(formatter)
-        self.log.addHandler(handler)
+        if logger is None:
+            self.log = logging.getLogger("sigreposync")
+            self.log.setLevel(getattr(logging, logger.upper(), 'INFO'))
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.INFO)
+            formatter = logging.Formatter(
+                    '%(asctime)s :: %(name)s :: %(message)s',
+                    '%Y-%m-%d %H:%M:%S'
+            )
+            handler.setFormatter(formatter)
+            self.log.addHandler(handler)
 
         self.log.info('sig reposync init')
         self.log.info(self.profile + ' ' + self.major_version)
