@@ -64,7 +64,8 @@ class RepoSync:
             extra_dnf_args=None,
             reposync_clean_old: bool = False,
             fpsync: bool = False,
-            logger=None
+            logger=None,
+            log_level='INFO',
         ):
         self.nofail = nofail
         self.dryrun = dryrun
@@ -1702,7 +1703,8 @@ class SigRepoSync:
             repo_gpg_check: bool = True,
             extra_dnf_args=None,
             reposync_clean_old: bool = False,
-            logger=None
+            logger=None,
+            log_level='INFO',
         ):
         self.nofail = nofail
         self.dryrun = dryrun
@@ -1806,17 +1808,16 @@ class SigRepoSync:
         )
 
         # This is temporary for now.
-        if logger is None:
-            self.log = logging.getLogger("sigreposync")
-            self.log.setLevel(getattr(logging, logger.upper(), 'INFO'))
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setLevel(logging.INFO)
-            formatter = logging.Formatter(
-                    '%(asctime)s :: %(name)s :: %(message)s',
-                    '%Y-%m-%d %H:%M:%S'
-            )
-            handler.setFormatter(formatter)
-            self.log.addHandler(handler)
+        self.log = logging.getLogger("sigreposync")
+        self.log.setLevel(getattr(logging, log_level.upper(), 'INFO'))
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+                '%(asctime)s :: %(name)s :: %(message)s',
+                '%Y-%m-%d %H:%M:%S'
+        )
+        handler.setFormatter(formatter)
+        self.log.addHandler(handler)
 
         self.log.info('sig reposync init')
         self.log.info(self.profile + ' ' + self.major_version)
