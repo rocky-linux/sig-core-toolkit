@@ -8,6 +8,7 @@
   minor: '0'
   profile: '9'
   disttag: 'el9'
+  code: "Blue Onyx"
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   fedora_major: '20'
