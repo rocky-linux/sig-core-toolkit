@@ -1,0 +1,12 @@
+#!/bin/bash
+LIST="${1}"
+PROJECT_ID="${2}"
+
+if [ ! -f "${LIST}" ]; then
+  echo "Not a file list"
+  exit 2
+fi
+
+while IFS= read -r line; do
+  printf "INSERT INTO mantis_category_table (project_id, user_id, name, status) VALUES('%s', '0', '%s', '0');\n" "${PROJECT_ID}" "${line}"
+done < "${LIST}"
