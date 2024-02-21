@@ -3,12 +3,13 @@
 REPO=("BaseOS" "AppStream" "CRB" "HighAvailability" "ResilientStorage" "NFV" "RT" "SAP" "SAPHANA")
 ARCH=("aarch64" "ppc64le" "s390x" "x86_64")
 
+MAJOR="9"
 VER="r${MAJOR}${LH}"
 
 case "$VER" in
   r9)
     export PERIDOT_PROJECT_ID=dff20351-7d36-4f7c-9eea-7f039f5026d0 ;;
-  r9lh)
+  r9s)
     export PERIDOT_PROJECT_ID=6202c09e-6252-4d3a-bcd3-9c7751682970 ;;
   *)
     echo "Not supported"

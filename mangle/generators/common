@@ -16,6 +16,7 @@ if [ "$?" -ne 0 ]; then
   exit 1
 fi
 
+GIT_URL="https://git.rockylinux.org"
 STREAM_COMPOSE_BASEURL="https://composes.stream.centos.org/production"
 STREAM_KOJI_REPO="https://kojihub.stream.centos.org/kojifiles/repos"
 ELN_KOJI_REPO="https://kojipkgs.fedoraproject.org/repos"

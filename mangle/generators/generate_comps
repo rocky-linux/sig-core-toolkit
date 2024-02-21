@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 source common
 
 if [ ! -f "/usr/bin/pungi-koji" ]; then

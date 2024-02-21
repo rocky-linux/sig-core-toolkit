@@ -2,3 +2,4 @@
 
 REPO=("BaseOS" "AppStream" "PowerTools" "HighAvailability" "ResilientStorage" "NFV" "RT")
 ARCH=("aarch64" "x86_64")
+MAJOR="8"
