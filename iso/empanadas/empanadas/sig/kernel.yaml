@@ -9,7 +9,7 @@ kernel:
         allowed_arches:
           - aarch64
           - x86_64
-      kernel-common:
+      kernel-drivers:
         allowed_arches:
           - aarch64
           - x86_64
@@ -36,7 +36,7 @@ kernel:
           - x86_64
           - ppc64le
           - s390x
-      kernel-common:
+      kernel-drivers:
         allowed_arches:
           - aarch64
           - x86_64
