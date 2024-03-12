@@ -9,6 +9,10 @@ kernel:
         allowed_arches:
           - aarch64
           - x86_64
+      kernel-common:
+        allowed_arches:
+          - aarch64
+          - x86_64
       kernel-mainline:
         allowed_arches:
           - aarch64
@@ -27,6 +31,12 @@ kernel:
     addtional_dirs: []
     repo:
       kernel-lts:
+        allowed_arches:
+          - aarch64
+          - x86_64
+          - ppc64le
+          - s390x
+      kernel-common:
         allowed_arches:
           - aarch64
           - x86_64
