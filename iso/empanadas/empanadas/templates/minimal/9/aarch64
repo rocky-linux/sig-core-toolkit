@@ -36,3 +36,4 @@ mokutil
 shim-aa64
 udisks2
 volume_key-libs
+NetworkManager-wifi
