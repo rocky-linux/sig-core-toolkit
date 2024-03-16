@@ -75,7 +75,7 @@
         - 'lorax'
         - 'genisoimage'
         - 'isomd5sum'
-        - 'lorax-templates-rhel'
+        - 'lorax-templates-rocky'
         - 'lorax-templates-generic'
         - 'xorriso'
   cloudimages:

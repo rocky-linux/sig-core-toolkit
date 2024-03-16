@@ -73,9 +73,8 @@
         - 'libreport-rhel-anaconda-bugzilla'
       required_pkgs:
         - 'lorax'
-        - 'genisoimage'
         - 'isomd5sum'
-        - 'lorax-templates-rhel'
+        - 'lorax-templates-rocky'
         - 'lorax-templates-generic'
         - 'xorriso'
   cloudimages:
