@@ -63,7 +63,7 @@ func FindRecentImages(bucketName string, prefix string, version string, imageTyp
 		log.Fatalf("uh oh: %v", err)
 	}
 
-	pattern := regexp.MustCompile(`(?P<whole>Rocky-(?P<major>[0-9]+)-(?P<type>\w+)(?:-(?P<variant>\w+))?-(?:[0-9]+)\.(?P<minor>[0-9])-(?P<date>[0-9]+)\.(?P<epoch>[0-9]+)\.(?P<architecture>\w+)/(?P<datestamp>[0-9]+)/(?P<file>(.+\.(?P<extension>(box|qcow2|raw|tar\.xz|vhd)))))$`)
+	pattern := regexp.MustCompile(`(?P<whole>Rocky-(?P<major>[0-9]+)-(?P<type>\w+)(?:-(?P<variant>\w+))?-(?:[0-9]+)\.(?P<minor>[0-9]+)-(?P<date>[0-9]+)\.(?P<epoch>[0-9]+)\.(?P<architecture>\w+)/(?P<datestamp>[0-9]+)/(?P<file>(.+\.(?P<extension>(box|qcow2|raw|tar\.xz|vhd)))))$`)
 	// Loop through the objects and find the latest one for each file type
 	latestByTypeVariant := map[string]map[string]*Image{}
 	for _, obj := range items {
