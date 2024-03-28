@@ -1547,6 +1547,7 @@ class LiveBuild:
             updated_image: bool = False,
             image_increment: str = '0',
             peridot: bool = False,
+            builder: str = 'default',
             logger=None
     ):
 
@@ -1575,6 +1576,16 @@ class LiveBuild:
         self.profile = rlvars['profile']
         self.hashed = hashed
         self.peridot = peridot
+
+        # determine builder to use. if a config doesn't have it set, assume
+        # lorax, the default option.
+        if rlvars['livemap']['builder']:
+            self.livebuilder = rlvars['livemap']['builder']
+        else:
+            self.livebuilder = "lorax"
+
+        if builder == "default":
+            self.livebuilder = builder
 
         # Relevant major version items
         self.arch = config['arch']
@@ -1669,6 +1680,11 @@ class LiveBuild:
         # Check that the arch we're assigned is valid...
         if self.current_arch not in self.livemap['allowed_arches']:
             self.log.error(Color.FAIL + 'Running an unsupported architecture.')
+            raise SystemExit()
+
+        # Check that the builder is lorax, we don't support anything else yet
+        if self.livebuilder != "lorax":
+            self.log.error(Color.FAIL + 'Attempting to use an unsupported builder.')
             raise SystemExit()
 
         self._live_iso_build_wrap()

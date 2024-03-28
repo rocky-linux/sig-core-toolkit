@@ -103,6 +103,7 @@
         format: box
         variants: [Libvirt, Vbox, VMware]
   livemap:
+    builder: "lorax"
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
     branch: 'r9'
     ksentry:
