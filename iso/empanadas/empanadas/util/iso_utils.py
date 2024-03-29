@@ -1670,8 +1670,7 @@ class LiveBuild:
 
     def run_build_live_iso(self):
         """
-        Builds DVD images based on the data created from the initial lorax on
-        each arch. This should NOT be called during the usual run() section.
+        Builds live images based on the data provided at init.
         """
         sync_root = self.compose_latest_sync
 
@@ -1680,6 +1679,10 @@ class LiveBuild:
         # Check that the arch we're assigned is valid...
         if self.current_arch not in self.livemap['allowed_arches']:
             self.log.error(Color.FAIL + 'Running an unsupported architecture.')
+            raise SystemExit()
+
+        if self.image not in self.livemap['ksentry'].keys():
+            self.log.error(Color.FAIL + 'Trying to build an unknown live image type.')
             raise SystemExit()
 
         # Check that the builder is lorax, we don't support anything else yet
@@ -1874,7 +1877,7 @@ class LiveBuild:
 
         print(entry_name_list, cmd, entries_dir)
         for pod in entry_name_list:
-            podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+            podman_cmd_entry = '{} run --privileged -d -it -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                     cmd,
                     self.compose_root,
                     self.compose_root,

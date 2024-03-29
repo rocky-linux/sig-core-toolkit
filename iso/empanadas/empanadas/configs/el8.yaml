@@ -113,10 +113,6 @@
       - 'vim-minimal'
       - 'pykickstart'
       - 'git'
-  variantmap:
-    git_repo: 'https://git.rockylinux.org/rocky/pungi-rocky.git'
-    branch: 'r8'
-    git_raw_path: 'https://git.rockylinux.org/rocky/pungi-rocky/-/raw/r8/'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
