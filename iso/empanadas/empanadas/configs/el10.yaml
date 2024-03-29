@@ -121,6 +121,20 @@
       - 'vim-minimal'
       - 'pykickstart'
       - 'git'
+  kiwimap:
+    git_repo: 'https://git.resf.org/sig_core/rocky-kiwi-descriptions.git'
+    branch: 'r9'
+    supported_builds:
+      - live
+      - cloud
+      - container
+      - vagrant
+    allowed_arches:
+      - x86_64
+      - aarch64
+      - ppc64le
+      - s390x
+    required_pkgs: []
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
