@@ -10,6 +10,7 @@ from common import *
 # Source packages we do not ship or are rocky branded
 IGNORES = [
         'insights-client',
+        'lorax-templates-rhel',
         'redhat-cloud-client-configuration',
         'rhc',
         'rhc-worker-playbook',
