@@ -33,7 +33,7 @@ command = parser.parse_args().cmd
 
 def all_rocky_files(
         directory_path = '/etc/yum.repos.d',
-        filter_filename = lambda file: 'rocky' in file) -> list:
+        filter_filename = lambda file: 'rocky' in file.lower() -> list:
     """
     Filter out specified files
     """
