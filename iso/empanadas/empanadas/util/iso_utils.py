@@ -308,6 +308,7 @@ class IsoBuild:
                 builddir=self.mock_work_root,
                 lorax_work_root=self.lorax_result_root,
                 bugurl=self.bugurl,
+                squashfs_only=self.iso_map['lorax']['squashfs_only'],
         )
 
         with open(mock_iso_path, "w+") as mock_iso_entry:

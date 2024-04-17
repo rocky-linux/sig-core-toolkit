@@ -65,6 +65,7 @@
           - 'AppStream'
     lorax:
       noupgrade: False
+      squashfs_only: True
       repos:
         - 'BaseOS'
         - 'AppStream'

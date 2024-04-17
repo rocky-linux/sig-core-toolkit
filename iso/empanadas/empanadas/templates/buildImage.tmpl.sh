@@ -24,6 +24,9 @@ lorax --product="${PRODUCT}" \
 {%- for repo in repos %}
   --source={{ repo.url }} \
 {%- endfor %}
+{%- if squashfs_only %}
+  --squashfs-only
+{%- endif %}
   --bugurl="${BUGURL}" \
   --variant="${VARIANT}" \
   --nomacboot \
