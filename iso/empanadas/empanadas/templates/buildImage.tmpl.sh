@@ -25,7 +25,7 @@ lorax --product="${PRODUCT}" \
   --source={{ repo.url }} \
 {%- endfor %}
 {%- if squashfs_only %}
-  --squashfs-only
+  --squashfs-only \
 {%- endif %}
   --bugurl="${BUGURL}" \
   --variant="${VARIANT}" \
