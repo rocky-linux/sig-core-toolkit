@@ -65,6 +65,7 @@
           - 'AppStream'
     lorax:
       noupgrade: False
+      squashfs_only: True
       repos:
         - 'BaseOS'
         - 'AppStream'
@@ -134,7 +135,16 @@
       - aarch64
       - ppc64le
       - s390x
-    required_pkgs: []
+    required_pkgs:
+      - dracut-kiwi-live
+      - git
+      - kiwi
+      - kiwi-cli
+      - kiwi-systemdeps-image-validation
+    required_project_id: '47e0b4a8-84ba-43a9-bb94-eb99dde4cf14'
+    required_project_repos:
+      - 'core-common'
+      - 'core-infra'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
