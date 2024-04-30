@@ -1,10 +1,10 @@
 ---
 '9':
-  fullname: 'Rocky Linux 9.3'
-  revision: '9.3'
+  fullname: 'Rocky Linux 9.4'
+  revision: '9.4'
   rclvl: 'RC1'
   major: '9'
-  minor: '3'
+  minor: '4'
   profile: '9'
   disttag: 'el9'
   code: "Blue Onyx"
