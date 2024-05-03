@@ -35,6 +35,13 @@
     - 'SAPHANA'
     - 'extras'
     - 'plus'
+  extra_repos:
+    - name: 'core-common'
+      url: 'https://yumrepofs.build.resf.org/v1/projects/47e0b4a8-84ba-43a9-bb94-eb99dde4cf14/repo/core-common/$basearch'
+      priority: '100'
+    - name: 'core-infra'
+      url: 'https://yumrepofs.build.resf.org/v1/projects/47e0b4a8-84ba-43a9-bb94-eb99dde4cf14/repo/core-infra/$basearch'
+      priority: '100'
   structure:
     packages: 'os/Packages'
     repodata: 'os/repodata'
@@ -142,10 +149,6 @@
       - kiwi
       - kiwi-cli
       - kiwi-systemdeps-image-validation
-    required_project_id: '47e0b4a8-84ba-43a9-bb94-eb99dde4cf14'
-    required_project_repos:
-      - 'core-common'
-      - 'core-infra'
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
