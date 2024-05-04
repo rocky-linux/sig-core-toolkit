@@ -16,6 +16,7 @@ parser.add_argument('--rc', action='store_true', help="Release Candidate, Beta, 
 results = parser.parse_args()
 rlvars = rldict[results.release]
 major = rlvars['major']
+minor = rlvars['minor']
 
 EXTARCH=["s390x", "ppc64le"]
 EKSARCH=["amd64", "arm64"]
@@ -42,7 +43,7 @@ def run():
     out = ""
     for architecture in arches:
         copy_command = (f"aws s3 cp --recursive --exclude=* --include=lorax* "
-                            f"/var/lib/mock/rocky-{ major }-$(uname -m)/root/builddir/ "
+                            f"/var/lib/mock/rocky-{ major }.{ minor }-$(uname -m)/root/builddir/ "
                             f"s3://resf-empanadas/buildiso-{ major }-{ architecture }/{ buildstamp.strftime('%s') }/"
         )
         out += job_template.render(
@@ -54,6 +55,7 @@ def run():
             jobname="buildiso",
             namespace="empanadas",
             major=major,
+            minor=minor,
             restartPolicy="Never",
         )
 

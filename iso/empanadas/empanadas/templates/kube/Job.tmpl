@@ -53,6 +53,8 @@ spec:
         key: peridot.rockylinux.org/workflow-tolerates-arch
         operator: Equal
         value: {{ architecture }}
+      nodeSelector:
+        kubernetes.io/arch: {{ architecture }}
       restartPolicy: {{ restartPolicy }}
       volumes:
       - name: resolv-conf
