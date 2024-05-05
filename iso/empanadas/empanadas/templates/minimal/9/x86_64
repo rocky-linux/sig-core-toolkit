@@ -34,6 +34,7 @@ libsmbios
 libudisks2
 libxmlb
 mokutil
+python3-lxml
 shim-x64
 udisks2
 volume_key-libs

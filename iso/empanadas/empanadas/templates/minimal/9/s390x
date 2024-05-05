@@ -25,6 +25,7 @@ libgcab1
 libjcat
 libudisks2
 libxmlb
+python3-lxml
 udisks2
 volume_key-libs
 NetworkManager-wifi

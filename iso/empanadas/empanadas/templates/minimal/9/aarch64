@@ -33,6 +33,7 @@ libjcat
 libudisks2
 libxmlb
 mokutil
+python3-lxml
 shim-aa64
 udisks2
 volume_key-libs
