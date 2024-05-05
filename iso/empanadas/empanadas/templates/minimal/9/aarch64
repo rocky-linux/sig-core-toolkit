@@ -30,11 +30,13 @@ libblockdev-utils
 libbytesize
 libgcab1
 libjcat
+libsss_autofs
 libudisks2
 libxmlb
 mokutil
 python3-lxml
 shim-aa64
+sssd-nfs-idmap
 udisks2
 volume_key-libs
 NetworkManager-wifi
