@@ -360,6 +360,7 @@ class IsoBuild:
                     self.arches,
                     'tar.gz',
                     'lorax',
+                    'buildiso',
                     self.log
             )
         else:
@@ -1359,6 +1360,7 @@ class IsoBuild:
                             arches_to_unpack,
                             formattype,
                             variantname,
+                            'buildimage',
                             self.log
                     )
 

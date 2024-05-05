@@ -607,7 +607,8 @@ class Shared:
 
     # pylint: disable=too-many-locals,too-many-arguments
     @staticmethod
-    def s3_determine_latest(s3_bucket, release, arches, filetype, name, logger):
+    def s3_determine_latest(s3_bucket, release, arches, filetype, name,
+                            root_prefix, logger):
         """
         Using native s3, determine the latest artifacts and return a dict
         """
@@ -640,8 +641,9 @@ class Shared:
 
         for arch in arches:
             temps = []
+            start_of_path = f'{root_prefix}-{release.split('.')[0]}-{arch}'
             for y in temp:
-                if arch in y:
+                if arch in y and start_of_path in y:
                     temps.append(y)
             temps.sort(reverse=True)
             if len(temps) > 0:
