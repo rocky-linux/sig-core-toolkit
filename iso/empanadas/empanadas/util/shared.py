@@ -608,7 +608,7 @@ class Shared:
     # pylint: disable=too-many-locals,too-many-arguments
     @staticmethod
     def s3_determine_latest(s3_bucket, release, arches, filetype, name,
-                            root_prefix, logger):
+                            root_prefix, translators, logger):
         """
         Using native s3, determine the latest artifacts and return a dict
         """
@@ -641,9 +641,13 @@ class Shared:
 
         for arch in arches:
             temps = []
-            start_of_path = f"{root_prefix}-{release.split('.')[0]}-{arch}"
+            new_arch = arch
+            # This is lazy, but...
+            if root_prefix == 'buildiso':
+                new_arch = translators[arch]
+            start_of_path = f"{root_prefix}-{release.split('.')[0]}-{new_arch}"
             for y in temp:
-                if arch in y and start_of_path in y:
+                if arch in y and y.startswith(start_of_path):
                     temps.append(y)
             temps.sort(reverse=True)
             if len(temps) > 0:

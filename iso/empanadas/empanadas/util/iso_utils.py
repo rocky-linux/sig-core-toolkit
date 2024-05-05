@@ -118,6 +118,7 @@ class IsoBuild:
         self.bugurl = rlvars['bugurl']
 
         self.extra_files = rlvars['extra_files']
+        self.translators = config['translators']
 
         self.container = config['container']
         if 'container' in rlvars and len(rlvars['container']) > 0:
@@ -361,6 +362,7 @@ class IsoBuild:
                     'tar.gz',
                     'lorax',
                     'buildiso',
+                    self.translators,
                     self.log
             )
         else:
@@ -1361,6 +1363,7 @@ class IsoBuild:
                             formattype,
                             variantname,
                             'buildimage',
+                            self.translators,
                             self.log
                     )
 
