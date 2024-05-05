@@ -641,7 +641,7 @@ class Shared:
 
         for arch in arches:
             temps = []
-            start_of_path = f'{root_prefix}-{release.split('.')[0]}-{arch}'
+            start_of_path = f"{root_prefix}-{release.split('.')[0]}-{arch}"
             for y in temp:
                 if arch in y and start_of_path in y:
                     temps.append(y)
