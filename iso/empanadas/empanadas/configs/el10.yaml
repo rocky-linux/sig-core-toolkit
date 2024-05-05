@@ -75,7 +75,7 @@
       required_pkgs:
         - 'lorax'
         - 'isomd5sum'
-        - 'lorax-templates-rocky'
+        - 'lorax-templates-rhel'
         - 'lorax-templates-generic'
         - 'xorriso'
   cloudimages:
