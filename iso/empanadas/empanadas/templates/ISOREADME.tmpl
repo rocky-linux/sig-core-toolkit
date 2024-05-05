@@ -4,6 +4,7 @@ that match the given ISO. You will see the following formats:
 
 * Rocky-X.Y-ARCH-TYPE       (ISO File)
 * Rocky-X.Y-DATE-ARCH-TYPE  (ISO File)
+* Rocky-X-latest-ARCH-TYPE  (Symlink)
 * Rocky-ARCH-TYPE           (Symlink)
 
 X will be the major release.
@@ -18,19 +19,15 @@ The second format is in the case of rebuilt ISO's, in the case of addressing
 a bug or providing an updated image (eg for a newer kernel, a newer secure
 boot shim, and so on).
 
-The third format in the list is a symlink to the "latest" ISO. Currently, this
-is not advertised on the main site, but there may be potential for this in
-the future as a value add.
+The third format is also in the case of a rebuilt ISO. This will always point
+to the absolute latest ISO of its type. This is used for osinfo and may be
+used on our main website. This serves as a predictable method to download
+the latest ISO whether from curl/wget or using libvirt that relies on osinfo
+to provide the download URL.
 
-This is "unversioned" ISO symlink is for these cases:
-
-* A pre-determined download location for users/mirrors/service providers who
-  want an always available and deterministic download location, which can be
-  easier to script
-
-* osinfo database / libvirt use where if a user selects Rocky Linux X, it
-  should be aware of and be able to download from that location. This should
-  be fully supported in Rocky Linux 8.7 and 9.1, and future Fedora versions.
+The fourth format in the list is a symlink to the "latest" ISO. This was
+originally used as part of osinfo and has been carried over for backwards
+compatibility reasons.
 
 If you have any questions, please reach out to us:
 
