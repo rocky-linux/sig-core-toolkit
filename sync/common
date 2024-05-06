@@ -67,7 +67,7 @@ REV="${REVISION}${APPEND_TO_DIR}"
 
 # Used to iterate over ISOs?
 # Override: Allowed
-VARIANTS=(boot minimal dvd1)
+VARIANTS=(boot minimal dvd1 dvd)
 
 # Syncing functions
 function parallel_rsync_no_delete_staging() {
