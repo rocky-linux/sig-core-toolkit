@@ -63,7 +63,7 @@ for variant in "${VARIANTS[@]}"; do
 
         printf "** Linking Version: %s; Arch: %s; Variant: %s\n" "${REVISION}" "${arch}" "${variant}"
         ln -sv \
-            "${ISODIR}"/"${arch}"/{CHECKSUM*,"${name_template}".iso*} \
+            "${ISODIR}"/"${arch}"/{"CHECKSUM"*,"${name_template}".iso*} \
             "${name_template}"/
     done
 done
