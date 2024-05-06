@@ -19,6 +19,7 @@ parser.add_argument('--hashed', action='store_true')
 parser.add_argument('--just-copy-it', action='store_true', help="Just copy the images to the compose dir")
 parser.add_argument('--force-build', action='store_true', help="Just build and overwrite the images")
 parser.add_argument('--builder', type=str, help="Choose a builder type and override the set value in the configs")
+parser.add_argument('--increment', type=str, help="Changes the default increment of 0 to a number of your choice")
 results = parser.parse_args()
 rlvars = rldict[results.release]
 major = rlvars['major']
@@ -36,6 +37,7 @@ a = LiveBuild(
         justcopyit=results.just_copy_it,
         force_build=results.force_build,
         builder=results.builder,
+        image_increment=results.increment,
         logger=results.logger
 )
 
