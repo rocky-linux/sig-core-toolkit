@@ -23,6 +23,7 @@ pycdlib = ">=1.14.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~5"
+attrs = "^23.1.0"
 
 [tool.poetry.scripts]
 test-module = "empanadas.scripts.test_module:run"
@@ -40,6 +41,16 @@ pull-cloud-image = "empanadas.scripts.pull_cloud_image:run"
 generate-compose = "empanadas.scripts.generate_compose:run"
 peridot-repoclosure = "empanadas.scripts.peridot_repoclosure:run"
 refresh-all-treeinfo = "empanadas.scripts.refresh_all_treeinfo:run"
+
+[tool.pylint.main]
+init-hook ="""
+try:
+  import pylint_venv
+except ImportError:
+  pass
+else:
+  pylint_venv.inithook()
+"""
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

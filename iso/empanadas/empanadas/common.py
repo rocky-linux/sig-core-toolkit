@@ -1,12 +1,10 @@
 # All imports are here
 import glob
-import hashlib
-import logging
-import os
 import platform
 import time
 from collections import defaultdict
-from typing import Tuple
+from attrs import define, field
+
 
 import rpm
 import yaml
@@ -120,7 +118,7 @@ ALLOWED_TYPE_VARIANTS = {
 def valid_type_variant(_type: str, variant: str = "") -> bool:
     if _type not in ALLOWED_TYPE_VARIANTS:
         raise Exception(f"Type is invalid: ({_type}, {variant})")
-    if ALLOWED_TYPE_VARIANTS[_type] == None:
+    if ALLOWED_TYPE_VARIANTS[_type] is None:
         if variant is not None:
             raise Exception(f"{_type} Type expects no variant type.")
         return True
@@ -134,8 +132,6 @@ def valid_type_variant(_type: str, variant: str = "") -> bool:
         )
     return True
 
-
-from attrs import define, field
 
 
 @define(kw_only=True)
