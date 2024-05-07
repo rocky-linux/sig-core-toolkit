@@ -77,8 +77,7 @@
         - 'BaseOS'
         - 'AppStream'
       variant: 'BaseOS'
-      lorax_removes:
-        - 'libreport-rhel-anaconda-bugzilla'
+      lorax_removes: []
       required_pkgs:
         - 'lorax'
         - 'genisoimage'
