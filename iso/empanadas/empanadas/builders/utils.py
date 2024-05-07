@@ -1,7 +1,6 @@
 import pathlib
 import subprocess
 
-from functools import partial
 from typing import Callable, List, Tuple, Union
 
 CMD_PARAM_T = List[Union[str, Callable[..., str]]]
@@ -96,3 +95,15 @@ def log_subprocess(ctx, result: CMD_RESULT_T):
         log_lines("Command STDOUT", stdout)
     if stderr:
         log_lines("Command STDERR", stderr)
+
+
+def remove_first_directory(path):
+    p = pathlib.Path(path)
+    # Check if the path is absolute
+    if p.is_absolute():
+        # For an absolute path, start the new path with the root
+        new_path = pathlib.Path(p.root, *p.parts[2:])
+    else:
+        # For a relative path, simply skip the first part
+        new_path = pathlib.Path(*p.parts[1:])
+    return new_path

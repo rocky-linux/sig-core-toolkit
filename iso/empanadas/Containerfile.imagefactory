@@ -38,6 +38,8 @@ RUN dnf install -y \
     sudo \
     mock \
     python-pip \
+    mock \
+    fuse-overlayfs \
     imagefactory \
     imagefactory-plugins*
 

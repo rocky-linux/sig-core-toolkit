@@ -11,9 +11,12 @@ import yaml
 
 
 # An implementation from the Fabric python library
-class AttributeDict(defaultdict):
-    def __init__(self):
-        super(AttributeDict, self).__init__(AttributeDict)
+class AttributeDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttributeDict, self).__init__(*args, **kwargs)
+        for key, value in self.items():
+            if isinstance(value, dict):
+                self[key] = AttributeDict(value)
 
     def __getattr__(self, key):
         try:
@@ -23,6 +26,11 @@ class AttributeDict(defaultdict):
 
     def __setattr__(self, key, value):
         self[key] = value
+
+    def __setitem__(self, key, value):
+        if isinstance(value, dict):
+            value = AttributeDict(value)
+        super(AttributeDict, self).__setitem__(key, value)
 
 
 # These are a bunch of colors we may use in terminal output
@@ -105,7 +113,7 @@ for conf in glob.iglob(f"{_rootdir}/sig/*.yaml"):
 
 ALLOWED_TYPE_VARIANTS = {
     "Azure": ["Base", "LVM"],
-    "Container": ["Base", "Minimal", "UBI", "WSL"],
+    "Container": ["Base", "Minimal", "UBI", "WSL", "Toolbox"],
     "EC2": ["Base", "LVM"],
     "GenericCloud": ["Base", "LVM"],
     "Vagrant": ["Libvirt", "Vbox", "VMware"],
@@ -131,7 +139,6 @@ def valid_type_variant(_type: str, variant: str = "") -> bool:
             f"Type/Variant Combination is not allowed: ({_type}, {variant})"
         )
     return True
-
 
 
 @define(kw_only=True)

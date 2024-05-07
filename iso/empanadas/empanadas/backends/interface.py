@@ -2,9 +2,12 @@
 empanadas backend interface
 """
 from abc import ABC, abstractmethod
+from attrs import define, field
 
 
+@define
 class BackendInterface(ABC):
+    ctx = field(init=False)
     """
     Interface to build images (or whatever)
     """

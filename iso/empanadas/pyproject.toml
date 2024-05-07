@@ -23,7 +23,6 @@ pycdlib = ">=1.14.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~5"
-attrs = "^23.1.0"
 
 [tool.poetry.scripts]
 test-module = "empanadas.scripts.test_module:run"

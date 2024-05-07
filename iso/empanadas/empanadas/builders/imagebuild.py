@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+import os
 import pathlib
 
 from attrs import define, field
@@ -72,7 +73,6 @@ class ImageBuild:  # pylint: disable=too-few-public-methods
         other things, perform lazy evaluations of f-strings which have values
         not available at assignment time. e.g., filling in a second command
         with a value extracted from the previous step or command.
-
         """
 
         r = []
@@ -104,3 +104,15 @@ class ImageBuild:  # pylint: disable=too-few-public-methods
                 restartPolicy="Never",
             )
         return template
+
+    def copy(self, skip=False) -> int:
+        if not skip:
+            self.log.info("Copying files to output directory")
+            copy_command = ["aws", "s3", "cp", "--recursive", f"{self.outdir}/",
+                            f"s3://resf-empanadas/buildimage-{self.architecture.version}-{self.architecture.name}/{self.outname}/{self.build_time.strftime('%s')}/"
+                            ]
+            ret, out, err, _ = self.prepare_and_run(copy_command, search=False)
+            return ret
+
+        self.ctx.log.info(f"Build complete! Output available in {self.ctx.outdir}/")
+        return 0

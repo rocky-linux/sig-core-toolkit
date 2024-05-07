@@ -29,7 +29,6 @@ class ImageFactoryBackend(BackendInterface):
     common_args: List[str] = field(factory=list)
     package_args: List[str] = field(factory=list)
     metadata: pathlib.Path = field(init=False)
-    ctx = field(init=False)
     stage_commands: Optional[List[List[Union[str, Callable]]]] = field(init=False)
 
     # The url to use in the path when fetching artifacts for the build
@@ -57,9 +56,9 @@ class ImageFactoryBackend(BackendInterface):
         try:
             os.mkdir(self.ctx.outdir)
         except FileExistsError:
-            self.ctx.log.info("Directory already exists for this release. If possible, previously executed steps may be skipped")
+            self.log.info("Directory already exists for this release. If possible, previously executed steps may be skipped")
         except Exception as e:
-            self.ctx.log.exception("Some other exception occured while creating the output directory", e)
+            self.log.exception("Some other exception occured while creating the output directory", e)
             return 0
 
         if os.path.exists(self.metadata):
@@ -100,8 +99,6 @@ class ImageFactoryBackend(BackendInterface):
         if ret > 0:
             return ret
 
-        ret = self.copy()
-        return ret
 
     def clean(self):
         pass
@@ -140,6 +137,7 @@ class ImageFactoryBackend(BackendInterface):
 
     def stage(self) -> int:
         """ Stage the artifacst from wherever they are (unpacking and converting if needed)"""
+        self.ctx.log.info("Executing staging commands")
         if not hasattr(self, 'stage_commands'):
             return 0
 
@@ -148,21 +146,11 @@ class ImageFactoryBackend(BackendInterface):
             ret, out, err, _ = self.ctx.prepare_and_run(command, search=False)
             returns.append(ret)
 
-        return all(ret > 0 for ret in returns)
+        if (res := all(ret > 0 for ret in returns) > 0):
+            raise Exception(res)
 
-    def copy(self, skip=False) -> int:
-        # move or unpack if necessary
-        self.ctx.log.info("Executing staging commands")
-        if (stage := self.stage() > 0):
-            raise Exception(stage)
-
-        if not skip:
-            self.ctx.log.info("Copying files to output directory")
-            ret, out, err, _ = self.ctx.prepare_and_run(self.copy_command(), search=False)
-            return ret
-
-        self.ctx.log.info(f"Build complete! Output available in {self.ctx.outdir}/")
-        return 0
+        ret = self.copy()
+        return ret
 
     def checkout_kickstarts(self) -> int:
         cmd = ["git", "clone", "--branch", f"r{self.ctx.architecture.major}",
@@ -250,14 +238,6 @@ class ImageFactoryBackend(BackendInterface):
                            *self.package_args,
                            "--parameter", "repository", self.ctx.outname]
         return package_command
-
-    def copy_command(self) -> List[str]:
-
-        copy_command = ["aws", "s3", "cp", "--recursive", f"{self.ctx.outdir}/",
-                        f"s3://resf-empanadas/buildimage-{self.ctx.architecture.version}-{self.ctx.architecture.name}/{self.ctx.outname}/{self.ctx.build_time.strftime('%s')}/"
-                        ]
-
-        return copy_command
 
     def fix_ks(self):
         cmd: utils.CMD_PARAM_T = ["sed", "-i", f"s,$basearch,{self.ctx.architecture.name},", str(self.kickstart_path)]
