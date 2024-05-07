@@ -159,15 +159,6 @@
   kiwimap:
     git_repo: 'https://git.resf.org/sig_core/rocky-kiwi-descriptions.git'
     branch: 'r9'
-    supported_builds:
-      - cloud
-      - container
-      - vagrant
-    allowed_arches:
-      - x86_64
-      - aarch64
-      - ppc64le
-      - s390x
     required_pkgs:
       - dracut-kiwi-live
       - git
