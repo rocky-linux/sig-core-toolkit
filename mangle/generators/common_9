@@ -8,9 +8,9 @@ VER="r${MAJOR}${LH}"
 
 case "$VER" in
   r9)
-    export PERIDOT_PROJECT_ID=dff20351-7d36-4f7c-9eea-7f039f5026d0 ;;
+    export PERIDOT_PROJECT_ID=df5bcbfc-ba83-4da8-84d6-ae0168921b4d ;;
   r9s)
-    export PERIDOT_PROJECT_ID=6202c09e-6252-4d3a-bcd3-9c7751682970 ;;
+    export PERIDOT_PROJECT_ID=df5bcbfc-ba83-4da8-84d6-ae0168921b4d ;;
   *)
     echo "Not supported"
     exit 1
