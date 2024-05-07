@@ -92,22 +92,48 @@
         format: vhd
         variants: [Base, LVM]
         primary_variant: 'Base'
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Cloud-Azure-Base
+            - Cloud-Azure-LVM
       EC2:
         format: qcow2
         variants: [Base, LVM]
         primary_variant: 'Base'
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Cloud-EC2-Base
+            - Cloud-EC2-LVM
       GenericCloud:
         format: qcow2
         variants: [Base, LVM]
         primary_variant: 'Base'
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Cloud-GenericCloud-Base
+            - Cloud-GenericCloud-LVM
       Container:
         format: tar.xz
         variants: [Base, Minimal, UBI]
+        kiwi:
+          type: "oci"
+          profile_names:
+            - Container-Base
+            - Container-Minimal
+            - Container-Toolbox
+            - Container-UBI
       RPI:
         format: raw.xz
       OCP:
         format: qcow2
         variants: [Base]
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Cloud-OCP-Base
       Vagrant:
         format: box
         variants: [Libvirt, Vbox, VMware]
@@ -134,7 +160,6 @@
     git_repo: 'https://git.resf.org/sig_core/rocky-kiwi-descriptions.git'
     branch: 'r9'
     supported_builds:
-      - live
       - cloud
       - container
       - vagrant
@@ -148,7 +173,13 @@
       - git
       - kiwi
       - kiwi-cli
+      - kiwi-systemdeps-bootloaders
+      - kiwi-systemdeps-containers
+      - kiwi-systemdeps-core
+      - kiwi-systemdeps-disk-images
+      - kiwi-systemdeps-filesystems
       - kiwi-systemdeps-image-validation
+      - kiwi-systemdeps-iso-media
   repoclosure_map:
     arches:
       x86_64: '--forcearch=x86_64 --arch=x86_64 --arch=athlon --arch=i686 --arch=i586 --arch=i486 --arch=i386 --arch=noarch'
