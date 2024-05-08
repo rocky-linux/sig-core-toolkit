@@ -109,7 +109,7 @@
             - Cloud-GenericCloud-LVM
       Container:
         format: tar.xz
-        variants: [Base, Minimal, UBI]
+        variants: [Base, Minimal, Toolbox, UBI]
         kiwi:
           type: "oci"
           profile_names:
