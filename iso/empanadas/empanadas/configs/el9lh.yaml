@@ -91,25 +91,57 @@
         format: vhd
         variants: [Base, LVM]
         primary_variant: 'Base'
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Cloud-Azure-Base
+            - Cloud-Azure-LVM
       EC2:
         format: qcow2
         variants: [Base, LVM]
         primary_variant: 'Base'
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Cloud-EC2-Base
+            - Cloud-EC2-LVM
       GenericCloud:
         format: qcow2
         variants: [Base, LVM]
         primary_variant: 'Base'
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Cloud-GenericCloud-Base
+            - Cloud-GenericCloud-LVM
       Container:
         format: tar.xz
         variants: [Base, Minimal, UBI]
+        kiwi:
+          type: "oci"
+          profile_names:
+            - Container-Base
+            - Container-Minimal
+            - Container-Toolbox
+            - Container-UBI
       RPI:
         format: raw.xz
       OCP:
         format: qcow2
         variants: [Base]
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Cloud-OCP-Base
       Vagrant:
         format: box
         variants: [Libvirt, Vbox, VMware]
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Vagrant-Libvirt
+            - Vagrant-Vbox
+            - Vagrant-VMware
   livemap:
     builder: "lorax"
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'

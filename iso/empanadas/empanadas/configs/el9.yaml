@@ -136,6 +136,12 @@
       Vagrant:
         format: box
         variants: [Libvirt, Vbox, VMware]
+        kiwi:
+          type: "oem"
+          profile_names:
+            - Vagrant-Libvirt
+            - Vagrant-Vbox
+            - Vagrant-VMware
   livemap:
     builder: "lorax"
     git_repo: 'https://git.resf.org/sig_core/kickstarts.git'
