@@ -642,10 +642,12 @@ class Shared:
         for arch in arches:
             temps = []
             new_arch = arch
+            new_release = release
             # This is lazy, but...
             if root_prefix == 'buildiso':
                 new_arch = translators[arch]
-            start_of_path = f"{root_prefix}-{release.split('.')[0]}-{new_arch}"
+                new_release = release.split('.')[0]
+            start_of_path = f"{root_prefix}-{new_release}-{new_arch}"
             for y in temp:
                 if arch in y and y.startswith(start_of_path):
                     temps.append(y)
