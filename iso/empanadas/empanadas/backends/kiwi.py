@@ -20,11 +20,35 @@ import sys
 # TODO(neil): this should be part of the config, somewhere
 temp = AttributeDict(
     {
+        "Azure": {
+            "kiwiType": "oem",
+            "kiwiProfile": "Cloud-Azure",
+            "fileType": "qcow2",
+            "outputKey": "disk_format_image",
+        },
+        "OCP": {
+            "kiwiType": "oem",
+            "kiwiProfile": "Cloud-OCP",
+            "fileType": "qcow2",
+            "outputKey": "disk_format_image",
+        },
         "GenericCloud": {
             "kiwiType": "oem",
             "kiwiProfile": "Cloud-GenericCloud",
             "fileType": "qcow2",
-            "outputKey": "disk_format_image"
+            "outputKey": "disk_format_image",
+        },
+        "EC2": {
+            "kiwiType": "oem",
+            "kiwiProfile": "Cloud-EC2",
+            "fileType": "qcow2",
+            "outputKey": "disk_format_image",
+        },
+        "Vagrant": {
+            "kiwiType": "oem",
+            "kiwiProfile": "Vagrant",
+            "fileType": "box",
+            "outputKey": "disk_format_image",
         },
         "Container": {
             "kiwiType": "oci",
@@ -117,7 +141,7 @@ class KiwiBackend(BackendInterface):
 
     def run_mock_command(self, mock_command: List[str]):
         mock_args = ["--configdir", "/workdir/mock-rocky-configs/etc/mock", "-r", f"rl-9-{self.ctx.architecture.name}-core-infra"]
-        if self.ctx.image_type == 'GenericCloud':
+        if self.ctx.image_type != 'Container':
             mock_args.append("--isolation=simple")
         command = [
             "mock",

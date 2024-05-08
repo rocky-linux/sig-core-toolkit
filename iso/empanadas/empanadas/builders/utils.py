@@ -11,33 +11,6 @@ BYTES_NONE_T = Union[bytes, None]
 CMD_RESULT_T = Tuple[int, BYTES_NONE_T, BYTES_NONE_T, STR_NONE_T]
 
 
-# def prepare_vagrant(options):
-#     """Setup the output directory for the Vagrant type variant, dropping templates as required"""
-#     file_loader = FileSystemLoader(f"{_rootdir}/templates")
-#     tmplenv = Environment(loader=file_loader)
-#
-#     templates = {}
-#     templates['Vagrantfile'] = tmplenv.get_template(f"vagrant/Vagrantfile.{self.variant}")
-#     templates['metadata.json'] = tmplenv.get_template('vagrant/metadata.tmpl.json')
-#     templates['info.json'] = tmplenv.get_template('vagrant/info.tmpl.json')
-#
-#     if self.variant == "VMware":
-#         templates[f"{self.outname}.vmx"] = tmplenv.get_template('vagrant/vmx.tmpl')
-#
-#     if self.variant == "Vbox":
-#         templates['box.ovf'] = tmplenv.get_template('vagrant/box.tmpl.ovf')
-#
-#     if self.variant == "Libvirt":
-#         # Libvirt vagrant driver expects the qcow2 file to be called box.img.
-#         qemu_command_index = [i for i, d in enumerate(self.stage_commands) if d[0] == "qemu-img"][0]
-#         self.stage_commands.insert(qemu_command_index+1, ["mv", f"{self.outdir}/{self.outname}.qcow2", f"{self.outdir}/box.img"])
-#
-#     for name, template in templates.items():
-#         self.render_template(f"{self.outdir}/{name}", template,
-#                              name=self.outname,
-#                              arch=self.architecture.name,
-#                              options=options
-#                              )
 
 
 def render_template(path, template, **kwargs) -> pathlib.Path:

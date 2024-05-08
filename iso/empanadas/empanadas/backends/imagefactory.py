@@ -149,8 +149,7 @@ class ImageFactoryBackend(BackendInterface):
         if (res := all(ret > 0 for ret in returns) > 0):
             raise Exception(res)
 
-        ret = self.copy()
-        return ret
+        return 0
 
     def checkout_kickstarts(self) -> int:
         cmd = ["git", "clone", "--branch", f"r{self.ctx.architecture.major}",
@@ -291,3 +290,29 @@ class ImageFactoryBackend(BackendInterface):
 
         if self.stage_commands:
             self.stage_commands.append(["cp", "-v", lambda: f"{STORAGE_DIR}/{self.target_uuid}.meta", f"{self.ctx.outdir}/build.meta"])
+
+    def prepare_vagrant(self, options):
+        """Setup the output directory for the Vagrant type variant, dropping templates as required"""
+
+        templates = {}
+        templates['Vagrantfile'] = self.ctx.tmplenv.get_template(f"vagrant/Vagrantfile.{self.ctx.variant}")
+        templates['metadata.json'] = self.ctx.tmplenv.get_template('vagrant/metadata.tmpl.json')
+        templates['info.json'] = self.ctx.tmplenv.get_template('vagrant/info.tmpl.json')
+
+        if self.ctx.variant == "VMware":
+            templates[f"{self.ctx.outname}.vmx"] = self.ctx.tmplenv.get_template('vagrant/vmx.tmpl')
+
+        if self.ctx.variant == "Vbox":
+            templates['box.ovf'] = self.ctx.tmplenv.get_template('vagrant/box.tmpl.ovf')
+
+        if self.ctx.variant == "Libvirt":
+            # Libvirt vagrant driver expects the qcow2 file to be called box.img.
+            qemu_command_index = [i for i, d in enumerate(self.stage_commands) if d[0] == "qemu-img"][0]
+            self.stage_commands.insert(qemu_command_index+1, ["mv", f"{self.ctx.outdir}/{self.ctx.outname}.qcow2", f"{self.ctx.outdir}/box.img"])
+
+        for name, template in templates.items():
+            utils.render_template(f"{self.ctx.outdir}/{name}", template,
+                                  name=self.ctx.outname,
+                                  arch=self.ctx.architecture.name,
+                                  options=options
+                                  )

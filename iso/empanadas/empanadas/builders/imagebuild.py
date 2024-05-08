@@ -105,7 +105,7 @@ class ImageBuild:  # pylint: disable=too-few-public-methods
             )
         return template
 
-    def copy(self, skip=False) -> int:
+    def upload(self, skip=False) -> int:
         if not skip:
             self.log.info("Copying files to output directory")
             copy_command = ["aws", "s3", "cp", "--recursive", f"{self.outdir}/",

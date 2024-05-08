@@ -35,6 +35,9 @@ parser.add_argument('--kube', action='store_true',
 parser.add_argument('--timeout', type=str,
                     help="change timeout for imagefactory build process",
                     required=False, default='3600')
+parser.add_argument('--backend', type=str,
+                    help="which backend to use (kiwi|imagefactory)",
+                    required=False, default='kiwi')
 
 
 results = parser.parse_args()
@@ -65,9 +68,8 @@ def run():
     arches = rlvars['allowed_arches'] if results.kube else [platform.uname().machine]
 
     for architecture in arches:
-        if results.type in ["Container", "GenericCloud"]:
-            backend = KiwiBackend(
-            )
+        if results.backend == "kiwi":
+            backend = KiwiBackend()
         else:
             backend = ImageFactoryBackend(
                 kickstart_dir="kickstart" if results.kickstartdir else "os",
@@ -104,3 +106,10 @@ def run():
                 method()
             else:
                 log.fatal(f"Unable to execute {stage}")
+
+        if 'upload' in skip_stages:
+            return
+
+        log.info("Final stage - Upload")
+
+        IB.upload(skip='upload' in skip_stages)
