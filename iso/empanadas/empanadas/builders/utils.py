@@ -1,5 +1,9 @@
+import json
+import os
+import logging
 import pathlib
 import subprocess
+import sys
 
 from typing import Callable, List, Tuple, Union
 
@@ -11,6 +15,16 @@ BYTES_NONE_T = Union[bytes, None]
 CMD_RESULT_T = Tuple[int, BYTES_NONE_T, BYTES_NONE_T, STR_NONE_T]
 
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter(
+        '%(asctime)s :: %(name)s :: %(message)s',
+        '%Y-%m-%d %H:%M:%S'
+)
+handler.setFormatter(formatter)
+log.addHandler(handler)
 
 
 def render_template(path, template, **kwargs) -> pathlib.Path:
@@ -80,3 +94,46 @@ def remove_first_directory(path):
         # For a relative path, simply skip the first part
         new_path = pathlib.Path(*p.parts[1:])
     return new_path
+
+
+def resize_and_convert_raw_image_to_vhd(raw_image_path, outdir=None):
+    log.info(f"Will resize and convert {raw_image_path}")
+    MB = 1024 * 1024  # For calculations - 1048576 bytes
+
+    if outdir is None:
+        outdir = os.getcwd()
+
+    # Ensure the output directory exists
+    pathlib.Path(outdir).mkdir(parents=True, exist_ok=True)
+
+    # Getting the size of the raw image
+    result = subprocess.run(['qemu-img', 'info', '-f', 'raw', '--output', 'json', raw_image_path], capture_output=True, text=True)
+    if result.returncode != 0:
+        log.error("Error getting image info")
+        raise Exception(result)
+
+    image_info = json.loads(result.stdout)
+    size = int(image_info['virtual-size'])
+
+    # Calculate the new size rounded to the nearest MB
+    rounded_size = ((size + MB - 1) // MB) * MB
+
+    # Prepare output filename (.raw replaced by .vhd)
+    outfilename = pathlib.Path(raw_image_path).name.replace("raw", "vhd")
+    outfile = os.path.join(outdir, outfilename)
+
+    # Resize the image
+    log.info(f"Resizing {raw_image_path} to nearest MB boundary")
+    result = subprocess.run(['qemu-img', 'resize', '-f', 'raw', raw_image_path, str(rounded_size)])
+    if result.returncode != 0:
+        log.error("Error resizing image")
+        raise Exception(result)
+
+    # Convert the image
+    log.info(f"Converting {raw_image_path} to vhd")
+    result = subprocess.run(['qemu-img', 'convert', '-f', 'raw', '-o', 'subformat=fixed,force_size', '-O', 'vpc', raw_image_path, outfile])
+    if result.returncode != 0:
+        log.error("Error converting image to VHD format")
+        raise Exception(result)
+
+    log.info(f"Image converted and saved to {outfile}")

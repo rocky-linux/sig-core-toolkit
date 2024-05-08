@@ -23,7 +23,7 @@ temp = AttributeDict(
         "Azure": {
             "kiwiType": "oem",
             "kiwiProfile": "Cloud-Azure",
-            "fileType": "qcow2",
+            "fileType": "raw",  # post-converted into vhd on MB boundary
             "outputKey": "disk_format_image",
         },
         "OCP": {
@@ -134,6 +134,15 @@ class KiwiBackend(BackendInterface):
             shutil.move(source, dest)
         except Exception as e:
             raise e
+
+        # TODO(neil): refactor
+        if self.ctx.image_type == 'Azure':
+            try:
+                utils.resize_and_convert_raw_image_to_vhd(dest, self.ctx.outdir)
+                # Remove old raw image
+                pathlib.Path(f"{self.ctx.outdir}/{self.ctx.outname}.raw").unlink()
+            except Exception as e:
+                raise e
 
     def clean(self):
         ret, out, err = self.run_mock_command(["--shell", "rm", "-fr", f"/builddir/{self.ctx.outdir}/build/"])
