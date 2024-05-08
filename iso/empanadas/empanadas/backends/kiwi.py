@@ -130,6 +130,10 @@ class KiwiBackend(BackendInterface):
         source = utils.remove_first_directory(source)
         dest = f"{self.ctx.outdir}/{self.ctx.outname}.{filetype}"
 
+        # NOTE(neil): only because we are preparing the 'final' image in clean step...
+        if self.ctx.image_type == 'Container':
+            dest = f"{self.ctx.outdir}/{self.ctx.outname}.oci"
+
         try:
             shutil.move(source, dest)
         except Exception as e:
@@ -145,6 +149,15 @@ class KiwiBackend(BackendInterface):
                 raise e
 
     def clean(self):
+        # TODO(neil): refactor
+        if self.ctx.image_type == 'Container':
+            # need to do this before we remove it, otherwise we have to extract from the OCI tarball
+            root = f"/builddir{self.ctx.outdir}"
+            builddir = f"{root}/build/image-root"
+            ret, out, err = self.run_mock_command(["--shell", "--", "tar", "-C", builddir, "-cJf", f"{root}/{self.ctx.outname}.tar.xz", "."])
+            if ret > 0:
+                raise Exception(err)
+
         ret, out, err = self.run_mock_command(["--shell", "rm", "-fr", f"/builddir/{self.ctx.outdir}/build/"])
         return ret
 
