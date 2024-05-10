@@ -10,7 +10,10 @@ TEMP="$(mktemp -d)"
 for version in 8 9; do
   file="$TEMP/org.rockylinux.rlsa-$version.xml"
   log "Generating $file"
-  podman run --rm --storage-opt ignore_chown_errors=true ghcr.io/rocky-linux/oval:latest -- $version > "$file"
+  #podman run --rm --storage-opt ignore_chown_errors=true ghcr.io/rocky-linux/oval:latest -- $version > "$file"
+  # The above reports an error when running on R8. The below may *not* work on anything else.
+  # TODO: verify this is the case.
+  podman run --rm --storage-opt ignore_chown_errors=true ghcr.io/rocky-linux/oval:latest $version > "$file"
   log "Compressing $file to $file.bz"
   bzip2 -kfz "$file"
 done
