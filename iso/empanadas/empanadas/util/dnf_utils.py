@@ -381,7 +381,7 @@ class RepoSync:
 
             for a in arch_sync:
                 entry_name = f'{r}-{a}'
-                debug_entry_name = '{r}-debug-{a}'
+                debug_entry_name = f'{r}-debug-{a}'
 
                 entry_name_list.append(entry_name)
 
