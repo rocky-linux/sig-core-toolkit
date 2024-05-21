@@ -7,16 +7,16 @@ authors = ["Louis Abel <label@rockylinux.org>", "Neil Hanlon <neil@rockylinux.or
 [tool.poetry.dependencies]
 python = ">=3.7,<4"
 rpm = ">=0.1.0"
-MarkupSafe = "==2.0.1"
+MarkupSafe = "==2.1.5"
 PyYAML = "~6.0.1"
-Jinja2 = "~2"
-productmd = "~1.37"
+Jinja2 = "~3"
+productmd = "~1.38"
 importlib-resources = "^5.8.0"
-boto3 = "^1.28.80"
+boto3 = "^1.34.110"
 xmltodict = "^0.13.0"
-requests = "^2.31.0"
-kobo = "^0.33.0"
-attrs = "^23.1.0"
+requests = "^2.32.2"
+kobo = "^0.36.0"
+attrs = "^23.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~5"
