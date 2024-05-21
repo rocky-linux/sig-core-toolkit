@@ -10,10 +10,7 @@ import os
 import os.path
 import subprocess
 import shlex
-import shutil
 import time
-import re
-import json
 import glob
 #import pipes
 
@@ -147,10 +144,7 @@ class RepoSync:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-{}-{}".format(
-                    self.shortname,
-                    self.profile
-                )
+                f"latest-{self.shortname}-{self.profile}"
         )
 
         self.compose_latest_sync = os.path.join(
@@ -365,16 +359,12 @@ class RepoSync:
         if not os.path.exists(log_root):
             os.makedirs(log_root, exist_ok=True)
 
-        sync_single_arch = False
         arches_to_sync = self.arches
         if arch:
-            sync_single_arch = True
             arches_to_sync = arch.split(',')
 
-        sync_single_repo = False
         repos_to_sync = self.repos
         if repo and not self.fullrun:
-            sync_single_repo = True
             repos_to_sync = repo.split(',')
 
         for r in repos_to_sync:
@@ -390,8 +380,8 @@ class RepoSync:
                 arch_sync.append('i686')
 
             for a in arch_sync:
-                entry_name = '{}-{}'.format(r, a)
-                debug_entry_name = '{}-debug-{}'.format(r, a)
+                entry_name = f'{r}-{a}'
+                debug_entry_name = '{r}-debug-{a}'
 
                 entry_name_list.append(entry_name)
 
@@ -422,65 +412,26 @@ class RepoSync:
                         'debug/tree'
                 )
 
-                import_gpg_cmd = ("/usr/bin/rpm --import {}").format(gpg_key_url)
+                import_gpg_cmd = f"/usr/bin/rpm --import {gpg_key_url}"
+                arch_force_cp = f"/usr/bin/sed 's|$basearch|{a}|g' "\
+                        f"{self.dnf_config} > {self.dnf_config}.{a}"
 
-                arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
-                    a,
-                    self.dnf_config,
-                    self.dnf_config,
-                    a
-                ))
+                sync_log = f"{log_root}/{repo_name}-{a}.log"
+                debug_sync_log = f"{log_root}/{repo_name}-{a}-debug.log"
+                metadata_cmd = f"/usr/bin/dnf makecache -c {self.dnf_config}.{a} --repoid={r} "\
+                        f"--forcearch {a} --assumeyes 2>&1"
 
-                sync_log = ("{}/{}-{}.log").format(
-                        log_root,
-                        repo_name,
-                        a
-                )
+                sync_cmd = f"/usr/bin/dnf reposync -c {self.dnf_config}.{a} --download-metadata "\
+                        f"--repoid={r} -p {os_sync_path} --forcearch {a} --norepopath "\
+                        f"--remote-time --gpgcheck --assumeyes {reposync_delete} 2>&1"
 
-                debug_sync_log = ("{}/{}-{}-debug.log").format(
-                        log_root,
-                        repo_name,
-                        a
-                )
+                debug_metadata_cmd = f"/usr/bin/dnf makecache -c {self.dnf_config}.{a} "\
+                        f"--repoid={r}-debug --forcearch {a} --assumeyes 2>&1"
 
-                metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
-                        "--forcearch {} --assumeyes 2>&1").format(
-                        self.dnf_config,
-                        a,
-                        r,
-                        a
-                )
-
-                sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
-                        "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
-                        "--gpgcheck --assumeyes {} 2>&1").format(
-                        self.dnf_config,
-                        a,
-                        r,
-                        os_sync_path,
-                        a,
-                        reposync_delete
-                )
-
-                debug_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={}-debug "
-                        "--forcearch {} --assumeyes 2>&1").format(
-                        self.dnf_config,
-                        a,
-                        r,
-                        a
-                )
-
-
-                debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
-                        "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
-                        self.dnf_config,
-                        a,
-                        r,
-                        debug_sync_path,
-                        a,
-                        reposync_delete
-                )
+                debug_sync_cmd = f"/usr/bin/dnf reposync -c {self.dnf_config}.{a} "\
+                        f"--download-metadata --repoid={r}-debug -p {debug_sync_path} "\
+                        f"--forcearch {a} --gpgcheck --norepopath --remote-time "\
+                        f"--assumeyes {reposync_delete} 2>&1"
 
                 dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
 
@@ -522,7 +473,7 @@ class RepoSync:
                 # should not be updated nor touched during regular runs under
                 # any circumstances.
                 if self.fullrun:
-                    ks_entry_name = '{}-ks-{}'.format(r, a)
+                    ks_entry_name = f'{r}-ks-{a}'
                     entry_name_list.append(ks_entry_name)
                     ks_point_sh = os.path.join(
                             entries_dir,
@@ -536,29 +487,14 @@ class RepoSync:
                             'kickstart'
                     )
 
-                    ks_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
-                            "--forcearch {} --assumeyes 2>&1").format(
-                            self.dnf_config,
-                            a,
-                            r,
-                            a
-                    )
+                    ks_metadata_cmd = f"/usr/bin/dnf makecache -c {self.dnf_config}.{a} "\
+                            f"--repoid={r} --forcearch {a} --assumeyes 2>&1"
 
-                    ks_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
-                            "--repoid={} -p {} --forcearch {} --norepopath "
-                            "--gpgcheck --assumeyes --remote-time 2>&1").format(
-                            self.dnf_config,
-                            a,
-                            r,
-                            ks_sync_path,
-                            a
-                    )
+                    ks_sync_cmd = f"/usr/bin/dnf reposync -c {self.dnf_config}.{a} --download-metadata "\
+                            f"--repoid={r} -p {ks_sync_path} --forcearch {a} --norepopath "\
+                            "--gpgcheck --assumeyes --remote-time 2>&1"
 
-                    ks_sync_log = ("{}/{}-{}-ks.log").format(
-                            log_root,
-                            repo_name,
-                            a
-                    )
+                    ks_sync_log = f"{log_root}/{repo_name}-{a}-ks.log"
 
                     ks_sync_template = self.tmplenv.get_template('reposync.tmpl')
                     ks_sync_output = ks_sync_template.render(
@@ -577,7 +513,7 @@ class RepoSync:
             # We ignoring sources?
             if (not self.ignore_source and not arch) or (
                     not self.ignore_source and arch == 'source'):
-                source_entry_name = '{}-source'.format(r)
+                source_entry_name = f'{r}-source'
                 entry_name_list.append(source_entry_name)
 
                 source_entry_point_sh = os.path.join(
@@ -591,25 +527,14 @@ class RepoSync:
                         'source/tree'
                 )
 
-                source_sync_log = ("{}/{}-source.log").format(
-                        log_root,
-                        repo_name
-                )
+                source_sync_log = f"{log_root}/{repo_name}-source.log"
 
-                source_metadata_cmd = ("/usr/bin/dnf makecache -c {} --repoid={}-source "
-                        "--assumeyes 2>&1").format(
-                        self.dnf_config,
-                        r
-                )
+                source_metadata_cmd = f"/usr/bin/dnf makecache -c {self.dnf_config} "\
+                        f"--repoid={r}-source --assumeyes 2>&1"
 
-                source_sync_cmd = ("/usr/bin/dnf reposync -c {} "
-                        "--download-metadata --repoid={}-source -p {} "
-                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
-                        self.dnf_config,
-                        r,
-                        source_sync_path,
-                        reposync_delete
-                )
+                source_sync_cmd = f"/usr/bin/dnf reposync -c {self.dnf_config} "\
+                        f"--download-metadata --repoid={r}-source -p {source_sync_path} "\
+                        f"--gpgcheck --norepopath --remote-time --assumeyes {reposync_delete} 2>&1"
 
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
                 source_sync_output = source_sync_template.render(
@@ -654,10 +579,7 @@ class RepoSync:
             time.sleep(3)
             self.log.info(Color.INFO + 'Syncing ' + r + ' ...')
             self.log.info(Color.INFO + 'Arches: ' + ' '.join(arch_sync))
-            pod_watcher = '{} wait {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            pod_watcher = f'{cmd} wait {join_all_pods}'
 
             #print(pod_watcher)
             watch_man = subprocess.call(
@@ -670,10 +592,7 @@ class RepoSync:
             # code.
             pattern = "Exited (0)"
             for pod in entry_name_list:
-                checkcmd = '{} ps -f status=exited -f name={}'.format(
-                        cmd,
-                        pod
-                )
+                checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
                         checkcmd,
                         stdout=subprocess.PIPE,
@@ -686,10 +605,7 @@ class RepoSync:
                     self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
-            rmcmd = '{} rm {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            rmcmd = f'{cmd} rm {join_all_pods}'
 
             rmpod = subprocess.Popen(
                     rmcmd,
@@ -742,7 +658,7 @@ class RepoSync:
 
             for arch in self.repoclosure_map['arches']:
                 repo_combination = []
-                repoclosure_entry_name = 'repoclosure-{}-{}'.format(repo, arch)
+                repoclosure_entry_name = f'repoclosure-{repo}-{arch}'
                 repoclosure_entry_name_list.append(repoclosure_entry_name)
                 repoclosure_arch_list = self.repoclosure_map['arches'][arch]
 
@@ -750,13 +666,8 @@ class RepoSync:
                 # helps append
                 if len(self.repoclosure_map['repos'][repo]) > 0:
                     for l in self.repoclosure_map['repos'][repo]:
-                        stretch = '--repofrompath={},file://{}/{}/{}/os --repo={}'.format(
-                                l,
-                                sync_root,
-                                l,
-                                arch,
-                                l
-                        )
+                        stretch = f'--repofrompath={l},file://{sync_root}/{l}/{arch}/os '\
+                                f'--repo={l}'
                         repo_combination.append(stretch)
 
                 join_repo_comb = ' '.join(repo_combination)
@@ -784,13 +695,15 @@ class RepoSync:
                         repo,
                         arch
                 )
-                repoclosure_entry_point_open = open(repoclosure_entry_point_sh, "w+")
-                repoclosure_entry_point_open.write('#!/bin/bash\n')
-                repoclosure_entry_point_open.write('set -o pipefail\n')
-                repoclosure_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
-                repoclosure_entry_point_open.write('/usr/bin/dnf clean all\n')
-                repoclosure_entry_point_open.write(repoclosure_cmd + '\n')
-                repoclosure_entry_point_open.close()
+
+                with open(repoclosure_entry_point_sh, "w+") as rcep:
+                    rcep.write('#!/bin/bash\n')
+                    rcep.write('set -o pipefail\n')
+                    rcep.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                    rcep.write('/usr/bin/dnf clean all\n')
+                    rcep.write(repoclosure_cmd + '\n')
+                    rcep.close()
+
                 os.chmod(repoclosure_entry_point_sh, 0o755)
                 repo_combination.clear()
 
@@ -819,10 +732,7 @@ class RepoSync:
             join_all_pods = ' '.join(repoclosure_entry_name_list)
             time.sleep(3)
             self.log.info('Performing repoclosure on %s ... ' % repo)
-            pod_watcher = '{} wait {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            pod_watcher = f'{cmd} wait {join_all_pods}'
 
             watch_man = subprocess.call(
                     shlex.split(pod_watcher),
@@ -831,10 +741,7 @@ class RepoSync:
             )
 
             for pod in repoclosure_entry_name_list:
-                checkcmd = '{} ps -f status=exited -f name={}'.format(
-                        cmd,
-                        pod
-                )
+                checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
                         checkcmd,
                         stdout=subprocess.PIPE,
@@ -847,10 +754,7 @@ class RepoSync:
                     self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
-            rmcmd = '{} rm {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            rmcmd = f'{cmd} rm {join_all_pods}'
 
             rmpod = subprocess.Popen(
                     rmcmd,
@@ -1555,7 +1459,7 @@ class RepoSync:
 
             for arch in self.repoclosure_map['arches']:
                 repo_combination = []
-                repoclosure_entry_name = 'peridot-repoclosure-{}-{}'.format(repo, arch)
+                repoclosure_entry_name = f'peridot-repoclosure-{repo}-{arch}'
                 repoclosure_entry_name_list.append(repoclosure_entry_name)
                 repoclosure_arch_list = self.repoclosure_map['arches'][arch]
 
@@ -1563,7 +1467,7 @@ class RepoSync:
                 # helps append
                 if len(self.repoclosure_map['repos'][repo]) > 0:
                     for l in self.repoclosure_map['repos'][repo]:
-                        stretch = '--repo={}'.format(l)
+                        stretch = f'--repo={l}'
                         repo_combination.append(stretch)
 
                 join_repo_comb = ' '.join(repo_combination)
@@ -1588,13 +1492,13 @@ class RepoSync:
                         repo,
                         arch
                 )
-                repoclosure_entry_point_open = open(repoclosure_entry_point_sh, "w+")
-                repoclosure_entry_point_open.write('#!/bin/bash\n')
-                repoclosure_entry_point_open.write('set -o pipefail\n')
-                repoclosure_entry_point_open.write('/usr/bin/dnf install dnf-plugins-core -y\n')
-                repoclosure_entry_point_open.write('/usr/bin/dnf clean all\n')
-                repoclosure_entry_point_open.write(repoclosure_cmd + '\n')
-                repoclosure_entry_point_open.close()
+                with open(repoclosure_entry_point_sh, "w+") as rcep:
+                    rcep.write('#!/bin/bash\n')
+                    rcep.write('set -o pipefail\n')
+                    rcep.write('/usr/bin/dnf install dnf-plugins-core -y\n')
+                    rcep.write('/usr/bin/dnf clean all\n')
+                    rcep.write(repoclosure_cmd + '\n')
+                    rcep.close()
                 os.chmod(repoclosure_entry_point_sh, 0o755)
                 repo_combination.clear()
 
@@ -1623,10 +1527,7 @@ class RepoSync:
             join_all_pods = ' '.join(repoclosure_entry_name_list)
             time.sleep(3)
             self.log.info('Performing repoclosure on %s ... ' % repo)
-            pod_watcher = '{} wait {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            pod_watcher = f'{cmd} wait {join_all_pods}'
 
             watch_man = subprocess.call(
                     shlex.split(pod_watcher),
@@ -1635,10 +1536,7 @@ class RepoSync:
             )
 
             for pod in repoclosure_entry_name_list:
-                checkcmd = '{} ps -f status=exited -f name={}'.format(
-                        cmd,
-                        pod
-                )
+                checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
                         checkcmd,
                         stdout=subprocess.PIPE,
@@ -1651,10 +1549,7 @@ class RepoSync:
                     self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
-            rmcmd = '{} rm {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            rmcmd = f'{cmd} rm {join_all_pods}'
 
             rmpod = subprocess.Popen(
                     rmcmd,
@@ -1786,10 +1681,7 @@ class SigRepoSync:
         self.compose_latest_dir = os.path.join(
                 config['compose_root'],
                 major,
-                "latest-SIG-{}-{}".format(
-                    self.sigprofile,
-                    major,
-                )
+                f"latest-SIG-{self.sigprofile}-{major}"
         )
 
         self.compose_latest_sync = os.path.join(
@@ -1996,8 +1888,8 @@ class SigRepoSync:
                 arch_sync = arch.split(',')
 
             for a in arch_sync:
-                entry_name = '{}-{}'.format(r, a)
-                debug_entry_name = '{}-debug-{}'.format(r, a)
+                entry_name = f'{r}-{a}'
+                debug_entry_name = f'{r}-debug-{a}'
 
                 entry_name_list.append(entry_name)
                 if not self.ignore_debug and not a == 'source':
@@ -2029,65 +1921,25 @@ class SigRepoSync:
                         r + '-debug'
                 )
 
-                import_gpg_cmd = ("/usr/bin/rpm --import {}").format(gpg_key_url)
+                import_gpg_cmd = f"/usr/bin/rpm --import {gpg_key_url}"
+                arch_force_cp = f"/usr/bin/sed 's|$basearch|{a}|g' {self.dnf_config} > {self.dnf_config}.{a}"
+                sync_log = f"{log_root}/{repo_name}-{a}.log"
+                debug_sync_log = f"{log_root}/{repo_name}-{a}-debug.log"
 
-                arch_force_cp = ("/usr/bin/sed 's|$basearch|{}|g' {} > {}.{}".format(
-                    a,
-                    self.dnf_config,
-                    self.dnf_config,
-                    a
-                ))
+                metadata_cmd = f"/usr/bin/dnf makecache -c {self.dnf_config}.{a} "\
+                        f"--repoid={r} --forcearch {a} --assumeyes 2>&1"
 
-                sync_log = ("{}/{}-{}.log").format(
-                        log_root,
-                        repo_name,
-                        a
-                )
+                sync_cmd = f"/usr/bin/dnf reposync -c {self.dnf_config}.{a} --download-metadata "\
+                        f"--repoid={r} -p {os_sync_path} --forcearch {a} --norepopath "\
+                        f"--remote-time --gpgcheck --assumeyes {reposync_delete} 2>&1"
 
-                debug_sync_log = ("{}/{}-{}-debug.log").format(
-                        log_root,
-                        repo_name,
-                        a
-                )
+                debug_metadata_cmd = f"/usr/bin/dnf makecache -c {self.dnf_config}.{a} "\
+                        f"--repoid={r}-debug --forcearch {a} --assumeyes 2>&1"
 
-                metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={} "
-                        "--forcearch {} --assumeyes 2>&1").format(
-                        self.dnf_config,
-                        a,
-                        r,
-                        a
-                )
-
-                sync_cmd = ("/usr/bin/dnf reposync -c {}.{} --download-metadata "
-                        "--repoid={} -p {} --forcearch {} --norepopath --remote-time "
-                        "--gpgcheck --assumeyes {} 2>&1").format(
-                        self.dnf_config,
-                        a,
-                        r,
-                        os_sync_path,
-                        a,
-                        reposync_delete
-                )
-
-                debug_metadata_cmd = ("/usr/bin/dnf makecache -c {}.{} --repoid={}-debug "
-                        "--forcearch {} --assumeyes 2>&1").format(
-                        self.dnf_config,
-                        a,
-                        r,
-                        a
-                )
-
-
-                debug_sync_cmd = ("/usr/bin/dnf reposync -c {}.{} "
-                        "--download-metadata --repoid={}-debug -p {} --forcearch {} "
-                        "--gpgcheck --norepopath --remote-time --assumeyes {} 2>&1").format(
-                        self.dnf_config,
-                        a,
-                        r,
-                        debug_sync_path,
-                        a,
-                        reposync_delete
-                )
+                debug_sync_cmd = f"/usr/bin/dnf reposync -c {self.dnf_config}.{a} "\
+                        f"--download-metadata --repoid={r}-debug -p {debug_sync_path} "\
+                        f"--forcearch {a} --gpgcheck --norepopath --remote-time "\
+                        f"--assumeyes {reposync_delete} 2>&1"
 
                 dnf_plugin_cmd = "/usr/bin/dnf install dnf-plugins-core -y"
 
@@ -2132,7 +1984,7 @@ class SigRepoSync:
             # We ignoring sources?
             if (not self.ignore_source and not arch) or (
                     not self.ignore_source and arch == 'source'):
-                source_entry_name = '{}-source'.format(r)
+                source_entry_name = f'{r}-source'
                 entry_name_list.append(source_entry_name)
 
                 source_entry_point_sh = os.path.join(
@@ -2148,10 +2000,7 @@ class SigRepoSync:
                         r
                 )
 
-                source_sync_log = ("{}/{}-source.log").format(
-                        log_root,
-                        repo_name
-                )
+                source_sync_log = f"{log_root}/{repo_name}-source.log"
 
                 source_metadata_cmd = ("/usr/bin/dnf makecache -c {} --repoid={}-source "
                         "--assumeyes 2>&1").format(
@@ -2214,10 +2063,7 @@ class SigRepoSync:
             time.sleep(3)
             self.log.info(Color.INFO + 'Syncing ' + r + ' ...')
             self.log.info(Color.INFO + 'Arches: ' + ' '.join(arch_sync))
-            pod_watcher = '{} wait {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            pod_watcher = f'{cmd} wait {join_all_pods}'
 
             #print(pod_watcher)
             watch_man = subprocess.call(
@@ -2230,10 +2076,7 @@ class SigRepoSync:
             # code.
             pattern = "Exited (0)"
             for pod in entry_name_list:
-                checkcmd = '{} ps -f status=exited -f name={}'.format(
-                        cmd,
-                        pod
-                )
+                checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
                         checkcmd,
                         stdout=subprocess.PIPE,
@@ -2246,10 +2089,7 @@ class SigRepoSync:
                     self.log.error(Color.FAIL + pod)
                     bad_exit_list.append(pod)
 
-            rmcmd = '{} rm {}'.format(
-                    cmd,
-                    join_all_pods
-            )
+            rmcmd = f'{cmd} rm {join_all_pods}'
 
             rmpod = subprocess.Popen(
                     rmcmd,
