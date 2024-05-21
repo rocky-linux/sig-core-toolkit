@@ -5,7 +5,7 @@ description = "hand crafted ISOs with love and spice"
 authors = ["Louis Abel <label@rockylinux.org>", "Neil Hanlon <neil@rockylinux.org>"]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4"
+python = ">=3.9,<4"
 rpm = ">=0.1.0"
 MarkupSafe = "==2.1.5"
 PyYAML = "~6.0.1"
