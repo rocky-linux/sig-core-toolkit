@@ -3,9 +3,9 @@
 # Revision must always start with a major number
 case "${RLREL}" in
   stable)
-    REVISION=8.9
-    PREREV=8.8
-    APPEND_TO_DIR="-RC2"
+    REVISION=8.10
+    PREREV=8.9
+    APPEND_TO_DIR="-RC1"
     ;;
   beta)
     REVISION=8.10
