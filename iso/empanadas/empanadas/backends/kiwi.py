@@ -162,7 +162,7 @@ class KiwiBackend(BackendInterface):
         return ret
 
     def run_mock_command(self, mock_command: List[str]):
-        mock_args = ["--configdir", "/workdir/mock-rocky-configs/etc/mock", "-r", f"rl-9-{self.ctx.architecture.name}-core-infra"]
+        mock_args = ["--configdir", "/tmp/mock-rocky-configs/etc/mock", "-r", f"rl-9-{self.ctx.architecture.name}-core-infra"]
         if self.ctx.image_type != 'Container':
             mock_args.append("--isolation=simple")
         command = [
@@ -178,6 +178,7 @@ class KiwiBackend(BackendInterface):
         ret, out, err = self.run_mock_command(["--init"])
 
         packages = [
+            "kiwi-boxed-plugin",
             "kiwi-cli",
             "git",
             "dracut-kiwi-live",
@@ -194,12 +195,12 @@ class KiwiBackend(BackendInterface):
         ]
         ret, out, err = self.run_mock_command(["--install", *packages])
 
-        ret, out, err = self.run_mock_command(["--copyin", "/workdir/rocky-kiwi-descriptions", "/builddir/"])
+        ret, out, err = self.run_mock_command(["--copyin", "/tmp/rocky-kiwi-descriptions", "/builddir/"])
         return ret
 
     def checkout_repos(self):
         """
-        Checkout sig_core/mock-rocky-configs and sig_core/rocky-kiwi-descriptions to /workdir
+        Checkout sig_core/mock-rocky-configs and sig_core/rocky-kiwi-descriptions to /tmp
         """
         repos = {
             "mock-rocky-configs": "main",
@@ -208,7 +209,7 @@ class KiwiBackend(BackendInterface):
 
         for repo, branch in repos.items():
             repo_url = f"https://git.resf.org/sig_core/{repo}"
-            clone_dir = f"/workdir/{repo}"
+            clone_dir = f"/tmp/{repo}"
 
             if os.path.isdir(os.path.join(clone_dir, ".git")):
                 try:
