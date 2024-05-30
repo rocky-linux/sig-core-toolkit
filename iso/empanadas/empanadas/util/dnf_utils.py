@@ -1640,9 +1640,9 @@ class SigRepoSync:
         self.sigvars = sigvars
         self.sigrepos = sigvars['repo'].keys()
         self.extra_files = sigvars['extra_files']
-        self.gpgkey = rlvars['gpg_key']
-        if 'repo_gpg_key' in rlvars:
-            self.gpgkey = rlvars['gpg_key'] + rlvars['repo_gpg_key']
+        self.gpgkey = sigvars['gpg_key']
+        if 'repo_gpg_key' in sigvars:
+            self.gpgkey = sigvars['gpg_key'] + sigvars['repo_gpg_key']
         #self.arches = sigvars['allowed_arches']
         self.project_id = sigvars['project_id']
         if 'additional_dirs' in sigvars:
