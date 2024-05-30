@@ -12,6 +12,9 @@
   bugurl: 'https://bugs.rockylinux.org'
   checksum: 'sha256'
   fedora_major: '20'
+  gpg_key:
+    - 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/r9/SOURCES/RPM-GPG-KEY-Rocky-9'
+    - 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/r9/SOURCES/RPM-GPG-KEY-Rocky-9-Testing'
   allowed_arches:
     - armv7hl
     - riscv64
@@ -47,9 +50,6 @@
     git_repo: 'https://git.rockylinux.org/staging/src/rocky-release.git'
     git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release/-/raw/r9/'
     branch: 'r9'
-    gpg:
-      stable: 'SOURCES/RPM-GPG-KEY-Rocky-9'
-      testing: 'SOURCES/RPM-GPG-KEY-Rocky-9-Testing'
     list:
       - 'SOURCES/Contributors'
       - 'SOURCES/COMMUNITY-CHARTER'

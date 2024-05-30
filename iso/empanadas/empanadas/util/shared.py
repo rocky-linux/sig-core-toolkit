@@ -496,7 +496,7 @@ class Shared:
                     'name': repo,
                     'baseurl': constructed_url,
                     'srcbaseurl': constructed_url_src,
-                    'gpgkey': extra_files['git_raw_path'] + extra_files['gpg'][gpgkey]
+                    'gpgkey': gpgkey
             }
             repolist.append(repodata)
 

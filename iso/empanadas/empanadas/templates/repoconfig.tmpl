@@ -5,7 +5,7 @@ baseurl={{ repo.baseurl }}
 enabled=1
 gpgcheck={{ gpg_check }}
 repo_gpgcheck={{ repo_gpg_check }}
-gpgkey={{ repo.gpgkey }}
+gpgkey={{ repo.gpgkey|join(' ') }}
 
 [{{ repo.name }}-debug]
 name={{repo.name}}
@@ -13,7 +13,7 @@ baseurl={{ repo.baseurl }}-debug
 enabled=1
 gpgcheck={{ gpg_check }}
 repo_gpgcheck={{ repo_gpg_check }}
-gpgkey={{ repo.gpgkey }}
+gpgkey={{ repo.gpgkey|join(' ') }}
 
 [{{ repo.name }}-source]
 name={{repo.name}}
@@ -21,6 +21,6 @@ baseurl={{ repo.srcbaseurl }}
 enabled=1
 gpgcheck={{ gpg_check }}
 repo_gpgcheck={{ repo_gpg_check }}
-gpgkey={{ repo.gpgkey }}
+gpgkey={{ repo.gpgkey|join(' ') }}
 
 {% endfor %}

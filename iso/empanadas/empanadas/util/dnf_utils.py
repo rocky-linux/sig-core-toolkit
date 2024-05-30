@@ -53,7 +53,6 @@ class RepoSync:
             dryrun: bool = False,
             fullrun: bool = False,
             nofail: bool = False,
-            gpgkey: str = 'stable',
             gpg_check: bool = True,
             repo_gpg_check: bool = True,
             rlmode: str = 'stable',
@@ -106,7 +105,9 @@ class RepoSync:
         self.multilib = rlvars['provide_multilib']
         self.repo = repo
         self.extra_files = rlvars['extra_files']
-        self.gpgkey = gpgkey
+        self.gpgkey = rlvars['gpg_key']
+        if rlvars['repo_gpg_key']:
+            self.gpgkey = rlvars['gpg_key'] + rlvars['repo_gpg_key']
         self.checksum = rlvars['checksum']
         self.gpg_check = gpg_check
         self.repo_gpg_check = repo_gpg_check
@@ -348,7 +349,6 @@ class RepoSync:
         reposync_delete = '--delete' if self.reposync_clean_old else ''
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
-        gpg_key_url = self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
 
@@ -412,7 +412,8 @@ class RepoSync:
                         'debug/tree'
                 )
 
-                import_gpg_cmd = f"/usr/bin/rpm --import {gpg_key_url}"
+                gpg_key_list = self.gpgkey
+                import_gpg_cmd = f"/usr/bin/rpm --import"
                 arch_force_cp = f"/usr/bin/sed 's|$basearch|{a}|g' "\
                         f"{self.dnf_config} > {self.dnf_config}.{a}"
 
@@ -437,6 +438,7 @@ class RepoSync:
 
                 sync_template = self.tmplenv.get_template('reposync.tmpl')
                 sync_output = sync_template.render(
+                        gpg_key_list=gpg_key_list,
                         import_gpg_cmd=import_gpg_cmd,
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
@@ -448,6 +450,7 @@ class RepoSync:
 
                 debug_sync_template = self.tmplenv.get_template('reposync.tmpl')
                 debug_sync_output = debug_sync_template.render(
+                        gpg_key_list=gpg_key_list,
                         import_gpg_cmd=import_gpg_cmd,
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
@@ -498,6 +501,7 @@ class RepoSync:
 
                     ks_sync_template = self.tmplenv.get_template('reposync.tmpl')
                     ks_sync_output = ks_sync_template.render(
+                            gpg_key_list=gpg_key_list,
                             import_gpg_cmd=import_gpg_cmd,
                             arch_force_cp=arch_force_cp,
                             dnf_plugin_cmd=dnf_plugin_cmd,
@@ -538,6 +542,7 @@ class RepoSync:
 
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
                 source_sync_output = source_sync_template.render(
+                        gpg_key_list=gpg_key_list,
                         import_gpg_cmd=import_gpg_cmd,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=source_sync_cmd,
@@ -1593,7 +1598,6 @@ class SigRepoSync:
             dryrun: bool = False,
             fullrun: bool = False,
             nofail: bool = False,
-            gpgkey: str = 'stable',
             gpg_check: bool = True,
             repo_gpg_check: bool = True,
             extra_dnf_args=None,
@@ -1636,7 +1640,9 @@ class SigRepoSync:
         self.sigvars = sigvars
         self.sigrepos = sigvars['repo'].keys()
         self.extra_files = sigvars['extra_files']
-        self.gpgkey = gpgkey
+        self.gpgkey = rlvars['gpg_key']
+        if rlvars['repo_gpg_key']:
+            self.gpgkey = rlvars['gpg_key'] + rlvars['repo_gpg_key']
         #self.arches = sigvars['allowed_arches']
         self.project_id = sigvars['project_id']
         if 'additional_dirs' in sigvars:
@@ -1861,7 +1867,6 @@ class SigRepoSync:
         reposync_delete = '--delete' if self.reposync_clean_old else ''
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
-        gpg_key_url = self.extra_files['git_raw_path'] + self.extra_files['gpg'][self.gpgkey]
         if not os.path.exists(entries_dir):
             os.makedirs(entries_dir, exist_ok=True)
 
@@ -1921,7 +1926,8 @@ class SigRepoSync:
                         r + '-debug'
                 )
 
-                import_gpg_cmd = f"/usr/bin/rpm --import {gpg_key_url}"
+                gpg_key_list = self.gpgkey
+                import_gpg_cmd = f"/usr/bin/rpm --import"
                 arch_force_cp = f"/usr/bin/sed 's|$basearch|{a}|g' {self.dnf_config} > {self.dnf_config}.{a}"
                 sync_log = f"{log_root}/{repo_name}-{a}.log"
                 debug_sync_log = f"{log_root}/{repo_name}-{a}-debug.log"
@@ -1945,6 +1951,7 @@ class SigRepoSync:
 
                 sync_template = self.tmplenv.get_template('reposync.tmpl')
                 sync_output = sync_template.render(
+                        gpg_key_list=gpg_key_list,
                         import_gpg_cmd=import_gpg_cmd,
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
@@ -1952,12 +1959,12 @@ class SigRepoSync:
                         metadata_cmd=metadata_cmd,
                         sync_log=sync_log,
                         download_path=os_sync_path,
-                        gpg_key_url=gpg_key_url,
                         deploy_extra_files=True
                 )
 
                 debug_sync_template = self.tmplenv.get_template('reposync.tmpl')
                 debug_sync_output = debug_sync_template.render(
+                        gpg_key_list=gpg_key_list,
                         import_gpg_cmd=import_gpg_cmd,
                         arch_force_cp=arch_force_cp,
                         dnf_plugin_cmd=dnf_plugin_cmd,
@@ -1965,7 +1972,6 @@ class SigRepoSync:
                         metadata_cmd=debug_metadata_cmd,
                         sync_log=debug_sync_log,
                         download_path=debug_sync_path,
-                        gpg_key_url=gpg_key_url,
                         deploy_extra_files=True
                 )
 
@@ -2019,13 +2025,13 @@ class SigRepoSync:
 
                 source_sync_template = self.tmplenv.get_template('reposync-src.tmpl')
                 source_sync_output = source_sync_template.render(
+                        gpg_key_list=gpg_key_list,
                         import_gpg_cmd=import_gpg_cmd,
                         dnf_plugin_cmd=dnf_plugin_cmd,
                         sync_cmd=source_sync_cmd,
                         metadata_cmd=source_metadata_cmd,
                         sync_log=source_sync_log,
                         download_path=debug_sync_path,
-                        gpg_key_url=gpg_key_url,
                         deploy_extra_files=True
                 )
 

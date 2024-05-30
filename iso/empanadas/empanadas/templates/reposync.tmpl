@@ -1,6 +1,8 @@
 #!/bin/bash
 set -o pipefail
-{{ import_gpg_cmd }} | tee -a {{ sync_log }}
+{% for key in gpg_key_list %}
+{{ import_gpg_cmd }} {{ key }} | tee -a {{ sync_log }}
+{% endfor %}
 {{ arch_force_cp }} | tee -a {{ sync_log }}
 {{ dnf_plugin_cmd }} | tee -a {{ sync_log }}
 sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/*.repo
