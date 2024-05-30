@@ -4,6 +4,8 @@ hpc:
     profile: 'hpc'
     project_id: '78a2db02-ebe5-4654-9a04-6482eb9c8b84'
     addtional_dirs: []
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-hpc/-/raw/r8/SOURCES/RPM-GPG-KEY-Rocky-SIG-HPC'
     repo:
       hpc-common:
         allowed_arches:
@@ -17,14 +19,14 @@ hpc:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-hpc.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-hpc/-/raw/r8/'
       branch: 'r8'
-      gpg:
-        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-HPC'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-HPC'
   '9':
     profile: 'hpc'
     project_id: 'aee28795-e163-4a99-935d-f0a78cf33e75'
     addtional_dirs: []
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-hpc/-/raw/r9/SOURCES/RPM-GPG-KEY-Rocky-SIG-HPC'
     repo:
       hpc-common:
         allowed_arches:
@@ -42,8 +44,6 @@ hpc:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-hpc.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-hpc/-/raw/r9/'
       branch: 'r9'
-      gpg:
-        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-HPC'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-HPC'
 ...

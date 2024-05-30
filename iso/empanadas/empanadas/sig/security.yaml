@@ -4,6 +4,8 @@ security:
     profile: 'security'
     project_id: '41baa8a8-7dbe-46fe-9f0b-4e2420372bbc'
     addtional_dirs: []
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-security/-/raw/r8/SOURCES/RPM-GPG-KEY-Rocky-SIG-Security'
     repo:
       security-common:
         allowed_arches:
@@ -13,14 +15,14 @@ security:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-security.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-security/-/raw/r8/'
       branch: 'r8'
-      gpg:
-        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Security'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Security'
   '9':
     profile: 'security'
     project_id: '041a90b2-51f5-44a4-8be8-b2905c1ad95b'
     addtional_dirs: []
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-security/-/raw/r9/SOURCES/RPM-GPG-KEY-Rocky-SIG-Security'
     repo:
       security-common:
         allowed_arches:
@@ -32,8 +34,6 @@ security:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-security.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-security/-/raw/r9/'
       branch: 'r9'
-      gpg:
-        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Security'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Security'
 ...

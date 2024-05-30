@@ -3,6 +3,8 @@ altarch:
   '8':
     profile: 'altarch'
     project_id: 'a1aac235-dd66-4d5b-8ff0-87467732f322'
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-altarch/-/raw/r8/SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
     repo:
       altarch-common:
         allowed_arches:
@@ -19,13 +21,13 @@ altarch:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-altarch.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-altarch/-/raw/r8/'
       branch: 'r8'
-      gpg:
-        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
   '9':
     profile: 'altarch'
     project_id: '6047887d-a395-4bc7-a0bd-fc1873b5d13d'
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-altarch/-/raw/r9/SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
     repo:
       altarch-common:
         allowed_arches:
@@ -42,8 +44,6 @@ altarch:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-altarch.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-altarch/-/raw/r9/'
       branch: 'r9'
-      gpg:
-        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-AltArch'
 ...

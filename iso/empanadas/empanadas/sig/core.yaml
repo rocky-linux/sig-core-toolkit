@@ -4,6 +4,8 @@ core:
     profile: 'core'
     project_id: '91e0dd2f-448e-4b75-9066-3946aceb60db'
     addtional_dirs: []
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-core/-/raw/r8/SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
     repo:
       core-common:
         allowed_arches:
@@ -17,14 +19,14 @@ core:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-core.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-core/-/raw/r8/'
       branch: 'r8'
-      gpg:
-        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
   '9':
     profile: 'core'
     project_id: '47e0b4a8-84ba-43a9-bb94-eb99dde4cf14'
     addtional_dirs: []
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-core/-/raw/r9/SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
     repo:
       core-common:
         allowed_arches:
@@ -42,8 +44,6 @@ core:
       git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-core.git'
       git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-core/-/raw/r9/'
       branch: 'r9'
-      gpg:
-        stable: 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
 ...
