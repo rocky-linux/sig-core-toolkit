@@ -106,7 +106,7 @@ class RepoSync:
         self.repo = repo
         self.extra_files = rlvars['extra_files']
         self.gpgkey = rlvars['gpg_key']
-        if rlvars['repo_gpg_key']:
+        if 'repo_gpg_key' in rlvars:
             self.gpgkey = rlvars['gpg_key'] + rlvars['repo_gpg_key']
         self.checksum = rlvars['checksum']
         self.gpg_check = gpg_check
@@ -1641,7 +1641,7 @@ class SigRepoSync:
         self.sigrepos = sigvars['repo'].keys()
         self.extra_files = sigvars['extra_files']
         self.gpgkey = rlvars['gpg_key']
-        if rlvars['repo_gpg_key']:
+        if 'repo_gpg_key' in rlvars:
             self.gpgkey = rlvars['gpg_key'] + rlvars['repo_gpg_key']
         #self.arches = sigvars['allowed_arches']
         self.project_id = sigvars['project_id']
