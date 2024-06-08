@@ -11,6 +11,7 @@ from common import *
 IGNORES = [
         'insights-client',
         'lorax-templates-rhel',
+        'shim',
         'redhat-cloud-client-configuration',
         'rhc',
         'rhc-worker-playbook',
