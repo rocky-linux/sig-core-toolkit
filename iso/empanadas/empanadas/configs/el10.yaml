@@ -159,7 +159,7 @@
       - 'git'
   kiwimap:
     git_repo: 'https://git.resf.org/sig_core/rocky-kiwi-descriptions.git'
-    branch: 'r9'
+    branch: 'r10'
     required_pkgs:
       - dracut-kiwi-live
       - git
