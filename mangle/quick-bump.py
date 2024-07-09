@@ -38,6 +38,8 @@ parser.add_argument("--dry",help="Do a dry bump for testing",
 
 parser.add_argument("--git-user", default="Release Engineering")
 parser.add_argument("--git-email", default="releng@rockylinux.org")
+parser.add_argument("--url", default="ssh://git@git.rockylinux.org:22220/staging/src/%s.git",
+                    help="override default URL")
 parser.add_argument("--change-user",
                     help="Sets the user for the rpm changelog (first last <email>)",
                     default="Release Engineering <releng@rockylinux.org>")
@@ -62,9 +64,11 @@ if os.geteuid() == 0:
     print('DO NOT RUN AS ROOT')
     sys.exit(1)
 
-default_url = 'ssh://git@git.rockylinux.org:22220/staging/src/%s.git' % args.pkg
 if args.sig:
     default_url = 'ssh://git@git.rockylinux.org:22220/sig/%s/src/%s.git' % (args.sig, args.pkg)
+
+if args.url:
+    default_url = getattr(args, 'url').format(pkg=args.pkg)
 
 # functions
 workdir = '/var/tmp'
