@@ -38,7 +38,7 @@ parser.add_argument("--dry",help="Do a dry bump for testing",
 
 parser.add_argument("--git-user", default="Release Engineering")
 parser.add_argument("--git-email", default="releng@rockylinux.org")
-parser.add_argument("--url", default="ssh://git@git.rockylinux.org:22220/staging/src/%s.git",
+parser.add_argument("--url", default="ssh://git@git.rockylinux.org:22220/staging/src/{pkg}.git",
                     help="override default URL")
 parser.add_argument("--change-user",
                     help="Sets the user for the rpm changelog (first last <email>)",
