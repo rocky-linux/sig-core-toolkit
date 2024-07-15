@@ -251,8 +251,14 @@ class IPAAudit:
         """
         Gets us started on the audit
         """
+        if control == 'hbac':
+            IPAAudit.hbac_pull(api, name, deep)
         if control == 'rbac':
             IPAAudit.rbac_pull(api, name, deep)
+        if control == 'user':
+            IPAAudit.user_pull(api, name, deep)
+        if control == 'group':
+            IPAAudit.group_pull(api, name, deep)
 
     @staticmethod
     def user_pull(api, name, deep):
