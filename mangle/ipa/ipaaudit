@@ -1,6 +1,7 @@
 #!/bin/bash
 # Wrapper for ipaauditor.py audit
 
+source /etc/os-release
 case "$ID" in
   rocky|centos|rhel)
     case "${VERSION_ID:0:1}" in

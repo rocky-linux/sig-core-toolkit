@@ -55,10 +55,10 @@ subparser.required = True
 info_parser = subparser.add_parser('info', epilog='Use this to get IPA client information.')
 query_parser = subparser.add_parser('query', epilog='Use this to perform simple IPA queries.')
 audit_parser = subparser.add_parser('audit', epilog='Use this to perform audits of IPA policies')
+parser.add_argument('--library', type=str, default='ipalib',
+                    help='Choose the ipa library to use for the auditor',
+                    choices=('ipalib', 'python_freeipa'))
 
-audit_parser.add_argument('--library', type=str, default='ipalib',
-                          help='Choose the ipa library to use for the auditor',
-                          choices=('ipalib', 'python_freeipa'))
 audit_parser.add_argument('--type', type=str, required=True,
                           help='Type of audit: hbac, rbac, group, user',
                           choices=('hbac', 'rbac', 'group', 'user'))
@@ -67,6 +67,17 @@ audit_parser.add_argument('--name', type=str, default='',
 audit_parser.add_argument('--deep', action='store_true',
                           help='Name of the object you want to audit')
 
+# all query related subparsers
+# pylint: disable=line-too-long
+query_subparser = query_parser.add_subparsers(dest='query_cmd')
+user_query_parser = query_subparser.add_parser('user', epilog="Use this to get user information.")
+user_query_parser.add_argument('-A', '--all', action='store_true', help='Get everything about the user')
+user_query_parser.add_argument('name', nargs='?', help='User name')
+group_query_parser = query_subparser.add_parser('group', epilog="Use this to get group information.")
+group_query_parser.add_argument('-A', '--all', action='store_true', help='Get everything about the group')
+group_query_parser.add_argument('name', nargs='?', help='Group name')
+
+known = parser.parse_known_args()
 results = parser.parse_args()
 command = parser.parse_args().cmd
 
@@ -432,6 +443,58 @@ class IPAQuery:
     This is for getting query data
     """
     @staticmethod
+    def entry(api, control, name, deep):
+        """
+        Gets us started on the query
+        """
+        #user_data = IPAQuery.user_data(api, name)
+        if control == 'user':
+            IPAQuery.user_pull(api, name, deep)
+        if control == 'group':
+            IPAQuery.group_pull(api, name, deep)
+
+    @staticmethod
+    def user_pull(api, name, deep):
+        """
+        Gets requested rbac info
+        """
+        user_results = IPAQuery.user_data(api, name)
+        uid = user_results['uid'][0]
+        uid_number = user_results['uidnumber'][0]
+        gid_number = user_results['gidnumber'][0]
+        first_name = user_results['givenname'][0]
+        last_name = user_results['sn'][0]
+        homedir = user_results['homedirectory'][0]
+        loginshell = user_results['loginshell'][0]
+        full_name = f'{first_name} {last_name}'
+        krbprincipal = user_results['krbprincipalname'][0]
+        groups = ','.join(user_results['memberof_group'])
+        getent_string = f'{uid}:x:{uid_number}:{gid_number}:{full_name}:{homedir}:{loginshell}'
+        if not deep:
+            print(getent_string)
+        else:
+            outter = f"""
+unixname:{uid}
+uid:{uid_number}
+gid:{gid_number}
+gecos:{full_name}
+displayName:{full_name}
+home:{homedir}
+shell:{loginshell}
+userPrincipalName:{krbprincipal}
+memberOf:{groups}
+            """
+            print(outter)
+
+
+    @staticmethod
+    def group_pull(api, name, deep):
+        """
+        Gets requested rbac info
+        """
+        print()
+
+    @staticmethod
     def user_data(api, user):
         """
         Returns all user data
@@ -516,6 +579,8 @@ def main():
         IPAAudit.entry(command_api, results.type, results.name, results.deep)
     elif command == 'info':
         IPAInfo.basic_ipa_info(command_api)
+    elif command == 'query':
+        IPAQuery.entry(command_api, results.query_cmd, results.name, results.all)
 
     # When root, kdestroy the host keytab
     if os.getuid() == 0:
