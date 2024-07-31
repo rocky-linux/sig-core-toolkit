@@ -20,7 +20,8 @@ IGNORES = [
         'centos-stream-release',
         'redhat-indexhtml',
         'redhat-logos',
-        'redhat-release'
+        'redhat-release',
+        'openssl-fips-provider'
 ]
 
 parser = argparse.ArgumentParser()
