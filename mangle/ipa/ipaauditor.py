@@ -447,7 +447,6 @@ class IPAQuery:
         """
         Gets us started on the query
         """
-        #user_data = IPAQuery.user_data(api, name)
         if control == 'user':
             IPAQuery.user_pull(api, name, deep)
         if control == 'group':
@@ -456,7 +455,7 @@ class IPAQuery:
     @staticmethod
     def user_pull(api, name, deep):
         """
-        Gets requested rbac info
+        Gets requested user info
         """
         user_results = IPAQuery.user_data(api, name)
         uid = user_results['uid'][0]
@@ -486,13 +485,37 @@ memberOf:{groups}
             """
             print(outter)
 
-
     @staticmethod
     def group_pull(api, name, deep):
         """
-        Gets requested rbac info
+        Gets requested group info
         """
-        print()
+        group_results = IPAQuery.group_data(api, name)
+        gid = group_results['cn'][0]
+        gid_number = group_results['gidnumber'][0]
+        description = group_results['description'][0]
+        users_list = list(group_results['member_user'])
+        users_indirect = []
+        if 'memberindirect_user' in group_results:
+            users_indirect = list(group_results['memberindirect_user'])
+
+        users_list = users_list + users_indirect
+        users_list_names = []
+        for x in users_list:
+            user_results = IPAQuery.user_data(api, x)
+            first_name = ''
+            if 'givenname' in user_results:
+                first_name = user_results['givenname'][0]
+            last_name = user_results['sn'][0]
+            full_name = f'{first_name} {last_name}'
+            users_list_names.append(full_name)
+        users = ','.join(users_list)
+        users_names = "\n".join(users_list_names)
+        getent_string = f'{gid}:x:{gid_number}:{users}'
+        if not deep:
+            print(getent_string)
+        else:
+            print(users_names)
 
     @staticmethod
     def user_data(api, user):
