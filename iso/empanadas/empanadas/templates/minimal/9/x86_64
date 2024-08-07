@@ -36,6 +36,7 @@ libudisks2
 libxmlb
 mokutil
 python3-lxml
+rdma-core
 shim-x64
 sssd-nfs-idmap
 udisks2

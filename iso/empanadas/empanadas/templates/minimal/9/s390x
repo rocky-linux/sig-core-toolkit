@@ -27,6 +27,7 @@ libsss_autofs
 libudisks2
 libxmlb
 python3-lxml
+rdma-core
 sssd-nfs-idmap
 udisks2
 volume_key-libs
