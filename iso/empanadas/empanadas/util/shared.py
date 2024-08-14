@@ -1214,6 +1214,8 @@ class Shared:
     def tar_is_within_directory(directory, target):
         """
         CVE-2007-4559
+
+        Function is obsolete. Will be removed in a future version.
         """
         abs_directory = os.path.abspath(directory)
         abs_target = os.path.abspath(target)
@@ -1223,19 +1225,14 @@ class Shared:
     @staticmethod
     def tar_safe_extractall(tar,
             path=".",
-            members=None,
             *,
             numeric_owner=False
         ):
         """
-        CVE-2007-4559
+        CVE-2007-4559 is addressed by setting filter='tar'. This function will
+        remain here to reduce changes to utilities.
         """
-        for member in tar.getmembers():
-            member_path = os.path.join(path, member.name)
-            if not Shared.tar_is_within_directory(path, member_path):
-                raise Exception("Path traversal attempted in tar file")
-
-        tar.extractall(path=path, members=members, numeric_owner=numeric_owner)
+        tar.extractall(path=path, numeric_owner=numeric_owner, filter='tar')
 
     @staticmethod
     def dnf_sync(repo, sync_root, work_root, arch, logger):
