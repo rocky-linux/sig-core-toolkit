@@ -43,8 +43,6 @@ local_setup_env
 
 {{ make_image }}
 
-{{ isohybrid }}
-
 {{ implantmd5 }}
 
 {{ make_manifest }}

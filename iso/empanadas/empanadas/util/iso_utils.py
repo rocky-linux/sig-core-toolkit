@@ -51,7 +51,6 @@ class IsoBuild:
             config,
             major,
             arch=None,
-            hfs_compat: bool = False,
             rc: bool = False,
             s3: bool = False,
             force_download: bool = False,
@@ -142,9 +141,6 @@ class IsoBuild:
 
         #if s3:
         #    self.s3 = boto3.client('s3')
-
-        # arch specific
-        self.hfs_compat = hfs_compat
 
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
@@ -261,17 +257,6 @@ class IsoBuild:
         rclevel = ''
         if self.release_candidate:
             rclevel = '-' + self.rclvl
-
-        # This is kind of a hack. Installing xorrisofs sets the alternatives to
-        # it, so backwards compatibility is sort of guaranteed. But we want to
-        # emulate as close as possible to what pungi does, so unless we
-        # explicitly ask for xorr (in el8 and 9), we should NOT be using it.
-        # For RLN and el10, we'll use xorr all the way through. When 8 is no
-        # longer getting ISO's, we'll remove this section.
-        required_pkgs = self.required_pkgs.copy()
-        if self.iso_map['xorrisofs']:
-            if 'genisoimage' in required_pkgs and 'xorriso' not in required_pkgs:
-                required_pkgs.append('xorriso')
 
         mock_iso_template_output = mock_iso_template.render(
                 arch=self.current_arch,
@@ -832,17 +817,6 @@ class IsoBuild:
 
         log_path_command = f'| tee -a {log_root}/{arch}-{image}.log'
 
-        # This is kind of a hack. Installing xorrisofs sets the alternatives to
-        # it, so backwards compatibility is sort of guaranteed. But we want to
-        # emulate as close as possible to what pungi does, so unless we
-        # explicitly ask for xorr (in el8 and 9), we should NOT be using it.
-        # For RLN and el10, we'll use xorr all the way through. When 8 is no
-        # longer getting ISO's, we'll remove this section.
-        required_pkgs = self.required_pkgs.copy()
-        if self.iso_map['xorrisofs']:
-            if 'genisoimage' in required_pkgs and 'xorriso' not in required_pkgs:
-                required_pkgs.append('xorriso')
-
         rclevel = ''
         if self.release_candidate:
             rclevel = '-' + self.rclvl
@@ -890,35 +864,29 @@ class IsoBuild:
                 'iso_name': isoname,
                 'volid': volid,
                 'graft_points': grafts,
-                'use_xorrisofs': self.iso_map['xorrisofs'],
                 'iso_level': self.iso_map['iso_level'],
         }
 
-        if opts['use_xorrisofs']:
-            # Generate a xorriso compatible dialog
-            with open(grafts) as xp:
-                xorpoint = xp.read()
-                xp.close()
-            xorriso_template_output = xorriso_template.render(
-                    boot_iso=boot_iso,
-                    isoname=isoname,
-                    volid=volid,
-                    graft=xorpoint,
-                    arch=arch,
-            )
-            with open(xorriso_template_path, "w+") as xorriso_template_entry:
-                xorriso_template_entry.write(xorriso_template_output)
-                xorriso_template_entry.close()
-            opts['graft_points'] = xorriso_template_path
+        # Generate a xorriso compatible dialog
+        with open(grafts) as xp:
+            xorpoint = xp.read()
+            xp.close()
+        xorriso_template_output = xorriso_template.render(
+                boot_iso=boot_iso,
+                isoname=isoname,
+                volid=volid,
+                graft=xorpoint,
+                arch=arch,
+        )
+        with open(xorriso_template_path, "w+") as xorriso_template_entry:
+            xorriso_template_entry.write(xorriso_template_output)
+            xorriso_template_entry.close()
+        opts['graft_points'] = xorriso_template_path
 
         make_image = '{} {}'.format(
-                Shared.get_make_image_cmd(
-                        opts,
-                        self.hfs_compat
-                ),
+                Shared.get_make_image_cmd(opts),
                 log_path_command
         )
-        isohybrid = Shared.get_isohybrid_cmd(opts)
         implantmd5 = Shared.get_implantisomd5_cmd(opts)
         make_manifest = Shared.get_manifest_cmd(opts)
 
@@ -927,7 +895,6 @@ class IsoBuild:
                 arch=arch,
                 compose_work_iso_dir=self.iso_work_dir,
                 make_image=make_image,
-                isohybrid=isohybrid,
                 implantmd5=implantmd5,
                 make_manifest=make_manifest,
                 lorax_pkg_cmd=lorax_pkg_cmd,
@@ -1210,11 +1177,7 @@ class IsoBuild:
                 update=updatables
         )
 
-        if self.iso_map['xorrisofs']:
-            grafters = xorrs
-        else:
-            grafters = grafts
-
+        grafters = xorrs
         return grafters
 
     def _get_grafts(self, paths, exclusive_paths=None, exclude=None):
@@ -1278,40 +1241,25 @@ class IsoBuild:
 
         # We check first if a file needs to be updated first before relying on
         # the boot.iso manifest to exclude a file
-        if self.iso_map['xorrisofs']:
-            with open(xorrspath, "w") as fx:
-                for zm in sorted(result, key=Idents.sorting):
-                    found = False
-                    replace = False
-                    for upda in update:
-                        if fnmatch(zm, upda):
-                            #print(f'updating: {zm} {upda}')
-                            replace = True
-                            break
-                    for excl in exclude:
-                        if fnmatch(zm, excl):
-                            #print(f'ignoring: {zm} {excl}')
-                            found = True
-                            break
-                    if found:
-                        continue
-                    mcmd = "-update" if replace else "-map"
-                    fx.write("%s %s %s\n" % (mcmd, u[zm], zm))
-                fx.close()
-        else:
-            with open(filepath, "w") as fh:
-                self.log.info('%sNothing should be excluded in legacy ' \
-                              'genisoimage. Ignoring exclude list.', Color.WARN)
-                for zl in sorted(result, key=Idents.sorting):
-                    #found = False
-                    #for excl in exclude:
-                    #    if fnmatch(zl, excl):
-                    #        found = True
-                    #        break
-                    #if found:
-                    #    continue
-                    fh.write(f"{zl}={u[zl]}\n")
-                fh.close()
+        with open(xorrspath, "w") as fx:
+            for zm in sorted(result, key=Idents.sorting):
+                found = False
+                replace = False
+                for upda in update:
+                    if fnmatch(zm, upda):
+                        #print(f'updating: {zm} {upda}')
+                        replace = True
+                        break
+                for excl in exclude:
+                    if fnmatch(zm, excl):
+                        #print(f'ignoring: {zm} {excl}')
+                        found = True
+                        break
+                if found:
+                    continue
+                mcmd = "-update" if replace else "-map"
+                fx.write("%s %s %s\n" % (mcmd, u[zm], zm))
+            fx.close()
 
     def run_pull_iso_images(self):
         """
@@ -1541,7 +1489,6 @@ class LiveBuild:
             rlvars,
             config,
             major,
-            hfs_compat: bool = False,
             force_download: bool = False,
             isolation: str = 'simple',
             live_iso_mode: str = 'local',

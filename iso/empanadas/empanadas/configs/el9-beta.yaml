@@ -49,7 +49,6 @@
     packages: 'os/Packages'
     repodata: 'os/repodata'
   iso_map:
-    xorrisofs: True
     iso_level: False
     images:
       dvd:

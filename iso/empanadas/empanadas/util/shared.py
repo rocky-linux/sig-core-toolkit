@@ -512,77 +512,13 @@ class Shared:
         return fname
 
     @staticmethod
-    def quick_sync(src, dest, logger, tmp_dir):
-        """
-        Does a quick sync from one place to another. This determines the method
-        in which will be used. We will look for fpsync and fall back to
-        parallel | rsync if that is also available. It will fail if parallel is
-        not available.
-
-        Return true or false on completion?
-        """
-
-    @staticmethod
-    def simple_sync(src, dest):
-        """
-        This is for simple syncs only, using rsync or copytree.
-        """
-
-    @staticmethod
-    def fpsync_method(src, dest, tmp_dir):
-        """
-        Returns a list for the fpsync command
-        """
-        cmd = '/usr/bin/fpsync'
-        #rsync_switches = '-av --numeric-ids --no-compress --chown=10004:10005'
-        rsync_switches = '-v --numeric-ids --no-compress --chown=10004:10005'
-        if not os.path.exists(cmd):
-            message = 'fpsync not found'
-            retval = 1
-            return message, retval
-
-        os.makedirs(tmp_dir, exist_ok=True)
-
-        fpsync_cmd = '{} -o "{}" -n 18 -t {} {} {}'.format(
-                cmd,
-                rsync_switches,
-                tmp_dir,
-                src,
-                dest
-        )
-
-        process = subprocess.call(
-                shlex.split(fpsync_cmd),
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-        )
-
-        if process != 0:
-            message = 'Syncing (fpsync) failed'
-            retval = process
-            return message, retval
-
-        if os.path.exists(dest):
-            message = 'Syncing (fpsync) succeeded'
-            retval = process
-        else:
-            message = 'Path synced does not seem to exist for some reason.'
-            retval = 1
-
-        #shutil.rmtree(tmp_dir)
-
-        return message, retval
-
-    @staticmethod
     def rsync_method(src, dest):
         """
         Returns a string for the rsync command plus parallel. Yes, this is a
         hack.
         """
-        #find_cmd = '/usr/bin/find'
-        #parallel_cmd = '/usr/bin/parallel'
         cmd = '/usr/bin/rsync'
-        switches = '-vrlptDSH --chown=10004:10005 --progress --human-readable'
+        switches = '-vrlptDSHog --chown=10004:10005 --progress --human-readable --delete'
         rsync_command = f'{cmd} {switches} {src}/ {dest}'
 
         #os.makedirs(dest, exist_ok=True)
@@ -921,55 +857,19 @@ class Shared:
         return cmd
 
     @staticmethod
-    def get_make_image_cmd(opts, hfs_compat):
+    def get_make_image_cmd(opts):
         """
         Generates the command to actually make the image in the first place
         """
-        isokwargs = {}
-        isokwargs["boot_args"] = Shared.get_boot_options(
-                opts['arch'],
-                os.path.join("$TEMPLATE", "config_files/ppc"),
-                hfs_compat=hfs_compat,
-        )
-
-        if opts['arch'] in ("ppc64", "ppc64le"):
-            isokwargs["input_charset"] = None
-
-        if opts['use_xorrisofs']:
-            cmd = [
-                    '/usr/bin/xorriso',
-                    '-dialog',
-                    'on',
-                    '<',
-                    opts['graft_points'],
-                    '2>&1'
-            ]
-        else:
-            cmd = Shared.get_mkisofs_cmd(
-                    opts['iso_name'],
-                    volid=opts['volid'],
-                    exclude=["./lost+found"],
-                    grafts=opts['graft_points'],
-                    use_xorrisofs=False,
-                    iso_level=opts['iso_level'],
-                    **isokwargs
-            )
-
+        cmd = [
+                '/usr/bin/xorriso',
+                '-dialog',
+                'on',
+                '<',
+                opts['graft_points'],
+                '2>&1'
+        ]
         returned_cmd = ' '.join(cmd)
-        return returned_cmd
-
-    @staticmethod
-    def get_isohybrid_cmd(opts):
-        cmd = []
-        if not opts['use_xorrisofs']:
-            if opts['arch'] == "x86_64":
-                cmd = ["/usr/bin/isohybrid"]
-                cmd.append("--uefi")
-                cmd.append(opts['iso_name'])
-            returned_cmd = ' '.join(cmd)
-        else:
-            returned_cmd = ''
-
         return returned_cmd
 
     @staticmethod
@@ -986,19 +886,13 @@ class Shared:
         """
         Gets an ISO manifest
         """
-        if opts['use_xorrisofs']:
-            return """/usr/bin/xorriso -dev %s --find |
-                tail -n+2 |
-                tr -d "'" |
-                cut -c2-  | sort >> %s.manifest""" % (
-                shlex.quote(opts['iso_name']),
-                shlex.quote(opts['iso_name']),
-            )
-        else:
-            return "/usr/bin/isoinfo -R -f -i %s | grep -v '/TRANS.TBL$' | sort >> %s.manifest" % (
-                shlex.quote(opts['iso_name']),
-                shlex.quote(opts['iso_name']),
-            )
+        return """/usr/bin/xorriso -dev %s --find |
+            tail -n+2 |
+            tr -d "'" |
+            cut -c2-  | sort >> %s.manifest""" % (
+            shlex.quote(opts['iso_name']),
+            shlex.quote(opts['iso_name']),
+        )
 
     @staticmethod
     def build_repo_list(
