@@ -1,7 +1,9 @@
-sig-core-toolkit
+Empanadas
 ================
 
-Release Engineering toolkit for repeatable operations or functionality testing.
+Empanadas is the Rocky Linux Release Engineering toolkit for repeatable operations or functionality testing.
+
+<center><img src='.github/empanadas.png' width=150px /></center>
 
 Currently mirrored at our [github](https://github.com/rocky-linux), and the
 [RESF Git Service](https://git.resf.org). Changes will typically occur at the
