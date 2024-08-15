@@ -1,7 +1,7 @@
 Release Engineering Mangler Accessories
-==================================================
+=======================================
 
-This contains Mirror Manager mangling tools and other accessories.
+This contains mangling tools and other accessories.
 
 Scripts
 -------
@@ -14,3 +14,4 @@ Directories
 
 * generators -> A directory of python and bash scripts for pungi/peridot data generation
 * ipa -> IPA specific scripts and utilities
+* versions -> simple version utilities

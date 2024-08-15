@@ -1,4 +1,0 @@
-# To be sourced by scripts to use
-
-# These are the architectures supported for 8
-ARCHES=(x86_64 aarch64)
