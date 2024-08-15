@@ -1,1 +1,0 @@
-Test systemd and journald

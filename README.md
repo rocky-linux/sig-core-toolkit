@@ -14,10 +14,9 @@ What does this have?
 
 * analyze -> Analysis utilities (such as download stats)
 * chat -> mattermost related utilities
-* func -> (mostly defunct) testing scripts and tools to test base functionality
 * iso -> Contains `empanadas`, which provides ISO, Compose, and Sync related utilities.
 * mangle -> Manglers and other misc stuff
-* sync -> Sync tools, primarily for Rocky Linux 8 and will eventually be deprecated
+* sync -> Sync tools, used to sync from compose directories to mirror for Rocky Linux
 
 How can I help?
 ---------------
@@ -37,9 +36,3 @@ PR's against the main branch will be closed.
 
 PR's are preferred at the [RESF Git Service](https://git.resf.org).
 
-Will some of this be moved into separate repositories?
-------------------------------------------------------
-
-There may be some things that will be moved to its own repository in the near
-future. From a SIG/Core standpoint, we believe a good chunk of this should stay
-here as it makes it easier for us to maintain and manage.
