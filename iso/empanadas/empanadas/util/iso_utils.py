@@ -81,12 +81,11 @@ class IsoBuild:
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
         self.current_arch = config['arch']
-        self.required_pkgs = rlvars['iso_map']['lorax']['required_pkgs']
+        #self.required_pkgs = rlvars['iso_map']['lorax']['required_pkgs']
         self.mock_work_root = config['mock_work_root']
         self.lorax_result_root = config['mock_work_root'] + "/" + "lorax"
         self.mock_isolation = isolation
         self.iso_map = rlvars['iso_map']
-        #self.livemap = rlvars['livemap']
         self.cloudimages = rlvars['cloudimages']
         self.release_candidate = rc
         self.s3 = s3
@@ -253,6 +252,7 @@ class IsoBuild:
         mock_iso_path = '/var/tmp/lorax-' + self.release + '.cfg'
         mock_sh_path = '/var/tmp/isobuild.sh'
         iso_template_path = '/var/tmp/buildImage.sh'
+        required_pkgs = self.iso_map['lorax']['required_pkgs']
 
         rclevel = ''
         if self.release_candidate:
@@ -829,6 +829,7 @@ class IsoBuild:
         isoname = f'{self.shortname}-{self.release}{rclevel}{datestamp}-{arch}-{image}.iso'
         generic_isoname = f'{self.shortname}-{arch}-{image}.iso'
         latest_isoname = f'{self.shortname}-{self.major_version}-latest-{arch}-{image}.iso'
+        required_pkgs = self.iso_map['lorax']['required_pkgs']
 
         lorax_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
                 ' '.join(required_pkgs),
@@ -1518,7 +1519,7 @@ class LiveBuild:
         self.compose_base = config['compose_root'] + "/" + major
         self.current_arch = config['arch']
         self.livemap = rlvars['livemap']
-        self.required_pkgs = rlvars['livemap']['required_pkgs']
+        #self.required_pkgs = rlvars['livemap']['required_pkgs']
         self.mock_work_root = config['mock_work_root']
         self.live_result_root = config['mock_work_root'] + "/lmc"
         self.mock_isolation = isolation
