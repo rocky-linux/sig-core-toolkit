@@ -18,7 +18,7 @@
     - x86_64
     - aarch64
   provide_multilib: False
-  project_id: 'e9cfc87c-d2d2-42d5-a121-852101f1a966'
+  project_id: 'df5bcbfc-ba83-4da8-84d6-ae0168921b4d'
   repo_symlinks:
     devel: 'Devel'
     NFV: 'nfv'
