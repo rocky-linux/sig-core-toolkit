@@ -725,8 +725,7 @@ class IsoBuild:
 
     def _extra_iso_build_wrap(self):
         """
-        Try to figure out where the build is going, we only support mock for
-        now.
+        Try to figure out where the build is going, podman or mock.
         """
         work_root = os.path.join(
                 self.compose_latest_dir,
@@ -737,13 +736,16 @@ class IsoBuild:
         if self.arch:
             arches_to_build = [self.arch]
 
-        images_to_build = self.iso_map['images']
+        images_to_build = list(self.iso_map['images'].keys())
         if self.extra_iso:
             images_to_build = [self.extra_iso]
+
+        images_to_skip = []
 
         for y in images_to_build:
             if 'isoskip' in self.iso_map['images'][y] and self.iso_map['images'][y]['isoskip']:
                 self.log.info(Color.WARN + f'Skipping {y} image')
+                images_to_skip.append(y)
                 continue
 
             reposcan = True
@@ -788,7 +790,14 @@ class IsoBuild:
                     raise SystemExit()
 
         if self.extra_iso_mode == 'podman':
-            self._extra_iso_podman_run(arches_to_build, images_to_build, work_root)
+            # I can't think of a better way to do this
+            images_to_build_podman = images_to_build.copy()
+            for item in images_to_build_podman[:]:
+                for skip in images_to_skip:
+                    if item == skip:
+                        images_to_build_podman.remove(item)
+
+            self._extra_iso_podman_run(arches_to_build, images_to_build_podman, work_root)
 
     def _extra_iso_local_config(self, arch, image, grafts, work_root, volname):
         """
