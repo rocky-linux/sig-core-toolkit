@@ -47,6 +47,7 @@
     images:
       dvd:
         disc: True
+        reposcan: True
         variant: 'AppStream'
         repos:
           - 'BaseOS'
@@ -54,6 +55,7 @@
       minimal:
         disc: True
         isoskip: True
+        reposcan: False
         repos:
           - 'minimal'
           - 'BaseOS'
