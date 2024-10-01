@@ -743,8 +743,13 @@ class IsoBuild:
 
         for y in images_to_build:
             if 'isoskip' in self.iso_map['images'][y] and self.iso_map['images'][y]['isoskip']:
-                self.log.info(Color.WARN + 'Skipping ' + y + ' image')
+                self.log.info(Color.WARN + f'Skipping {y} image')
                 continue
+
+            reposcan = True
+            if 'reposcan' in self.iso_map['images'][y] and not self.iso_map['images'][y]['reposcan']:
+                self.log.info(Color.WARN + f"Skipping compose repository scans for {y}")
+                reposcan = False
 
             # Kind of hacky, but if we decide to have more than boot/dvd iso's,
             # we need to make sure volname matches the initial lorax image,
@@ -770,6 +775,7 @@ class IsoBuild:
                         a,
                         y,
                         self.iso_map['images'][y]['repos'],
+                        reposcan=reposcan
                 )
                 self._extra_iso_local_config(a, y, grafts, work_root, volname)
 
@@ -1091,6 +1097,7 @@ class IsoBuild:
             arch,
             iso,
             variants,
+            reposcan: bool = True,
         ):
         """
         Get a list of packages for an extras ISO. This should NOT be called
@@ -1120,26 +1127,28 @@ class IsoBuild:
         # actually get the boot data
         files = self._get_grafts([lorax_for_var, extra_files_for_var])
 
-        # This is to get all the packages for each repo
-        for repo in variants:
-            pkg_for_var = os.path.join(
-                    self.compose_latest_sync,
-                    repo,
-                    arch,
-                    self.structure['packages']
-            )
-            rd_for_var = os.path.join(
-                    self.compose_latest_sync,
-                    repo,
-                    arch,
-                    self.structure['repodata']
-            )
+        # Some variants cannot go through a proper scan.
+        if reposcan:
+            # This is to get all the packages for each repo
+            for repo in variants:
+                pkg_for_var = os.path.join(
+                        self.compose_latest_sync,
+                        repo,
+                        arch,
+                        self.structure['packages']
+                )
+                rd_for_var = os.path.join(
+                        self.compose_latest_sync,
+                        repo,
+                        arch,
+                        self.structure['repodata']
+                )
 
-            for k, v in self._get_grafts([pkg_for_var]).items():
-                files[os.path.join(repo, "Packages", k)] = v
+                for k, v in self._get_grafts([pkg_for_var]).items():
+                    files[os.path.join(repo, "Packages", k)] = v
 
-            for k, v in self._get_grafts([rd_for_var]).items():
-                files[os.path.join(repo, "repodata", k)] = v
+                for k, v in self._get_grafts([rd_for_var]).items():
+                    files[os.path.join(repo, "repodata", k)] = v
 
         grafts = f'{lorax_base_dir}/{iso}-{arch}-grafts'
 
