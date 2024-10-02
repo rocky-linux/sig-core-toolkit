@@ -465,6 +465,7 @@ class IPAAudit:
         Does a recursive dig on a user
         """
         hbac_rule_list = []
+        hbac_rule_all_hosts = []
         host_list = []
         hostgroup_list = []
         for group in groups:
@@ -482,6 +483,8 @@ class IPAAudit:
             hbac_results = IPAQuery.hbac_data(api, hbac)
             hbac_host_list = [] if not hbac_results.get('memberhost_host', None) else hbac_results['memberhost_host']
             hbac_hostgroup_list = [] if not hbac_results.get('memberhost_hostgroup', None) else hbac_results['memberhost_hostgroup']
+            if hbac_results.get('servicecategory'):
+                hbac_rule_all_hosts.append(hbac)
 
             for host in hbac_host_list:
                 hbac_hosts.append(host)
@@ -493,9 +496,14 @@ class IPAAudit:
 
         new_hbac_hosts = sorted(set(hbac_hosts))
         print('User Has Access To These Hosts')
-        print('----------------------------------------')
+        print('------------------------------------------')
         for hhost in new_hbac_hosts:
             print(hhost)
+        if len(hbac_rule_all_hosts) > 0:
+            print('!! Notice: User has access to ALL hosts from the following rules:')
+            hbac_rule_all_hosts = sorted(set(hbac_rule_all_hosts))
+            for allrule in hbac_rule_all_hosts:
+                print(allrule)
 
     @staticmethod
     def group_deep_list(api, group):
