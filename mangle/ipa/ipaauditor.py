@@ -58,6 +58,9 @@ audit_parser = subparser.add_parser('audit', epilog='Use this to perform audits 
 parser.add_argument('--library', type=str, default='ipalib',
                     help='Choose the ipa library to use for the auditor',
                     choices=('ipalib', 'python_freeipa'))
+parser.add_argument('--user', type=str, default='', help='Set the username (python_freeipa only)')
+parser.add_argument('--password', type=str, default='', help='Set the password (python_freeipa only)')
+parser.add_argument('--server', type=str, default='', help='Set the server (python_freeipa only)')
 
 audit_parser.add_argument('--type', type=str, required=True,
                           help='Type of audit: hbac, rbac, group, user',
@@ -640,7 +643,7 @@ memberOf:{groups}
         return api.hbacsvcgroup_show(hbacsvcgroup)['result']
 
 # start main
-def get_api(ipa_library='ipalib'):
+def get_api(ipa_library='ipalib', user='', password='', server=''):
     """
     Gets and returns the right API entrypoint
     """
@@ -659,7 +662,13 @@ def get_api(ipa_library='ipalib'):
             print('WARNING: No kerberos credentials\n')
             command_api = None
     elif ipa_library == 'python_freeipa':
-        print()
+        api = ClientMeta(server)
+        try:
+            api.login(user, password)
+            command_api = api
+        except:
+            print('ERROR: Unable to login, check user/password/server')
+            command_api = None
     else:
         print('Unsupported ipa library', sys.stderr)
         sys.exit(1)
@@ -670,7 +679,8 @@ def main():
     """
     Main function entrypoint
     """
-    command_api = get_api()
+    command_api = get_api(ipa_library=results.library, user=results.user,
+                          password=results.password, server=results.server)
     if command == 'audit':
         IPAAudit.entry(command_api, results.type, results.name, results.deep)
     elif command == 'info':

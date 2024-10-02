@@ -1,0 +1,30 @@
+#!/bin/bash
+# Wrapper for ipaauditor.py audit
+
+source /etc/os-release
+case "$ID" in
+  rocky|centos|rhel)
+    case "${VERSION_ID:0:1}" in
+      5|6|7)
+        echo "Not supported."
+        exit 3
+        ;;
+      8)
+        PYTHON_EXEC="/usr/libexec/platform-python"
+        ;;
+      *)
+        PYTHON_EXEC="/usr/bin/python3"
+        ;;
+    esac ;;
+  ubuntu|debian)
+    PYTHON_EXEC="/usr/bin/python3"
+    ;;
+  fedora)
+    PYTHON_EXEC="/usr/bin/python3"
+esac
+
+$PYTHON_EXEC ipaauditor.py --user test \
+  --password test \
+  --server test \
+  --library python_freeipa \
+  audit "$@"
