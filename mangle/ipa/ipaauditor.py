@@ -106,7 +106,7 @@ class EtcIPADefault:
         outter_info['ipa_joined_name'] = __config['global']['host']
         outter_info['ipa_domain'] = __config['global']['domain']
         outter_info['ipa_realm'] = __config['global']['realm']
-        outter_info['registered_dc'] = __config['global']['server']
+        outter_info['registered_dc'] = __config['global']['host'] if not __config['global'].get('server', None) else __config['global']['server']
         return outter_info
 
 class SssctlInfo:
