@@ -274,9 +274,42 @@ class IPAAudit:
     @staticmethod
     def user_pull(api, name, deep):
         """
-        Gets requested rbac info
+        Gets requested user info
         """
-        print()
+        try:
+            user_results = IPAQuery.user_data(api, name)
+        except:
+            print(f'Could not find {name}', sys.stderr)
+            sys.exit(1)
+
+        user_first = '' if not user_results.get('givenname', None) else user_results['givenname'][0]
+        user_last = '' if not user_results.get('sn', None) else user_results['sn'][0]
+        user_uid = '' if not user_results.get('uid', None) else user_results['uid'][0]
+        user_uidnum = '' if not user_results.get('uidnumber', None) else user_results['uidnumber'][0]
+        user_gidnum = '' if not user_results.get('gidnumber', None) else user_results['gidnumber'][0]
+        user_groups = '' if not user_results.get('memberof_group', None) else '\n                '.join(user_results['memberof_group'])
+        user_hbachosts = '' if not user_results.get('memberof_hbacrule', None) else '\n                '.join(user_results['memberof_hbacrule'])
+        user_indhbachosts = '' if not user_results.get('memberofindirect_hbacrule', None) else '\n                '.join(user_results['memberofindirect_hbacrule'])
+
+        starter_user = {
+                'User name': user_uid,
+                'First name': user_first,
+                'Last name': user_last,
+                'UID': user_uidnum,
+                'GID': user_gidnum,
+                'Groups': user_groups,
+        }
+
+        print('User Information')
+        print('----------------------------------------')
+        for key, value in starter_user.items():
+            if len(value) > 0:
+                print(f'{key: <16}{value}')
+        print('')
+
+        if deep:
+            group_list = [] if not user_results.get('memberof_group', None) else user_results['memberof_group']
+            IPAAudit.user_deep_list(api, name, group_list)
 
     @staticmethod
     def group_pull(api, name, deep):
@@ -369,7 +402,7 @@ class IPAAudit:
                     if perm not in starting_perms:
                         starting_perms.append(perm)
 
-        print(f'Permissions Applied to this Role')
+        print('Permissions Applied to this Role')
         print('----------------------------------------')
         for item in starting_perms:
             print(item)
@@ -427,10 +460,42 @@ class IPAAudit:
                 print(f'{key: <24}{value}')
 
     @staticmethod
-    def user_deep_list(api, user):
+    def user_deep_list(api, user, groups):
         """
         Does a recursive dig on a user
         """
+        hbac_rule_list = []
+        host_list = []
+        hostgroup_list = []
+        for group in groups:
+            group_results = IPAQuery.group_data(api, group)
+            hbac_list = [] if not group_results.get('memberof_hbacrule', None) else group_results['memberof_hbacrule']
+            hbacind_list = [] if not group_results.get('memberofindirect_hbacrule', None) else group_results['memberofindirect_hbacrule']
+            hbac_rule_list.extend(hbac_list)
+            hbac_rule_list.extend(hbacind_list)
+
+        # TODO: Add HBAC list (including services)
+        # TODO: Add RBAC list
+
+        hbac_hosts = []
+        for hbac in hbac_rule_list:
+            hbac_results = IPAQuery.hbac_data(api, hbac)
+            hbac_host_list = [] if not hbac_results.get('memberhost_host', None) else hbac_results['memberhost_host']
+            hbac_hostgroup_list = [] if not hbac_results.get('memberhost_hostgroup', None) else hbac_results['memberhost_hostgroup']
+
+            for host in hbac_host_list:
+                hbac_hosts.append(host)
+
+            for hostgroup in hbac_hostgroup_list:
+                hostgroup_data = IPAQuery.hostgroup_data(api, hostgroup)
+                host_list = [] if not hostgroup_data.get('member_host', None) else hostgroup_data['member_host']
+                hbac_hosts.extend(host_list)
+
+        new_hbac_hosts = sorted(set(hbac_hosts))
+        print('User Has Access To These Hosts')
+        print('----------------------------------------')
+        for hhost in new_hbac_hosts:
+            print(hhost)
 
     @staticmethod
     def group_deep_list(api, group):
