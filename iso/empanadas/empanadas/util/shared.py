@@ -954,6 +954,8 @@ class Shared:
         # must be in format URL[,PRIORITY]
         result = []
         for idx, candidate in enumerate(extra_repos):
+            if isinstance(dict, candidate):
+                url, priority = candidate['url'], candidate.get('priority', None)
             url, priority = candidate.split(',')
             if not priority:
                 priority = 100
