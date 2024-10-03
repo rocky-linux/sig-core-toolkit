@@ -926,8 +926,10 @@ class Shared:
             compose_latest_sync,
             compose_dir_is_here: bool = False,
             hashed: bool = False,
-            extra_repos: list = None
-        ):
+            extra_repos: list = None,
+            staging_base_url: str = 'https://dl.rockylinux.org/stg',
+            use_staging: bool = False,
+            ):
         """
         Builds the repo dictionary
         """
@@ -961,7 +963,9 @@ class Shared:
             repolist.append(repodata)
 
         if extra_repos:
-            repolist.append(repo for repo in Shared.parse_extra_repos(extra_repos))
+            extras = Shared.parse_extra_repos(extra_repos)
+            for repo in extras:
+                repolist.append(repo)
 
         return repolist
 
@@ -970,7 +974,7 @@ class Shared:
         # must be in format URL[,PRIORITY]
         result = []
         for idx, candidate in enumerate(extra_repos):
-            if isinstance(dict, candidate):
+            if isinstance(candidate, dict):
                 url, priority = candidate['url'], candidate.get('priority', None)
             url, priority = candidate.split(',')
             if not priority:
