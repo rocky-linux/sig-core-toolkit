@@ -62,7 +62,9 @@ class RepoSync:
             fpsync: bool = False,
             logger=None,
             log_level='INFO',
-        ):
+            use_staging: bool = False,
+            ):
+
         self.nofail = nofail
         self.dryrun = dryrun
         self.fullrun = fullrun
@@ -80,11 +82,14 @@ class RepoSync:
         # This makes it so every repo is synced at the same time.
         # This is EXTREMELY dangerous.
         self.just_pull_everything = just_pull_everything
+        # Use staging url instead of pulling from peridot (or, for EL8)
+        self.use_staging = use_staging
         # Relevant config items
         self.major_version = major
         self.date_stamp = config['date_stamp']
         self.timestamp = time.time()
         self.repo_base_url = config['repo_base_url']
+        self.staging_base_url = config['staging_base_url']
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
         self.profile = rlvars['profile']
@@ -271,7 +276,9 @@ class RepoSync:
                 self.gpg_check,
                 self.repo_gpg_check,
                 self.tmplenv,
-                self.log
+                self.log,
+                staging_base_url=self.staging_base_url,
+                use_staging=self.use_staging,
         )
 
         if self.dryrun:
@@ -1447,7 +1454,8 @@ class RepoSync:
                 self.gpg_check,
                 self.repo_gpg_check,
                 self.tmplenv,
-                self.log
+                self.log,
+                staging_base_url=self.staging_base_url,
         )
 
 

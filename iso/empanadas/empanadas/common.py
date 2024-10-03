@@ -65,6 +65,7 @@ config = {
     "category_stub": "mirror/pub/rocky",
     "sig_category_stub": "mirror/pub/sig",
     "repo_base_url": "https://yumrepofs.build.resf.org/v1/projects",
+    "staging_base_url": "https://dl.rockylinux.org/stg/rocky",
     "mock_work_root": "/builddir",
     "container": "centos:stream9",
     "distname": "Rocky Linux",

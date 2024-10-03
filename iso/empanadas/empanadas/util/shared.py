@@ -453,8 +453,10 @@ class Shared:
             repo_gpg_check,
             templates,
             logger,
-            dest_path='/var/tmp'
-        ) -> str:
+            dest_path='/var/tmp',
+            staging_base_url='https://dl.rockylinux.org/stg',
+            use_staging=False,
+            ) -> str:
         """
         Generates the necessary repo conf file for the operation. This repo
         file should be temporary in nature. This will generate a repo file
@@ -482,22 +484,36 @@ class Shared:
         if not os.path.exists(dest_path):
             os.makedirs(dest_path, exist_ok=True)
         config_file = open(fname, "w+")
+
         repolist = []
         for repo in repos:
 
-            constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
-                    repo_base_url,
-                    project_id,
-                    prehashed,
-                    repo,
-            )
+            if use_staging:
+                constructed_url = '{}/{}/{}/$basearch/os'.format(
+                        staging_base_url,
+                        major_version,
+                        repo,
+                )
 
-            constructed_url_src = '{}/{}/repo/{}{}/src'.format(
-                    repo_base_url,
-                    project_id,
-                    prehashed,
-                    repo,
-            )
+                constructed_url_src = '{}/{}/{}/source/tree'.format(
+                        staging_base_url,
+                        major_version,
+                        repo,
+                )
+            else:
+                constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
+                        repo_base_url,
+                        project_id,
+                        prehashed,
+                        repo,
+                )
+
+                constructed_url_src = '{}/{}/repo/{}{}/src'.format(
+                        repo_base_url,
+                        project_id,
+                        prehashed,
+                        repo,
+                )
 
             repodata = {
                     'name': repo,

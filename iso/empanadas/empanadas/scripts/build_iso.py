@@ -2,8 +2,7 @@
 
 import argparse
 
-from empanadas.common import *
-from empanadas.util import Checks
+from empanadas.common import config, rldict
 from empanadas.util import IsoBuild
 
 parser = argparse.ArgumentParser(description="ISO Compose")
@@ -28,6 +27,7 @@ a = IsoBuild(
         hashed=results.hashed,
         logger=results.logger,
 )
+
 
 def run():
     a.run()
