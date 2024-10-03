@@ -22,7 +22,7 @@ lorax --product="${PRODUCT}" \
   --isfinal \
 {%- endif %}
 {%- for repo in repos %}
-  --source={{ repo.url }} \
+  --source='{{ repo.url }}' \
 {%- endfor %}
 {%- if squashfs_only %}
   --squashfs-only \

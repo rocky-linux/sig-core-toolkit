@@ -270,6 +270,8 @@ class IsoBuild:
                 dist=self.disttag,
                 repos=self.repolist,
                 user_agent='{{ user_agent }}',
+                compose_dir_is_here=self.compose_dir_is_here,
+                compose_dir=self.compose_root,
         )
 
         mock_sh_template_output = mock_sh_template.render(
