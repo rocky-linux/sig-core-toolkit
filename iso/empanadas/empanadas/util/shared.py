@@ -976,7 +976,8 @@ class Shared:
         for idx, candidate in enumerate(extra_repos):
             if isinstance(candidate, dict):
                 url, priority = candidate['url'], candidate.get('priority', None)
-            url, priority = candidate.split(',')
+            else:
+                url, priority = candidate.split(',')
             if not priority:
                 priority = 100
             result.append({
