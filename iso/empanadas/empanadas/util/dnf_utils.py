@@ -669,7 +669,10 @@ class RepoSync:
             repoclosure_entry_name_list = []
             self.log.info('Setting up repoclosure for {}'.format(repo))
 
-            for arch in self.repoclosure_map['arches']:
+            arches_for_repoclosure = self.arches
+            if self.arch:
+                arches_for_repoclosure = self.arch.split(',')
+            for arch in arches_for_repoclosure:
                 repo_combination = []
                 repoclosure_entry_name = f'repoclosure-{repo}-{arch}'
                 repoclosure_entry_name_list.append(repoclosure_entry_name)
