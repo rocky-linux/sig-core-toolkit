@@ -1022,7 +1022,7 @@ class IsoBuild:
                 checksum_list.append(latestname)
 
             for pod in entry_name_list:
-                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it --security-opt label=disable -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,

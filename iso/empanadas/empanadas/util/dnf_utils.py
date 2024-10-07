@@ -560,7 +560,7 @@ class RepoSync:
 
             #print(entry_name_list)
             for pod in entry_name_list:
-                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it --security-opt label=disable -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,
@@ -714,7 +714,7 @@ class RepoSync:
 
             self.log.info('Spawning pods for %s' % repo)
             for pod in repoclosure_entry_name_list:
-                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it --security-opt label=disable -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,
@@ -1509,7 +1509,7 @@ class RepoSync:
 
             self.log.info('Spawning pods for %s' % repo)
             for pod in repoclosure_entry_name_list:
-                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it --security-opt label=disable -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,
@@ -2045,7 +2045,7 @@ class SigRepoSync:
 
             #print(entry_name_list)
             for pod in entry_name_list:
-                podman_cmd_entry = '{} run -d -it -v "{}:{}" -v "{}:{}:z" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
+                podman_cmd_entry = '{} run -d -it --security-opt label=disable -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
                         self.compose_root,
                         self.compose_root,
