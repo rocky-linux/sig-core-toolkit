@@ -500,13 +500,14 @@ class IPAAudit:
         new_hbac_hosts = sorted(set(hbac_hosts))
         print('User Has Access To These Hosts')
         print('------------------------------------------')
-        for hhost in new_hbac_hosts:
-            print(hhost)
         if len(hbac_rule_all_hosts) > 0:
             print('!! Notice: User has access to ALL hosts from the following rules:')
             hbac_rule_all_hosts = sorted(set(hbac_rule_all_hosts))
             for allrule in hbac_rule_all_hosts:
                 print(allrule)
+        else:
+            for hhost in new_hbac_hosts:
+                print(hhost)
 
     @staticmethod
     def group_deep_list(api, group):
