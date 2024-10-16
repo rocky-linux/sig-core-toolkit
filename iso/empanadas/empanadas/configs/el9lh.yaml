@@ -1,10 +1,10 @@
 ---
 '9-lookahead':
-  fullname: 'Rocky Linux 9.5'
-  revision: '9.5'
+  fullname: 'Rocky Linux 9.6'
+  revision: '9.6'
   rclvl: 'LH1'
   major: '9'
-  minor: '5'
+  minor: '6'
   profile: '9-lookahead'
   disttag: 'el9'
   code: "Blue Onyx"
@@ -20,7 +20,7 @@
     - ppc64le
     - s390x
   provide_multilib: True
-  project_id: '6794b5a8-290b-4d0d-ad5a-47164329cbb0'
+  project_id: 'ae163d6a-f050-484f-bbaa-100ca673f146'
   repo_symlinks:
     NFV: 'nfv'
   renames:
