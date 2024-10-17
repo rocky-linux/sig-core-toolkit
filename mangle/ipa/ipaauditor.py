@@ -304,7 +304,7 @@ class IPAAudit:
         }
 
         print('User Information')
-        print('----------------------------------------')
+        print('------------------------------------------')
         for key, value in starter_user.items():
             if len(value) > 0:
                 print(f'{key: <16}{value}')
@@ -312,7 +312,8 @@ class IPAAudit:
 
         if deep:
             group_list = [] if not user_results.get('memberof_group', None) else user_results['memberof_group']
-            IPAAudit.user_deep_list(api, name, group_list)
+            hbac_list = [] if not user_results.get('memberof_hbacrule', None) else user_results['memberof_hbacrule']
+            IPAAudit.user_deep_list(api, name, group_list, hbac_list)
 
     @staticmethod
     def group_pull(api, name, deep):
@@ -463,11 +464,11 @@ class IPAAudit:
                 print(f'{key: <24}{value}')
 
     @staticmethod
-    def user_deep_list(api, user, groups):
+    def user_deep_list(api, user, groups, hbacs):
         """
         Does a recursive dig on a user
         """
-        hbac_rule_list = []
+        hbac_rule_list = list(hbacs)
         hbac_rule_all_hosts = []
         host_list = []
         hostgroup_list = []
@@ -481,8 +482,9 @@ class IPAAudit:
         # TODO: Add HBAC list (including services)
         # TODO: Add RBAC list
 
-        hbac_hosts = []
+        hbac_host_dict = {}
         for hbac in hbac_rule_list:
+            hbac_hosts = []
             hbac_results = IPAQuery.hbac_data(api, hbac)
             hbac_host_list = [] if not hbac_results.get('memberhost_host', None) else hbac_results['memberhost_host']
             hbac_hostgroup_list = [] if not hbac_results.get('memberhost_hostgroup', None) else hbac_results['memberhost_hostgroup']
@@ -497,9 +499,9 @@ class IPAAudit:
                 host_list = [] if not hostgroup_data.get('member_host', None) else hostgroup_data['member_host']
                 hbac_hosts.extend(host_list)
 
-        print(hbac_rule_list)
-        print(groups)
-        new_hbac_hosts = sorted(set(hbac_hosts))
+            hbac_host_dict[hbac] = hbac_hosts
+
+        #new_hbac_hosts = sorted(set(hbac_hosts))
         print('User Has Access To These Hosts')
         print('------------------------------------------')
         if len(hbac_rule_all_hosts) > 0:
@@ -508,8 +510,12 @@ class IPAAudit:
             for allrule in hbac_rule_all_hosts:
                 print(allrule)
         else:
-            for hhost in new_hbac_hosts:
-                print(hhost)
+            for hrule in hbac_host_dict:
+                print()
+                print(f'HBAC Rule: {hrule}')
+                print('==========================================')
+                for h in hbac_host_dict[hrule]:
+                    print(h)
 
     @staticmethod
     def group_deep_list(api, group):
