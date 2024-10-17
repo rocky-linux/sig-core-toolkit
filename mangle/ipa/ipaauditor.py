@@ -517,6 +517,9 @@ class IPAAudit:
                 for h in hbac_host_dict[hrule]:
                     print(h)
 
+                if len(hbac_host_dict[hrule]) == 0:
+                    print('(No hosts set for this rule)')
+
     @staticmethod
     def group_deep_list(api, group):
         """
