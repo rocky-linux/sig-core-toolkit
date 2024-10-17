@@ -12,6 +12,8 @@ IGNORES = [
         'insights-client',
         'lorax-templates-rhel',
         'shim',
+        'shim-unsigned-x64',
+        'shim-unsigned-aarch64',
         'redhat-cloud-client-configuration',
         'rhc',
         'rhc-worker-playbook',
