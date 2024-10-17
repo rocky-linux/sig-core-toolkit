@@ -20,6 +20,9 @@ REPOS = switcher.rlver(results.version,
 # Source packages we do not ship or are rocky branded
 IGNORES = [
         'insights-client',
+        'shim',
+        'shim-unsigned-x64',
+        'shim-unsigned-aarch64',
         'redhat-cloud-client-configuration',
         'rhc',
         'rhc-worker-playbook',
