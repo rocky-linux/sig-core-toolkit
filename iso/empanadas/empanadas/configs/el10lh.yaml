@@ -31,7 +31,6 @@
     - 'AppStream'
     - 'CRB'
     - 'HighAvailability'
-    - 'ResilientStorage'
     - 'RT'
     - 'NFV'
     - 'SAP'
@@ -188,9 +187,6 @@
         - BaseOS
         - AppStream
       HighAvailability:
-        - BaseOS
-        - AppStream
-      ResilientStorage:
         - BaseOS
         - AppStream
       RT:

@@ -497,6 +497,8 @@ class IPAAudit:
                 host_list = [] if not hostgroup_data.get('member_host', None) else hostgroup_data['member_host']
                 hbac_hosts.extend(host_list)
 
+        print(hbac_rule_list)
+        print(groups)
         new_hbac_hosts = sorted(set(hbac_hosts))
         print('User Has Access To These Hosts')
         print('------------------------------------------')
