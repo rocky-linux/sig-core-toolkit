@@ -320,7 +320,46 @@ class IPAAudit:
         """
         Gets requested rbac info
         """
-        print()
+        try:
+            group_results = IPAQuery.group_data(api, name)
+        except:
+            print(f'Could not find {name}', sys.stderr)
+            sys.exit(1)
+
+        group_name = '' if not group_results.get('cn', None) else group_results['cn'][0]
+        group_gidnum = '' if not group_results.get('gidnumber', None) else group_results['gidnumber'][0]
+        group_members_direct = [] if not group_results.get('member_user', None) else group_results['member_user']
+        group_members_indirect = [] if not group_results.get('memberindirect_user', None) else group_results['memberindirect_user']
+        group_members = list(group_members_direct) + list(group_members_indirect)
+        num_of_group_members = str(len(group_members))
+
+        group_hbacs_direct = [] if not group_results.get('memberof_hbacrule', None) else group_results['memberof_hbacrule']
+        group_hbacs_indirect = [] if not group_results.get('memberofindirect_hbacrule', None) else group_results['memberofindirect_hbacrule']
+        group_hbacs = list(group_hbacs_direct) + list(group_hbacs_indirect)
+        num_of_hbacs = str(len(group_hbacs))
+
+        group_sudo_direct = [] if not group_results.get('memberof_sudorule', None) else group_results['memberof_sudorule']
+        group_sudo_indirect = [] if not group_results.get('memberofindirect_sudorule', None) else group_results['memberofindirect_sudorule']
+        group_sudos = list(group_sudo_direct) + list(group_sudo_indirect)
+        num_of_sudos = str(len(group_sudos))
+
+        starter_group = {
+                'Group name': group_name,
+                'GID': group_gidnum,
+                'Number of Users': num_of_group_members,
+                'Number of HBAC Rules': num_of_hbacs,
+                'Number of SUDO Rules': num_of_sudos,
+        }
+
+        print('Group Information')
+        print('------------------------------------------')
+        for key, value in starter_group.items():
+            if len(value) > 0:
+                print(f'{key: <24}{value}')
+        print('')
+
+        if deep:
+            IPAAudit.group_deep_list(api, name, group_members, group_hbacs, group_sudos)
 
     @staticmethod
     def hbac_pull(api, name, deep):
@@ -520,7 +559,7 @@ class IPAAudit:
                     print('(No hosts set for this rule)')
 
     @staticmethod
-    def group_deep_list(api, group):
+    def group_deep_list(api, group, members, hbacs, sudos):
         """
         Does a recursive dig on a group
         """
