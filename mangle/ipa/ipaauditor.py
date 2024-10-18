@@ -471,7 +471,6 @@ class IPAAudit:
         hbac_rule_list = list(hbacs)
         hbac_rule_all_hosts = []
         host_list = []
-        hostgroup_list = []
         for group in groups:
             group_results = IPAQuery.group_data(api, group)
             hbac_list = [] if not group_results.get('memberof_hbacrule', None) else group_results['memberof_hbacrule']
@@ -488,7 +487,7 @@ class IPAAudit:
             hbac_results = IPAQuery.hbac_data(api, hbac)
             hbac_host_list = [] if not hbac_results.get('memberhost_host', None) else hbac_results['memberhost_host']
             hbac_hostgroup_list = [] if not hbac_results.get('memberhost_hostgroup', None) else hbac_results['memberhost_hostgroup']
-            if hbac_results.get('servicecategory'):
+            if hbac_results.get('hostcategory'):
                 hbac_rule_all_hosts.append(hbac)
 
             for host in hbac_host_list:
