@@ -9,6 +9,12 @@ else
   exit 1
 fi
 
+if [ -f /usr/bin/dnf4 ]; then
+  SAFEDNF=/usr/bin/dnf4
+else
+  SAFEDNF=/usr/bin/dnf
+fi
+
 export RLVER=$MAJOR
 source common
 
@@ -21,7 +27,7 @@ stream_repo_url="https://kojidev.rockylinux.org/kojifiles/repos/${tag_template}/
 
 pushd "${tmpdir}" || { echo "Could not change directory"; exit 1; }
 for y in x86_64 aarch64 i386; do
-  repodatas=( $(dnf reposync --repofrompath ${str_template},${stream_repo_url}/${y} --download-metadata --repoid=${str_template} -p ${str_template}/${y} --forcearch ${y} --norepopath --remote-time --assumeyes -u | grep repodata) )
+  repodatas=( $($SAFEDNF reposync --repofrompath ${str_template},${stream_repo_url}/${y} --download-metadata --repoid=${str_template} -p ${str_template}/${y} --forcearch ${y} --norepopath --remote-time --assumeyes -u | grep repodata) )
   mkdir -p "${str_template}/${y}/repodata"
   pushd "${str_template}/${y}/repodata" || { echo "Could not change directory"; exit 1; }
   for z in "${repodatas[@]}"; do

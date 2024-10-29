@@ -31,7 +31,7 @@ pushd "${tmpdir}" || { echo "Could not change directory"; exit 1; }
 for x in "${REPO[@]}"; do
   echo "Working on ${x}"
   for y in "${ARCH[@]}"; do
-    repodatas=( $(dnf reposync --repofrompath ${x},${stream_compose_url}/${x}/${y}/os --download-metadata --repoid=${x} -p ${x}/${y} --forcearch ${y} --norepopath --remote-time --assumeyes -u | grep repodata) )
+    repodatas=( $($SAFEDNF reposync --repofrompath ${x},${stream_compose_url}/${x}/${y}/os --download-metadata --repoid=${x} -p ${x}/${y} --forcearch ${y} --norepopath --remote-time --assumeyes -u | grep repodata) )
     mkdir -p "${x}/${y}/repodata"
     pushd "${x}/${y}/repodata" || { echo "Could not change directory"; exit 1; }
     for z in "${repodatas[@]}"; do

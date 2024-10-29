@@ -24,7 +24,7 @@ peridot_repo_url="${PERIDOT_REPO}/${PERIDOT_PROJECT_ID}/repo/${tag_template}"
 
 pushd "${tmpdir}" || { echo "Could not change directory"; exit 1; }
 for y in "${ARCH[@]}"; do
-  repodatas=( $(dnf reposync --repofrompath ${tag_template},${peridot_repo_url}/${y} --download-metadata --repoid=${tag_template} -p ${tag_template}/${y} --forcearch ${y} --norepopath --remote-time --assumeyes -u | grep repodata) )
+  repodatas=( $($SAFEDNF reposync --repofrompath ${tag_template},${peridot_repo_url}/${y} --download-metadata --repoid=${tag_template} -p ${tag_template}/${y} --forcearch ${y} --norepopath --remote-time --assumeyes -u | grep repodata) )
   mkdir -p "${tag_template}/${y}/repodata"
   pushd "${tag_template}/${y}/repodata" || { echo "Could not change directory"; exit 1; }
   for z in "${repodatas[@]}"; do
