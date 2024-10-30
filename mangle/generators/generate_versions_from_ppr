@@ -13,6 +13,12 @@ if [ -n "$2" ] && [[ "$2" == "lh" ]]; then
   export LH="lh"
 fi
 
+if [ -f /usr/bin/dnf4 ]; then
+  SAFEDNF=/usr/bin/dnf4
+else
+  SAFEDNF=/usr/bin/dnf
+fi
+
 export RLVER="${MAJOR}"
 source common
 

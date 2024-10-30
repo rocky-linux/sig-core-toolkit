@@ -18,6 +18,12 @@ if [ "$grep_val" -ne 0 ]; then
   echo "Date format incorrect. You must use: YYYYMMDD.X"
 fi
 
+if [ -f /usr/bin/dnf4 ]; then
+  SAFEDNF=/usr/bin/dnf4
+else
+  SAFEDNF=/usr/bin/dnf
+fi
+
 export RLVER="${MAJOR}"
 source common
 
