@@ -1243,7 +1243,7 @@ class RepoSync:
         It is rare that this should be called.
         """
         sync_root = self.compose_latest_sync
-        self.deploy_treeinfo(self.repo, sync_root, self.arch, refresh=True)
+        self.deploy_treeinfo(self.repo, sync_root, self.arch, refresh=self.refresh_treeinfo)
         self.tweak_treeinfo(self.repo, sync_root, self.arch)
 
     def run_compose_closeout(self):

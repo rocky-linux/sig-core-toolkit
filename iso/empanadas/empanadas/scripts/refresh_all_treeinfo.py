@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 
 # All of our options
 parser.add_argument('--release', type=str, help="Major Release Version or major-type (eg 9-beta)", required=True)
+parser.add_argument('--overwrite', action='store_true', help="Overwrites current treeinfo and discinfo files")
 parser.add_argument('--logger', type=str)
 
 # Parse them
@@ -26,6 +27,7 @@ a = RepoSync(
         rlvars,
         config,
         major=major,
+        refresh_treeinfo=results.overwrite,
         logger=results.logger,
 )
 
