@@ -18,6 +18,8 @@ requests = "^2.32.2"
 kobo = "^0.37.0"
 attrs = "^24.2.0"
 GitPython = ">=3.1.30"
+file-magic = ">=0.4.0"
+pycdlib = ">=1.14.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~5"

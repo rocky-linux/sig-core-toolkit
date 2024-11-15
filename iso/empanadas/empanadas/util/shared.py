@@ -13,6 +13,7 @@ import boto3
 import xmltodict
 import productmd.treeinfo
 import productmd.composeinfo
+import pycdlib
 import empanadas
 import kobo.shortcuts
 from empanadas.common import Color
@@ -24,8 +25,13 @@ class ArchCheck:
     archfile = {
         'x86_64': [
                 'isolinux/vmlinuz',
+                'images/efiboot.img',
+                'images/eltorito.img',
                 'images/grub.conf',
-                'EFI/BOOT/BOOTX64.EFI'
+                'images/install.img',
+                'boot/grub2/grub.cfg',
+                'EFI/BOOT/BOOTX64.EFI',
+                'EFI/BOOT/grub.cfg'
         ],
         'aarch64':  [
                 'EFI/BOOT/BOOTAA64.EFI'
@@ -1337,10 +1343,21 @@ class Idents:
         return False
 
     @staticmethod
-    def get_vol_id(opts):
+    def get_vol_id(i):
         """
-        Gets a volume ID
+        Gets a volume ID of a given ISO
         """
+        iso = pycdlib.PyCdlib()
+        try:
+            iso.open(i)
+        except pycdlib.pycdlibexception.PyCdlibInvalidISO as exc:
+            print(exc)
+            return False
+
+        pvd = iso.pvd
+        volume_id = pvd.volume_identifier.decode('UTF-8').strip()
+        iso.close()
+        return volume_id
 
 class Syncs:
     """

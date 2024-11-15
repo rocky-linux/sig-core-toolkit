@@ -771,6 +771,7 @@ class IsoBuild:
                     if not os.path.exists(lorax_path):
                         self.log.error(Color.FAIL + 'Lorax not found at all. This is considered fatal.')
 
+                    # do we need to do a hard exit here?
                     raise SystemExit()
 
                 grafts = self._generate_graft_points(
@@ -779,7 +780,12 @@ class IsoBuild:
                         self.iso_map['images'][y]['repos'],
                         reposcan=reposcan
                 )
-                self._extra_iso_local_config(a, y, grafts, work_root, volname)
+                try:
+                    self._extra_iso_local_config(a, y, grafts, work_root)
+                except ValueError as exc:
+                    self.log.error(Color.FAIL + f'An error occured while configuring extra ISO build {exc}')
+                    self.log.error(Color.FAIL + f'Error: {exc}')
+                    continue
 
                 if self.extra_iso_mode == 'local':
                     self._extra_iso_local_run(a, y, work_root)
@@ -799,7 +805,7 @@ class IsoBuild:
 
             self._extra_iso_podman_run(arches_to_build, images_to_build_podman, work_root)
 
-    def _extra_iso_local_config(self, arch, image, grafts, work_root, volname):
+    def _extra_iso_local_config(self, arch, image, grafts, work_root):
         """
         Local ISO build configuration - This generates the configuration for
         both mock and podman entries
@@ -839,11 +845,14 @@ class IsoBuild:
         if self.updated_image:
             datestamp = '-' + self.updated_image_date
 
-        volid = f'{self.shortname}-{self.major_version}-{self.minor_version}{rclevel}-{arch}-{volname}'
+        volid = Idents.get_vol_id(boot_iso)
         isoname = f'{self.shortname}-{self.release}{rclevel}{datestamp}-{arch}-{image}.iso'
         generic_isoname = f'{self.shortname}-{arch}-{image}.iso'
         latest_isoname = f'{self.shortname}-{self.major_version}-latest-{arch}-{image}.iso'
         required_pkgs = self.iso_map['lorax']['required_pkgs']
+
+        if not volid:
+            raise ValueError('Volume ID could not be determined')
 
         lorax_pkg_cmd = '/usr/bin/dnf install {} -y {}'.format(
                 ' '.join(required_pkgs),
@@ -881,6 +890,8 @@ class IsoBuild:
                 'graft_points': grafts,
                 'iso_level': self.iso_map['iso_level'],
         }
+
+        self.log.info(Color.INFO + f'boot.iso volume name: {volid}')
 
         # Generate a xorriso compatible dialog
         with open(grafts) as xp:
