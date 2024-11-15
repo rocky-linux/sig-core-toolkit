@@ -14,6 +14,7 @@ import xmltodict
 import productmd.treeinfo
 import productmd.composeinfo
 import pycdlib
+import magic
 import empanadas
 import kobo.shortcuts
 from empanadas.common import Color
@@ -1343,6 +1344,19 @@ class Idents:
         return False
 
     @staticmethod
+    def get_magic(m):
+        """
+        Gets magic data of a given file
+        """
+        try:
+            meta = magic.detect_from_filename(m)
+        except ValueError as exc:
+            print(exc)
+            return False
+
+        return meta
+
+    @staticmethod
     def get_vol_id(i):
         """
         Gets a volume ID of a given ISO
@@ -1353,6 +1367,14 @@ class Idents:
         except pycdlib.pycdlibexception.PyCdlibInvalidISO as exc:
             print(exc)
             return False
+        # This is for s390x. a temporary hack
+        except pycdlib.pycdlibexception.PyCdlibInvalidInput as exc:
+            print(exc)
+            print('Trying magic instead')
+            magic_data = Idents.get_magic(i)
+            if magic_data.mime_type == 'application/x-iso9660-image':
+                volume_id = magic_data.name.split("'")[1]
+                return volume_id
 
         pvd = iso.pvd
         volume_id = pvd.volume_identifier.decode('UTF-8').strip()
