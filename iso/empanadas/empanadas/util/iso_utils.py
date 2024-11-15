@@ -819,7 +819,6 @@ class IsoBuild:
         iso_template_path = f'{entries_dir}/buildExtraImage-{arch}-{image}.sh'
         xorriso_template_path = f'{entries_dir}/xorriso-{arch}-{image}.txt'
         iso_readme_path = f'{self.iso_work_dir}/{arch}/README'
-        #print(iso_readme_path)
 
         log_root = os.path.join(
                 work_root,
