@@ -46,4 +46,29 @@ core:
       branch: 'r9'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
+  '10':
+    profile: 'core'
+    project_id: '47e0b4a8-84ba-43a9-bb94-eb99dde4cf14'
+    addtional_dirs: []
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-core/-/raw/r10/SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
+    repo:
+      core-common:
+        allowed_arches:
+          - x86_64
+          - aarch64
+          - ppc64le
+          - s390x
+      core-infra:
+        allowed_arches:
+          - x86_64
+          - aarch64
+          - ppc64le
+          - s390x
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-core.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-core/-/raw/r10/'
+      branch: 'r10'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
 ...
