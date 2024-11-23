@@ -48,7 +48,7 @@ core:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
   '10':
     profile: 'core'
-    project_id: '47e0b4a8-84ba-43a9-bb94-eb99dde4cf14'
+    project_id: '391b67bf-423d-4192-9a31-749a126ebfca'
     addtional_dirs: []
     gpg_key:
       - 'https://git.rockylinux.org/staging/src/rocky-release-core/-/raw/r10/SOURCES/RPM-GPG-KEY-Rocky-SIG-Core'
