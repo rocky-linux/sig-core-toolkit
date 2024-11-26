@@ -7,7 +7,11 @@ fasttrack:
     gpg_key:
       - 'https://git.rockylinux.org/staging/src/rocky-release-fasttrack/-/raw/r8/SOURCES/RPM-GPG-KEY-Rocky-SIG-FastTrack'
     repo:
-      fasttrack-common:
+      fasttrack-new:
+        allowed_arches:
+          - x86_64
+          - aarch64
+      fasttrack-updates:
         allowed_arches:
           - x86_64
           - aarch64
@@ -24,7 +28,13 @@ fasttrack:
     gpg_key:
       - 'https://git.rockylinux.org/staging/src/rocky-release-fasttrack/-/raw/r9/SOURCES/RPM-GPG-KEY-Rocky-SIG-FastTrack'
     repo:
-      fasttrack-common:
+      fasttrack-new:
+        allowed_arches:
+          - x86_64
+          - aarch64
+          - ppc64le
+          - s390x
+      fasttrack-updates:
         allowed_arches:
           - x86_64
           - aarch64
