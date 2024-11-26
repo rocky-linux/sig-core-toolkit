@@ -2,7 +2,7 @@
 fasttrack:
   '8':
     profile: 'fasttrack'
-    project_id: ''
+    project_id: 'f809968c-b3ae-49ca-9cbc-8e18c7bde433'
     addtional_dirs: []
     gpg_key:
       - 'https://git.rockylinux.org/staging/src/rocky-release-fasttrack/-/raw/r8/SOURCES/RPM-GPG-KEY-Rocky-SIG-FastTrack'
@@ -23,7 +23,7 @@ fasttrack:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-FastTrack'
   '9':
     profile: 'fasttrack'
-    project_id: ''
+    project_id: '1af1c9e8-96a9-4753-9a1a-4b66d65de649'
     addtional_dirs: []
     gpg_key:
       - 'https://git.rockylinux.org/staging/src/rocky-release-fasttrack/-/raw/r9/SOURCES/RPM-GPG-KEY-Rocky-SIG-FastTrack'
