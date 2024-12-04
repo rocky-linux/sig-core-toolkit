@@ -23,6 +23,7 @@ IGNORES = [
         'redhat-indexhtml',
         'redhat-logos',
         'redhat-release',
+        'redhat-flatpak-data',
         'openssl-fips-provider'
 ]
 
