@@ -1578,6 +1578,7 @@ class LiveBuild:
         self.rclvl = rlvars['rclvl']
         self.disttag = rlvars['disttag']
         self.repos = rlvars['iso_map']['lorax']['repos']
+        self.extra_repos = rlvars['extra_repos']
         self.repo_base_url = config['repo_base_url']
         self.project_id = rlvars['project_id']
         self.structure = rlvars['structure']
@@ -1638,7 +1639,8 @@ class LiveBuild:
                 self.current_arch,
                 self.compose_latest_sync,
                 self.compose_dir_is_here,
-                self.hashed
+                self.hashed,
+                self.extra_repos
         )
         self.log.info(self.revision)
 
