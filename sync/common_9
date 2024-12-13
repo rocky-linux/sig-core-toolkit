@@ -82,6 +82,7 @@ SIG_COMPOSE=(
 export MODS=(
   AppStream
   CRB
+  devel
 )
 
 # functions
