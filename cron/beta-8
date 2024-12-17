@@ -1,0 +1,23 @@
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+FROMMAIL="Compose Tracker <releng@rockylinux.org>"
+rm -rf /etc/pungi-beta
+git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r8-beta /etc/pungi-beta
+ret_val=$?
+if [ "$ret_val" -ne 0 ]; then
+  echo "Git pull failed for beta pungi config" | mutt -e "set from=\"$FROM\"" \
+    -e 'set envelope_from=yes' \
+    -s "Git pull on /etc/pungi-beta failed" \
+    releng@rockylinux.org
+  exit 1
+fi
+pushd /etc/pungi-beta/scripts
+bash produce-8-beta-full.sh
+ret_val=$?
+popd
+
+if [ "$ret_val" -eq 0 ]; then
+  pushd /root/sync-devel/sync
+  RLVER=8 bash beta-release-sync-to-staging.sh
+  popd
+fi

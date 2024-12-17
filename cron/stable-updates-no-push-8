@@ -1,0 +1,18 @@
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+FROMMAIL="Compose Tracker <releng@rockylinux.org>"
+rm -rf /etc/pungi-prod
+git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r8 /etc/pungi-prod
+ret_val=$?
+if [ "$ret_val" -ne 0 ]; then
+  echo "Git pull failed for prod pungi config" | mutt -e "set from=\"$FROM\"" \
+    -e 'set envelope_from=yes' \
+    -s "Git pull on /etc/pungi-prod failed" \
+    releng@rockylinux.org
+  exit 1
+fi
+pushd /etc/pungi-prod/scripts
+#bash updates-8-full.sh
+bash updates-8.sh
+ret_val=$?
+popd
