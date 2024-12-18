@@ -12,8 +12,8 @@ source $(dirname "$0")/common
 # Major Version (eg, 8)
 MAJ=${RLVER}
 
-if [[ "${RLVER}" -ne "8" ]]; then
-  echo "This is only used for Rocky Linux 8 releases."
+if [[ "${RLVER}" -eq "9" ]]; then
+  echo "Invalid release"
   exit 1
 fi
 
@@ -85,8 +85,8 @@ done
 # Change Symlink if required
 echo "Setting symlink to ${REV}"
 pushd "${STAGING_ROOT}/${CATEGORY_STUB}" || exit
-/bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/8-LookAhead"
-ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" 8-LookAhead
+/bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/${MAJ}-LookAhead"
+ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" "${MAJ}-LookAhead"
 echo "Attempting hard link"
 perform_hardlink "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
 popd || exit
