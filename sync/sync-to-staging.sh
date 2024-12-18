@@ -59,7 +59,7 @@ if [ $ret_val -eq "0" ]; then
     if [ $ret_val -eq "0" ]; then
       createrepo_update "${TARGET}/${src_repo}" "${REVISION}"
       fix_metadata "${TARGET}/${src_repo}/repodata/repomd.xml"
-      sign_data "${TARGET}/${src_repo}/repodata/repomd.xml"
+      sign_data "${TARGET}/${src_repo}/repodata/repomd.xml" "${RLVER}"
     else
       echo "${src_repo} not found"
     fi
@@ -77,7 +77,7 @@ if [ $ret_val -eq "0" ]; then
       if [ $ret_val -eq "0" ]; then
         createrepo_update "${TARGET}/${debug_repo}" "${REVISION}"
         fix_metadata "${TARGET}/${debug_repo}/repodata/repomd.xml"
-        sign_data "${TARGET}/${debug_repo}/repodata/repomd.xml"
+        sign_data "${TARGET}/${debug_repo}/repodata/repomd.xml" "${RLVER}"
       else
         echo "${debug_repo} not found"
       fi
@@ -94,7 +94,7 @@ if [ $ret_val -eq "0" ]; then
         if [ $ret_val -eq "0" ]; then
           createrepo_comps "${REPO_PATH}" "${REVISION}" "${COMP_PATH}"
           fix_metadata "${REPO_PATH}/repodata/repomd.xml"
-          sign_data "${REPO_PATH}/repodata/repomd.xml"
+          sign_data "${REPO_PATH}/repodata/repomd.xml" "${RLVER}"
         else
           echo "${comp_repo} not found"
         fi
@@ -120,7 +120,7 @@ if [ $ret_val -eq "0" ]; then
         if [ $ret_val -eq 0 ]; then
           modifyrepo_module "${MOD_PATH}" "${MOD_YAML}"
           fix_metadata "${MOD_PATH}/repomd.xml"
-          sign_data "${MOD_PATH}/repomd.xml"
+          sign_data "${MOD_PATH}/repomd.xml" "${RLVER}"
         else
           echo "${mod_repo} not found"
         fi
@@ -134,7 +134,7 @@ if [ $ret_val -eq "0" ]; then
       if [ $ret_val -eq "0" ]; then
         createrepo_update "${TARGET}/${arch_repo}" "${REVISION}"
         fix_metadata "${TARGET}/${arch_repo}/repodata/repomd.xml"
-        sign_data "${TARGET}/${arch_repo}/repodata/repomd.xml"
+        sign_data "${TARGET}/${arch_repo}/repodata/repomd.xml" "${RLVER}"
       else
         echo "${arch_repo} not found"
       fi

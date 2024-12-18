@@ -285,7 +285,8 @@ function modifyrepo_module() {
 
 function sign_data() {
   local TARGET="${1}"
-  test -f /root/bin/sign-repo.sh && /root/bin/sign-repo.sh \
+  local VER="${2}"
+  test -f "/root/bin/sign-repo-${VER}.sh" && "/root/bin/sign-repo-${VER}.sh" \
     "${TARGET}"
 }
 

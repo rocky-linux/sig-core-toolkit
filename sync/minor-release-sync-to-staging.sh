@@ -105,8 +105,8 @@ fi
 # Change Symlink if required
 echo "Setting symlink to ${REV}"
 pushd "${STAGING_ROOT}/${CATEGORY_STUB}" || exit
-/bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/latest-8"
-ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" latest-8
+/bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/latest-${MAJ}"
+ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" "latest-${MAJ}"
 echo "Attempting hard link"
 perform_hardlink "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
 popd || exit
