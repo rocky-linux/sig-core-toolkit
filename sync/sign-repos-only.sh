@@ -2,6 +2,7 @@
 # Signs repo metadata only
 # shellcheck disable=SC2046,1091,1090
 source "$(dirname "$0")/common"
+MAJ=${RLVER}
 
 echo "** Signing source repos"
 for y in "${ALL_REPOS[@]}"; do
