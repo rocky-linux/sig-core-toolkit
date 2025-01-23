@@ -107,7 +107,10 @@ class RepoSync:
         self.project_id = rlvars['project_id']
         self.repo_renames = rlvars['renames']
         self.repos = rlvars['all_repos']
-        self.extra_repos = rlvars['extra_repos']
+        if 'extra_repos' in rlvars:
+            self.extra_repos = rlvars['extra_repos']
+        else:
+            self.extra_repos = ['']
         self.multilib = rlvars['provide_multilib']
         self.repo = repo
         self.extra_files = rlvars['extra_files']
