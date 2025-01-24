@@ -866,6 +866,7 @@ class IsoBuild:
         mock_iso_template_output = mock_iso_template.render(
                 arch=self.current_arch,
                 major=self.major_version,
+                releasever=self.release,
                 fullname=self.fullname,
                 shortname=self.shortname,
                 required_pkgs=required_pkgs,
@@ -879,6 +880,7 @@ class IsoBuild:
         mock_sh_template_output = mock_sh_template.render(
                 arch=self.current_arch,
                 major=self.major_version,
+                releasever=self.release,
                 isolation=self.mock_isolation,
                 builddir=self.mock_work_root,
                 shortname=self.shortname,

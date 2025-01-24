@@ -107,7 +107,10 @@ class RepoSync:
         self.project_id = rlvars['project_id']
         self.repo_renames = rlvars['renames']
         self.repos = rlvars['all_repos']
-        self.extra_repos = rlvars['extra_repos']
+        if 'extra_repos' in rlvars:
+            self.extra_repos = rlvars['extra_repos']
+        else:
+            self.extra_repos = ['']
         self.multilib = rlvars['provide_multilib']
         self.repo = repo
         self.extra_files = rlvars['extra_files']
@@ -669,7 +672,10 @@ class RepoSync:
             repoclosure_entry_name_list = []
             self.log.info('Setting up repoclosure for {}'.format(repo))
 
-            for arch in self.repoclosure_map['arches']:
+            arches_for_repoclosure = self.arches
+            if self.arch:
+                arches_for_repoclosure = self.arch.split(',')
+            for arch in arches_for_repoclosure:
                 repo_combination = []
                 repoclosure_entry_name = f'repoclosure-{repo}-{arch}'
                 repoclosure_entry_name_list.append(repoclosure_entry_name)
