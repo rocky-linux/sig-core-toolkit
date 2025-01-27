@@ -15,6 +15,7 @@ IGNORES = [
         'shim-unsigned-x64',
         'shim-unsigned-aarch64',
         'redhat-cloud-client-configuration',
+        'redhat-cloud-client-configuration-cdn',
         'rhc',
         'rhc-worker-playbook',
         'centos-indexhtml',
