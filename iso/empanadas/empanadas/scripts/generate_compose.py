@@ -7,7 +7,6 @@ import sys
 
 from empanadas.common import *
 from empanadas.util import Checks
-from empanadas.util import RepoSync
 from empanadas.util import Shared
 
 # Start up the parser baby

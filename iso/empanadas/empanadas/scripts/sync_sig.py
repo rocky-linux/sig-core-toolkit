@@ -5,10 +5,6 @@ from empanadas.common import *
 from empanadas.util import Checks
 from empanadas.util import SigRepoSync
 
-#rlvars = rldict['9']
-#r = Checks(rlvars, config['arch'])
-#r.check_validity()
-
 # Start up the parser baby
 parser = argparse.ArgumentParser(description="Peridot Sync and Compose")
 

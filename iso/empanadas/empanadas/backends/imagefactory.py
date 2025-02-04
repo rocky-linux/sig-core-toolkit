@@ -275,7 +275,6 @@ class ImageFactoryBackend(BackendInterface):
                     "VMware": {"format": "vmdk", "provider": "vmware_desktop"}
                     }
             output = f"{_map[self.ctx.variant]['format']}"  # type: ignore
-            provider = f"{_map[self.ctx.variant]['provider']}"  # type: ignore
 
             # pop from the options map that will be passed to the vagrant metadata.json
             convert_options = _map[self.ctx.variant].pop('convertOptions') if 'convertOptions' in _map[self.ctx.variant].keys() else ''  # type: ignore

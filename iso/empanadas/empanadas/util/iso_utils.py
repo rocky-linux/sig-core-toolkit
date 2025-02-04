@@ -7,30 +7,13 @@ Louis Abel <label AT rockylinux.org>
 import logging
 import sys
 import os
-import os.path
 import subprocess
 import shlex
 import time
 import tarfile
 import shutil
 
-# lazy person's s3 parser
-#import requests
-#import json
-#import xmltodict
-# if we can access s3
-#import boto3
-# relative_path, compute_file_checksums
-import kobo.shortcuts
 from fnmatch import fnmatch
-
-# This is for treeinfo
-from configparser import ConfigParser
-from productmd.common import SortedConfigParser
-from productmd.images import Image
-from productmd.extra_files import ExtraFiles
-import productmd.treeinfo
-# End treeinfo
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -81,7 +64,6 @@ class IsoBuild:
         self.compose_root = config['compose_root']
         self.compose_base = config['compose_root'] + "/" + major
         self.current_arch = config['arch']
-        #self.required_pkgs = rlvars['iso_map']['lorax']['required_pkgs']
         self.mock_work_root = config['mock_work_root']
         self.lorax_result_root = config['mock_work_root'] + "/" + "lorax"
         self.mock_isolation = isolation
@@ -139,9 +121,6 @@ class IsoBuild:
         else:
             self.s3_bucket_url = config['bucket_url']
 
-        #if s3:
-        #    self.s3 = boto3.client('s3')
-
         # Templates
         file_loader = FileSystemLoader(f"{_rootdir}/templates")
         self.tmplenv = Environment(loader=file_loader)
@@ -157,19 +136,9 @@ class IsoBuild:
                 "compose"
         )
 
-        self.compose_log_dir = os.path.join(
-                self.compose_latest_dir,
-                "work/logs"
-        )
-
         self.iso_work_dir = os.path.join(
                 self.compose_latest_dir,
                 "work/isos"
-        )
-
-        self.live_work_dir = os.path.join(
-                self.compose_latest_dir,
-                "work/live"
         )
 
         self.image_work_dir = os.path.join(
@@ -209,16 +178,7 @@ class IsoBuild:
         self.log.info(self.revision_level)
 
     def run(self):
-        work_root = os.path.join(
-                self.compose_latest_dir,
-                'work'
-        )
         sync_root = self.compose_latest_sync
-
-        log_root = os.path.join(
-                work_root,
-                "logs"
-        )
 
         self.iso_build()
 
@@ -336,10 +296,8 @@ class IsoBuild:
         """
         # Determine if we're only managing one architecture out of all of them.
         # It does not hurt to do everything at once. But the option is there.
-        unpack_single_arch = False
         arches_to_unpack = self.arches
         if self.arch:
-            unpack_single_arch = True
             arches_to_unpack = [self.arch]
 
         self.log.info(Color.INFO + 'Determining the latest pulls...')
@@ -473,11 +431,6 @@ class IsoBuild:
                 self.lorax_work_dir,
                 arch,
                 'lorax'
-        )
-
-        iso_to_go = os.path.join(
-                self.iso_work_dir,
-                arch
         )
 
         if not os.path.exists(os.path.join(src_to_image, '.treeinfo')):
@@ -662,14 +615,7 @@ class IsoBuild:
         5. Modify (1) .treeinfo, keep out boot.iso checksum
         6. Create a .treeinfo for AppStream
         """
-        unpack_single_arch = False
-        arches_to_unpack = self.arches
-        if self.arch:
-            unpack_single_arch = True
-            arches_to_unpack = [self.arch]
-
         self._sync_boot(force_unpack=self.force_unpack, arch=self.arch, image=None)
-        #self._treeinfo_write(arch=self.arch)
 
     def _sync_boot(self, force_unpack, arch, image):
         """
@@ -756,15 +702,6 @@ class IsoBuild:
             if 'reposcan' in self.iso_map['images'][y] and not self.iso_map['images'][y]['reposcan']:
                 self.log.info(Color.WARN + f"Skipping compose repository scans for {y}")
                 reposcan = False
-
-            # Kind of hacky, but if we decide to have more than boot/dvd iso's,
-            # we need to make sure volname matches the initial lorax image,
-            # which the volid contains "dvd". AKA, file name doesn't always
-            # equate to volume ID
-            if 'volname' in self.iso_map['images'][y]:
-                volname = self.iso_map['images'][y]['volname']
-            else:
-                volname = y
 
             for a in arches_to_build:
                 lorax_path = os.path.join(self.lorax_work_dir, a, 'lorax', '.treeinfo')
@@ -997,7 +934,6 @@ class IsoBuild:
 
         for i in images:
             entry_name_list = []
-            image_name = i
             arch_sync = arches.copy()
 
             for a in arch_sync:
@@ -1050,7 +986,7 @@ class IsoBuild:
                         self.container
                 )
 
-                process = subprocess.call(
+                subprocess.call(
                         shlex.split(podman_cmd_entry),
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
@@ -1061,7 +997,7 @@ class IsoBuild:
             self.log.info(Color.INFO + 'Building ' + i + ' ...')
             pod_watcher = f'{cmd} wait {join_all_pods}'
 
-            watch_man = subprocess.call(
+            subprocess.call(
                     shlex.split(pod_watcher),
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
@@ -1069,7 +1005,6 @@ class IsoBuild:
 
             # After the above is done, we'll check each pod process for an exit
             # code.
-            pattern = "Exited (0)"
             for pod in entry_name_list:
                 checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
@@ -1086,7 +1021,7 @@ class IsoBuild:
 
             rmcmd = f'{cmd} rm {join_all_pods}'
 
-            rmpod = subprocess.Popen(
+            subprocess.Popen(
                     rmcmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
@@ -1193,7 +1128,6 @@ class IsoBuild:
 
         try:
             with open(boot_manifest) as i:
-        #        ignores = set(line.lstrip("/").rstrip("\n") for line in i)
                 for line in i:
                     path = line.lstrip("/").rstrip("\n")
                     if path in updatable_files:
@@ -1212,8 +1146,7 @@ class IsoBuild:
                 update=updatables
         )
 
-        grafters = xorrs
-        return grafters
+        return xorrs
 
     def _get_grafts(self, paths, exclusive_paths=None, exclude=None):
         """
@@ -1282,12 +1215,10 @@ class IsoBuild:
                 replace = False
                 for upda in update:
                     if fnmatch(zm, upda):
-                        #print(f'updating: {zm} {upda}')
                         replace = True
                         break
                 for excl in exclude:
                     if fnmatch(zm, excl):
-                        #print(f'ignoring: {zm} {excl}')
                         found = True
                         break
                 if found:
@@ -1300,12 +1231,6 @@ class IsoBuild:
         """
         Pulls ISO's made in v2
         """
-        arches_to_unpack = self.arches
-        latest_artifacts = {}
-        if self.arch:
-            unpack_single_arch = True
-            arches_to_unpack = [self.arch]
-
         print("not supported")
         sys.exit(1)
 
@@ -1315,11 +1240,9 @@ class IsoBuild:
         to be. This relies on a list called "cloudimages" in the version
         configuration.
         """
-        unpack_single_arch = False
         arches_to_unpack = self.arches
         latest_artifacts = {}
         if self.arch:
-            unpack_single_arch = True
             arches_to_unpack = [self.arch]
 
         for name, extra in self.cloudimages['images'].items():
@@ -1369,7 +1292,6 @@ class IsoBuild:
             del variantname
             del variants
 
-        #print(latest_artifacts)
         for keyname in latest_artifacts.keys():
             primary = latest_artifacts[keyname]['primary']
             filetype = latest_artifacts[keyname]['formattype']
@@ -1406,7 +1328,6 @@ class IsoBuild:
                         fsuffix = drop_name.replace('layer', '')
                         drop_name = source_path.split('/')[-3] + fsuffix
 
-                    checksum_name = drop_name + '.CHECKSUM'
                     full_drop = f'{image_arch_dir}/{drop_name}'
 
                     checksum_drop = f'{image_arch_dir}/{drop_name}.CHECKSUM'
@@ -1553,7 +1474,6 @@ class LiveBuild:
         self.compose_base = config['compose_root'] + "/" + major
         self.current_arch = config['arch']
         self.livemap = rlvars['livemap']
-        #self.required_pkgs = rlvars['livemap']['required_pkgs']
         self.mock_work_root = config['mock_work_root']
         self.live_result_root = config['mock_work_root'] + "/lmc"
         self.mock_isolation = isolation
@@ -1718,7 +1638,6 @@ class LiveBuild:
                 raise SystemExit()
 
         if self.live_iso_mode == 'podman':
-            #self._live_iso_podman_run(self.current_arch, images_to_build, work_root)
             self.log.error(Color.FAIL + 'At this time, live images cannot be ' +
                     'built in podman.')
             raise SystemExit()
@@ -1857,7 +1776,6 @@ class LiveBuild:
         self.log.warning(Color.WARN + 'There is no support for podman in empanadas.')
         self.log.warning(Color.WARN + "If this fails, it's on you to determine the fix.")
         for i in images:
-            image_name = i
             entry_name = f'buildLiveImage-{arch}-{i}.sh'
             entry_name_list.append(entry_name)
 
@@ -1879,7 +1797,7 @@ class LiveBuild:
                     self.container
             )
 
-            process = subprocess.call(
+            subprocess.call(
                     shlex.split(podman_cmd_entry),
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
@@ -1891,7 +1809,7 @@ class LiveBuild:
 
         pod_watcher = f'{cmd} wait {join_all_pods}'
 
-        watch_man = subprocess.call(
+        subprocess.call(
                 shlex.split(pod_watcher),
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
@@ -1899,7 +1817,6 @@ class LiveBuild:
 
         # After the above is done, we'll check each pod process for an exit
         # code.
-        pattern = "Exited (0)"
         for pod in entry_name_list:
             checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
             podcheck = subprocess.Popen(
@@ -1909,14 +1826,14 @@ class LiveBuild:
                     shell=True
             )
 
-            output, errors = podcheck.communicate()
+            output, _ = podcheck.communicate()
             if 'Exited (0)' not in output.decode():
                 self.log.error(Color.FAIL + pod)
                 bad_exit_list.append(pod)
 
         rmcmd = f'{cmd} rm {join_all_pods}'
 
-        rmpod = subprocess.Popen(
+        subprocess.Popen(
                 rmcmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,

@@ -3,16 +3,14 @@ Syncs yum repos for mirroring and composing.
 
 Louis Abel <label AT rockylinux.org>
 """
-#import shutil
+
 import logging
 import sys
 import os
-import os.path
 import subprocess
 import shlex
 import time
 import glob
-#import pipes
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -20,14 +18,6 @@ import empanadas
 from empanadas.common import Color, _rootdir
 from empanadas.util import Shared
 
-# initial treeinfo data is made here
-import productmd.treeinfo
-
-#HAS_LIBREPO = True
-#try:
-#    import librepo
-#except:
-#    HAS_LIBREPO = False
 
 class RepoSync:
     """
@@ -298,7 +288,6 @@ class RepoSync:
             Shared.deploy_extra_files(self.extra_files, sync_root, global_work_root, self.log)
             self.deploy_treeinfo(self.repo, sync_root, self.arch)
             self.tweak_treeinfo(self.repo, sync_root, self.arch)
-            #self.symlink_to_latest(generated_dir)
             Shared.symlink_to_latest(self.shortname, self.major_version,
                     generated_dir, self.compose_latest_dir, self.log)
 
@@ -354,9 +343,7 @@ class RepoSync:
         wait till all is finished
         """
         cmd = Shared.podman_cmd(self.log)
-        contrunlist = []
         bad_exit_list = []
-        extra_dnf_args = ' '.join(self.extra_dnf_args.copy())
         reposync_delete = '--delete' if self.reposync_clean_old else ''
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
@@ -569,7 +556,6 @@ class RepoSync:
             # Spawn up all podman processes for repo
             self.log.info(Color.INFO + 'Starting podman processes for %s ...' % r)
 
-            #print(entry_name_list)
             for pod in entry_name_list:
                 podman_cmd_entry = '{} run -d -it --security-opt label=disable -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
@@ -584,8 +570,7 @@ class RepoSync:
                         pod,
                         self.container
                 )
-                #print(podman_cmd_entry)
-                process = subprocess.call(
+                subprocess.call(
                         shlex.split(podman_cmd_entry),
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
@@ -597,8 +582,7 @@ class RepoSync:
             self.log.info(Color.INFO + 'Arches: ' + ' '.join(arch_sync))
             pod_watcher = f'{cmd} wait {join_all_pods}'
 
-            #print(pod_watcher)
-            watch_man = subprocess.call(
+            subprocess.call(
                     shlex.split(pod_watcher),
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
@@ -606,7 +590,6 @@ class RepoSync:
 
             # After the above is done, we'll check each pod process for an exit
             # code.
-            pattern = "Exited (0)"
             for pod in entry_name_list:
                 checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
@@ -623,7 +606,7 @@ class RepoSync:
 
             rmcmd = f'{cmd} rm {join_all_pods}'
 
-            rmpod = subprocess.Popen(
+            subprocess.Popen(
                     rmcmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
@@ -741,8 +724,7 @@ class RepoSync:
                         pod,
                         self.container
                 )
-                #print(podman_cmd_entry)
-                process = subprocess.call(
+                subprocess.call(
                         shlex.split(podman_cmd_entry),
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
@@ -753,7 +735,7 @@ class RepoSync:
             self.log.info('Performing repoclosure on %s ... ' % repo)
             pod_watcher = f'{cmd} wait {join_all_pods}'
 
-            watch_man = subprocess.call(
+            subprocess.call(
                     shlex.split(pod_watcher),
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
@@ -775,7 +757,7 @@ class RepoSync:
 
             rmcmd = f'{cmd} rm {join_all_pods}'
 
-            rmpod = subprocess.Popen(
+            subprocess.Popen(
                     rmcmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
@@ -871,7 +853,6 @@ class RepoSync:
 
         # If a treeinfo or discinfo file exists, it should be skipped.
         for r in repos_to_tree:
-            entry_name_list = []
             repo_name = r
             arch_tree = arches_to_tree.copy()
 
@@ -1198,10 +1179,6 @@ class RepoSync:
             repos_to_tree = repo.split(',')
 
         for r in repos_to_tree:
-            entry_name_list = []
-            repo_name = r
-            arch_tree = arches_to_tree.copy()
-
             if r in self.iso_map['images']:
                 variants_to_tweak.append(r)
 
@@ -1232,7 +1209,6 @@ class RepoSync:
                     self.log.error(Color.FAIL + 'There was an error writing os treeinfo.')
                     self.log.error(e)
 
-                #if self.fullrun:
                 ksimage = os.path.join(sync_root, v, a, 'kickstart')
                 ksdata = {
                         'arch': a,
@@ -1293,12 +1269,6 @@ class RepoSync:
             )
             raise SystemExit()
 
-        log_root = os.path.join(
-                work_root,
-                "logs",
-                self.date_stamp
-        )
-
         iso_root = os.path.join(
                 work_root,
                 "isos"
@@ -1322,11 +1292,6 @@ class RepoSync:
         sync_images_root = os.path.join(
                 sync_root,
                 'images'
-        )
-
-        global_work_root = os.path.join(
-                work_root,
-                "global",
         )
 
         # Standard ISOs
@@ -1537,8 +1502,7 @@ class RepoSync:
                         pod,
                         self.container
                 )
-                #print(podman_cmd_entry)
-                process = subprocess.call(
+                subprocess.call(
                         shlex.split(podman_cmd_entry),
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
@@ -1549,7 +1513,7 @@ class RepoSync:
             self.log.info('Performing repoclosure on %s ... ' % repo)
             pod_watcher = f'{cmd} wait {join_all_pods}'
 
-            watch_man = subprocess.call(
+            subprocess.call(
                     shlex.split(pod_watcher),
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
@@ -1571,7 +1535,7 @@ class RepoSync:
 
             rmcmd = f'{cmd} rm {join_all_pods}'
 
-            rmpod = subprocess.Popen(
+            subprocess.Popen(
                     rmcmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
@@ -1658,7 +1622,6 @@ class SigRepoSync:
         self.gpgkey = sigvars['gpg_key']
         if 'repo_gpg_key' in sigvars:
             self.gpgkey = sigvars['gpg_key'] + sigvars['repo_gpg_key']
-        #self.arches = sigvars['allowed_arches']
         self.project_id = sigvars['project_id']
         if 'additional_dirs' in sigvars:
             self.additional_dirs = sigvars['additional_dirs']
@@ -1878,7 +1841,6 @@ class SigRepoSync:
         """
         cmd = Shared.podman_cmd(self.log)
         bad_exit_list = []
-        extra_dnf_args = ' '.join(self.extra_dnf_args.copy())
         reposync_delete = '--delete' if self.reposync_clean_old else ''
         self.log.info('Generating container entries')
         entries_dir = os.path.join(work_root, "entries")
@@ -2058,7 +2020,6 @@ class SigRepoSync:
             # Spawn up all podman processes for repo
             self.log.info(Color.INFO + 'Starting podman processes for %s ...' % r)
 
-            #print(entry_name_list)
             for pod in entry_name_list:
                 podman_cmd_entry = '{} run -d -it --security-opt label=disable -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
@@ -2073,8 +2034,7 @@ class SigRepoSync:
                         pod,
                         self.container
                 )
-                #print(podman_cmd_entry)
-                process = subprocess.call(
+                subprocess.call(
                         shlex.split(podman_cmd_entry),
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
@@ -2086,8 +2046,7 @@ class SigRepoSync:
             self.log.info(Color.INFO + 'Arches: ' + ' '.join(arch_sync))
             pod_watcher = f'{cmd} wait {join_all_pods}'
 
-            #print(pod_watcher)
-            watch_man = subprocess.call(
+            subprocess.call(
                     shlex.split(pod_watcher),
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
@@ -2095,7 +2054,6 @@ class SigRepoSync:
 
             # After the above is done, we'll check each pod process for an exit
             # code.
-            pattern = "Exited (0)"
             for pod in entry_name_list:
                 checkcmd = f'{cmd} ps -f status=exited -f name={pod}'
                 podcheck = subprocess.Popen(
@@ -2112,7 +2070,7 @@ class SigRepoSync:
 
             rmcmd = f'{cmd} rm {join_all_pods}'
 
-            rmpod = subprocess.Popen(
+            subprocess.Popen(
                     rmcmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,

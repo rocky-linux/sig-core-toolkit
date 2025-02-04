@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import os.path
 import json
 import argparse
 import dnf

@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-import os
 import pathlib
 
 from attrs import define, field

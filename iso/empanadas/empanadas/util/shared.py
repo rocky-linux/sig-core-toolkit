@@ -6,7 +6,6 @@ import hashlib
 import shlex
 import subprocess
 import shutil
-import tarfile
 import yaml
 import requests
 import boto3
@@ -141,7 +140,6 @@ class Shared:
         the case of modifying treeinfo for primary repos or images.
         """
         arch = data['arch']
-        variant = data['variant']
         variant_path = data['variant_path']
         checksum = data['checksum']
         distname = data['distname']
@@ -160,7 +158,6 @@ class Shared:
         treeinfo = os.path.join(image, '.treeinfo')
         discinfo = os.path.join(image, '.discinfo')
         mediarepo = os.path.join(image, 'media.repo')
-        #imagemap = self.iso_map['images'][variant]
         primary = imagemap['variant']
         repos = imagemap['repos']
         is_disc = False
@@ -211,7 +208,6 @@ class Shared:
         # Fedora, ELN, and RHEL in general. This is the general structure,
         # apparently. But there could be a chance it'll change. We may need to
         # put in a configuration to deal with it at some point.
-        #ti.variants.variants.clear()
         for y in repos:
             if y in ti.variants.variants.keys():
                 vari = ti.variants.variants[y]
@@ -544,7 +540,6 @@ class Shared:
         switches = '-vrlptDSHog --chown=10004:10005 --progress --human-readable --delete'
         rsync_command = f'{cmd} {switches} {src}/ {dest}'
 
-        #os.makedirs(dest, exist_ok=True)
         process = subprocess.call(
                 shlex.split(rsync_command),
                 stdout=subprocess.DEVNULL,
@@ -820,15 +815,9 @@ class Shared:
             use_xorrisofs=False,
             iso_level=None,
     ):
-        # I should hardcode this I think
-        #untranslated_filenames = True
         translation_table = True
-        #joliet = True
-        #joliet_long = True
-        #rock = True
         cmd = ["/usr/bin/xorrisofs" if use_xorrisofs else "/usr/bin/genisoimage"]
         if not os.path.exists(cmd[0]):
-            #logger.error('%s was not found. Good bye.' % cmd[0])
             raise SystemExit("\n\n" + cmd[0] + " was not found.\n\nPlease "
                     " ensure that you have installed the necessary packages on "
                     " this system. "
@@ -840,22 +829,18 @@ class Shared:
         if appid:
             cmd.extend(["-appid", appid])
 
-        #if untranslated_filenames:
         cmd.append("-untranslated-filenames")
 
         if volid:
             cmd.extend(["-volid", volid])
 
-        #if joliet:
         cmd.append("-J")
 
-        #if joliet_long:
         cmd.append("-joliet-long")
 
         if volset:
             cmd.extend(["-volset", volset])
 
-        #if rock:
         cmd.append("-rational-rock")
 
         if not use_xorrisofs and translation_table:
@@ -1082,8 +1067,6 @@ class Shared:
         might also deploy COMPOSE_ID and maybe in the future a metadata dir with
         a bunch of compose-esque stuff.
         """
-        #logger.info(Color.INFO + 'Deploying treeinfo, discinfo, and media.repo')
-
         cmd = Shared.git_cmd(logger)
         tmpclone = '/tmp/clone'
         extra_files_dir = os.path.join(
@@ -1107,7 +1090,7 @@ class Shared:
                 tmpclone
         )
 
-        git_clone = subprocess.call(
+        subprocess.call(
                 shlex.split(clonecmd),
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
@@ -1173,10 +1156,8 @@ class Shared:
         This is for normal dnf syncs. This is very slow.
         """
         cmd = Shared.reposync_cmd(logger)
-        sync_single_arch = False
         arches_to_sync = data.arches
         if arch:
-            sync_single_arch = True
             arches_to_sync = [arch]
 
         logger.info(
@@ -1227,14 +1208,13 @@ class Shared:
                 )
 
                 logger.info('Syncing {} {}'.format(r, a))
-                #logger.info(sync_cmd)
                 # Try to figure out where to send the actual output of this...
                 # Also consider on running a try/except here? Basically if
                 # something happens (like a repo doesn't exist for some arch,
                 # eg RT for aarch64), make a note of it somehow (but don't
                 # break the entire sync). As it stands with this
                 # implementation, if something fails, it just continues on.
-                process = subprocess.call(
+                subprocess.call(
                         shlex.split(sync_cmd),
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
@@ -1242,7 +1222,7 @@ class Shared:
 
                 if not data.ignore_debug:
                     logger.info('Syncing {} {} (debug)'.format(r, a))
-                    process_debug = subprocess.call(
+                    subprocess.call(
                             shlex.split(debug_sync_cmd),
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL
@@ -1267,7 +1247,7 @@ class Shared:
 
 
                 logger.info('Syncing {} source'.format(r))
-                process_source = subprocess.call(
+                subprocess.call(
                         shlex.split(source_sync_cmd),
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL

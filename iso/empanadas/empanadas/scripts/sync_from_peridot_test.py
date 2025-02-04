@@ -1,7 +1,5 @@
 # This is a testing script to ensure the RepoSync class is working as intended.
 
-import argparse
-
 import empanadas
 from empanadas.common import *
 from empanadas.util import Checks

@@ -3,7 +3,6 @@
 import argparse
 
 from empanadas.common import *
-from empanadas.util import Checks
 from empanadas.util import IsoBuild
 
 parser = argparse.ArgumentParser(description="ISO Artifact Builder")
