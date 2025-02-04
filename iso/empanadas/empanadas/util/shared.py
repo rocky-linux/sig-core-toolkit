@@ -82,7 +82,6 @@ class Shared:
                         break
                     checksum.update(chunk)
 
-                input_file.close()
         except IOError as exc:
             logger.error("Could not open file %s: %s", path, exc)
             return False
@@ -274,11 +273,9 @@ class Shared:
 
         with open(file_path + ".json", "w+") as fp:
             json.dump(metadata, fp, indent=4)
-            fp.close()
 
         with open(file_path + ".yaml", "w+") as yp:
             yaml.dump(metadata, yp)
-            yp.close()
 
     @staticmethod
     def discinfo_write(timestamp, fullname, arch, file_path):
@@ -295,7 +292,6 @@ class Shared:
 
         with open(file_path, "w+") as f:
             f.write("\n".join(data))
-            f.close()
 
     @staticmethod
     def media_repo_write(timestamp, fullname, file_path):
@@ -479,7 +475,6 @@ class Shared:
         # create dest_path
         if not os.path.exists(dest_path):
             os.makedirs(dest_path, exist_ok=True)
-        config_file = open(fname, "w+")
 
         repolist = []
         for repo in repos:
@@ -525,9 +520,9 @@ class Shared:
                 gpg_check=gpg_check,
                 repo_gpg_check=repo_gpg_check
         )
-        config_file.write(output)
+        with open(fname, "w+") as config_file:
+            config_file.write(output)
 
-        config_file.close()
         return fname
 
     @staticmethod
@@ -713,8 +708,6 @@ class Shared:
             with requests.get(unurl, allow_redirects=True) as r:
                 with open(dest, 'wb') as f:
                     f.write(r.content)
-                    f.close()
-                r.close()
         except requests.exceptions.RequestException as e:
             logger.error('There was a problem downloading the artifact')
             raise SystemExit(e)
@@ -1036,11 +1029,9 @@ class Shared:
 
         with open(cijson, 'r') as cidump:
             jsonData = json.load(cidump)
-            cidump.close()
 
         with open(ciyaml, 'w+') as ymdump:
             yaml.dump(jsonData, ymdump)
-            ymdump.close()
 
     @staticmethod
     def symlink_to_latest(shortname, major_version, generated_dir, compose_latest_dir, logger):

@@ -458,14 +458,11 @@ class RepoSync:
                         download_path=debug_sync_path
                 )
 
-                entry_point_open = open(entry_point_sh, "w+")
-                debug_entry_point_open = open(debug_entry_point_sh, "w+")
+                with open(entry_point_sh, "w+") as entry_point:
+                    entry_point.write(sync_output)
 
-                entry_point_open.write(sync_output)
-                debug_entry_point_open.write(debug_sync_output)
-
-                entry_point_open.close()
-                debug_entry_point_open.close()
+                with open(debug_entry_point_sh, "w+") as debug_entry_point:
+                    debug_entry_point.write(debug_sync_output)
 
                 os.chmod(entry_point_sh, 0o755)
                 os.chmod(debug_entry_point_sh, 0o755)
@@ -507,9 +504,8 @@ class RepoSync:
                             metadata_cmd=ks_metadata_cmd,
                             sync_log=ks_sync_log
                     )
-                    ks_entry_point_open = open(ks_point_sh, "w+")
-                    ks_entry_point_open.write(ks_sync_output)
-                    ks_entry_point_open.close()
+                    with open(ks_point_sh, "w+") as ks_entry_point:
+                        ks_entry_point.write(ks_sync_output)
                     os.chmod(ks_point_sh, 0o755)
 
             # We ignoring sources?
@@ -548,9 +544,8 @@ class RepoSync:
                         sync_log=source_sync_log
                 )
 
-                source_entry_point_open = open(source_entry_point_sh, "w+")
-                source_entry_point_open.write(source_sync_output)
-                source_entry_point_open.close()
+                with open(source_entry_point_sh, "w+") as source_entry_point:
+                    source_entry_point.write(source_sync_output)
                 os.chmod(source_entry_point_sh, 0o755)
 
             # Spawn up all podman processes for repo
@@ -704,7 +699,6 @@ class RepoSync:
                     rcep.write('/usr/bin/dnf install dnf-plugins-core -y\n')
                     rcep.write('/usr/bin/dnf clean all\n')
                     rcep.write(repoclosure_cmd + '\n')
-                    rcep.close()
 
                 os.chmod(repoclosure_entry_point_sh, 0o755)
                 repo_combination.clear()
@@ -797,7 +791,6 @@ class RepoSync:
 
         with open(metadata_dir + '/COMPOSE_ID', "w+") as f:
             f.write(self.compose_id)
-            f.close()
 
         Shared.write_metadata(
                 self.timestamp,
@@ -832,7 +825,6 @@ class RepoSync:
 
         with open(metadata_dir + '/README', 'w+', encoding='utf-8') as readme_file:
             readme_file.write(readme_output)
-            readme_file.close()
 
 
     def deploy_treeinfo(self, repo, sync_root, arch, refresh=False):
@@ -1355,8 +1347,6 @@ class RepoSync:
                         with open(check, 'r', encoding='utf-8') as sum:
                             for line in sum:
                                 fp.write(line)
-                            sum.close()
-                    fp.close()
 
             live_arch_root = os.path.join(sync_live_root, arch)
             live_arch_checksum = os.path.join(live_arch_root, 'CHECKSUM')
@@ -1366,8 +1356,6 @@ class RepoSync:
                         with open(lcheck, 'r', encoding='utf-8') as sum:
                             for line in sum:
                                 lp.write(line)
-                            sum.close()
-                    lp.close()
 
             images_arch_root = os.path.join(sync_images_root, arch)
             images_arch_checksum = os.path.join(images_arch_root, 'CHECKSUM')
@@ -1377,8 +1365,6 @@ class RepoSync:
                         with open(icheck, 'r', encoding='utf-8') as sum:
                             for line in sum:
                                 ip.write(line)
-                            sum.close()
-                    ip.close()
 
         # Deploy final metadata for a close out
         self.deploy_metadata(sync_root)
@@ -1483,7 +1469,6 @@ class RepoSync:
                     rcep.write('/usr/bin/dnf install dnf-plugins-core -y\n')
                     rcep.write('/usr/bin/dnf clean all\n')
                     rcep.write(repoclosure_cmd + '\n')
-                    rcep.close()
                 os.chmod(repoclosure_entry_point_sh, 0o755)
                 repo_combination.clear()
 
@@ -1952,14 +1937,10 @@ class SigRepoSync:
                         deploy_extra_files=True
                 )
 
-                entry_point_open = open(entry_point_sh, "w+")
-                debug_entry_point_open = open(debug_entry_point_sh, "w+")
-
-                entry_point_open.write(sync_output)
-                debug_entry_point_open.write(debug_sync_output)
-
-                entry_point_open.close()
-                debug_entry_point_open.close()
+                with open(entry_point_sh, "w+") as entry_point:
+                    entry_point.write(sync_output)
+                with open(debug_entry_point_sh, "w+") as debug_entry_point:
+                    debug_entry_point.write(debug_sync_output)
 
                 os.chmod(entry_point_sh, 0o755)
                 os.chmod(debug_entry_point_sh, 0o755)
@@ -2012,9 +1993,8 @@ class SigRepoSync:
                         deploy_extra_files=True
                 )
 
-                source_entry_point_open = open(source_entry_point_sh, "w+")
-                source_entry_point_open.write(source_sync_output)
-                source_entry_point_open.close()
+                with open(source_entry_point_sh, "w+") as source_entry_point:
+                    source_entry_point.write(source_sync_output)
                 os.chmod(source_entry_point_sh, 0o755)
 
             # Spawn up all podman processes for repo
@@ -2115,7 +2095,6 @@ class SigRepoSync:
 
         with open(metadata_dir + '/COMPOSE_ID', "w+") as f:
             f.write(self.compose_id)
-            f.close()
 
         Shared.write_metadata(
                 self.timestamp,

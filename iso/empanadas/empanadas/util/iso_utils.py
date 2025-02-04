@@ -263,15 +263,12 @@ class IsoBuild:
 
         with open(mock_iso_path, "w+") as mock_iso_entry:
             mock_iso_entry.write(mock_iso_template_output)
-            mock_iso_entry.close()
 
         with open(mock_sh_path, "w+") as mock_sh_entry:
             mock_sh_entry.write(mock_sh_template_output)
-            mock_sh_entry.close()
 
         with open(iso_template_path, "w+") as iso_template_entry:
             iso_template_entry.write(iso_template_output)
-            iso_template_entry.close()
 
         os.chmod(mock_sh_path, 0o755)
         os.chmod(iso_template_path, 0o755)
@@ -421,7 +418,6 @@ class IsoBuild:
         self.log.info('Unpacking %s' % tarball)
         with tarfile.open(tarball) as t:
             Shared.tar_safe_extractall(t, unpack_dir)
-            t.close()
 
     def _copy_lorax_to_variant(self, force_unpack, arch, image):
         """
@@ -526,7 +522,6 @@ class IsoBuild:
             return
         with open(isobootpath + '.CHECKSUM', "w+") as c:
             c.write(checksum)
-            c.close()
 
         # For Rocky-ARCH-boot.iso
         linksum = Shared.get_checksum(linkbootpath, self.checksum, self.log)
@@ -535,7 +530,6 @@ class IsoBuild:
             return
         with open(linkbootpath + '.CHECKSUM', "w+") as l:
             l.write(linksum)
-            l.close()
 
         # For Rocky-X-latest-ARCH-boot.iso
         latestlinksum = Shared.get_checksum(latestlinkbootpath, self.checksum, self.log)
@@ -544,7 +538,6 @@ class IsoBuild:
             return
         with open(latestlinkbootpath + '.CHECKSUM', "w+") as l:
             l.write(latestlinksum)
-            l.close()
 
     def _copy_nondisc_to_repo(self, force_unpack, arch, repo):
         """
@@ -839,7 +832,6 @@ class IsoBuild:
         # Generate a xorriso compatible dialog
         with open(grafts) as xp:
             xorpoint = xp.read()
-            xp.close()
         xorriso_template_output = xorriso_template.render(
                 boot_iso=boot_iso,
                 isoname=isoname,
@@ -849,7 +841,6 @@ class IsoBuild:
         )
         with open(xorriso_template_path, "w+") as xorriso_template_entry:
             xorriso_template_entry.write(xorriso_template_output)
-            xorriso_template_entry.close()
         opts['graft_points'] = xorriso_template_path
 
         make_image = '{} {}'.format(
@@ -878,19 +869,15 @@ class IsoBuild:
 
         with open(mock_iso_path, "w+") as mock_iso_entry:
             mock_iso_entry.write(mock_iso_template_output)
-            mock_iso_entry.close()
 
         with open(mock_sh_path, "w+") as mock_sh_entry:
             mock_sh_entry.write(mock_sh_template_output)
-            mock_sh_entry.close()
 
         with open(iso_template_path, "w+") as iso_template_entry:
             iso_template_entry.write(iso_template_output)
-            iso_template_entry.close()
 
         with open(iso_readme_path, "w+") as iso_readme_entry:
             iso_readme_entry.write(iso_readme_template_output)
-            iso_readme_entry.close()
 
         os.chmod(mock_sh_path, 0o755)
         os.chmod(iso_template_path, 0o755)
@@ -1038,7 +1025,6 @@ class IsoBuild:
                         self.log.error(Color.FAIL + path + ' not found! Are you sure it was built?')
                     with open(path + '.CHECKSUM', "w+") as c:
                         c.write(checksum)
-                        c.close()
 
             self.log.info(Color.INFO + 'Building ' + i + ' completed')
 
@@ -1225,7 +1211,6 @@ class IsoBuild:
                     continue
                 mcmd = "-update" if replace else "-map"
                 fx.write("%s %s %s\n" % (mcmd, u[zm], zm))
-            fx.close()
 
     def run_pull_iso_images(self):
         """
@@ -1360,7 +1345,6 @@ class IsoBuild:
                         continue
                     with open(checksum_drop, 'w+') as c:
                         c.write(checksum)
-                        c.close()
 
                     self.log.info('Creating a symlink to latest image...')
                     latest_name = '{}/{}-{}-{}.latest.{}.{}'.format(
@@ -1396,7 +1380,6 @@ class IsoBuild:
 
                     with open(latest_checksum, 'w+') as link:
                         link.write(checkdata)
-                        link.close()
 
                     # If this is the primary image, set the appropriate symlink
                     # and checksum
@@ -1430,7 +1413,6 @@ class IsoBuild:
                         checkpdata = checkpdata.replace(drop_name, latest_primary_path)
                         with open(latest_primary_checksum, 'w+') as link:
                             link.write(checkpdata)
-                            link.close()
 
         self.log.info(Color.INFO + 'Image download phase completed')
 
@@ -1743,15 +1725,12 @@ class LiveBuild:
 
         with open(mock_iso_path, "w+") as mip:
             mip.write(mock_iso_template_output)
-            mip.close()
 
         with open(mock_sh_path, "w+") as msp:
             msp.write(mock_sh_template_output)
-            msp.close()
 
         with open(iso_template_path, "w+") as itp:
             itp.write(iso_template_output)
-            itp.close()
 
         os.chmod(mock_sh_path, 0o755)
         os.chmod(iso_template_path, 0o755)
@@ -1850,7 +1829,6 @@ class LiveBuild:
                     self.log.error(Color.FAIL + path + ' not found! Are you sure it was built?')
                 with open(path + '.CHECKSUM', "w+") as c:
                     c.write(checksum)
-                    c.close()
 
         self.log.info(Color.INFO + 'Building live images completed')
 
@@ -1924,7 +1902,6 @@ class LiveBuild:
                 return
             with open(dest_path + '.CHECKSUM', "w+") as c:
                 c.write(checksum)
-                c.close()
 
             linksum = Shared.get_checksum(link_path, self.checksum, self.log)
             if not linksum:
@@ -1932,4 +1909,3 @@ class LiveBuild:
                 return
             with open(link_path + '.CHECKSUM', "w+") as c:
                 c.write(linksum)
-                c.close()
