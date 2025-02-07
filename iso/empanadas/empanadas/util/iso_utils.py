@@ -1074,8 +1074,6 @@ class IsoBuild:
                 for k, v in self._get_grafts([rd_for_var]).items():
                     files[os.path.join(repo, "repodata", k)] = v
 
-        grafts = f'{lorax_base_dir}/{iso}-{arch}-grafts'
-
         xorrs = f'{lorax_base_dir}/xorriso-{iso}-{arch}.txt'
 
         # Generate exclusion list/dict from boot.iso manifest
@@ -1103,7 +1101,6 @@ class IsoBuild:
             raise SystemExit(e)
 
         self._write_grafts(
-                grafts,
                 xorrs,
                 files,
                 exclude=ignores,
@@ -1142,7 +1139,7 @@ class IsoBuild:
 
         return result
 
-    def _write_grafts(self, filepath, xorrspath, u, exclude=None, update=None):
+    def _write_grafts(self, xorrspath, u, exclude=None, update=None):
         """
         Write out the graft points
         """
