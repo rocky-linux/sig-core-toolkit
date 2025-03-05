@@ -2062,8 +2062,8 @@ class SigRepoSync:
             for pod in entry_name_list:
                 podman_cmd_entry = '{} run -d -it --security-opt label=disable -v "{}:{}" -v "{}:{}" -v "{}:{}" --name {} --entrypoint {}/{} {}'.format(
                         cmd,
-                        self.compose_root,
-                        self.compose_root,
+                        self.compose_base,
+                        self.compose_base,
                         self.dnf_config,
                         self.dnf_config,
                         entries_dir,
