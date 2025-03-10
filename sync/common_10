@@ -8,16 +8,18 @@ case "${RLREL}" in
     ;;
   beta)
     REVISION=10.0
-    APPEND_TO_DIR="-beta"
-    COMPOSE_APPEND="-beta"
+    PREREV=10.0
+    APPEND_TO_DIR="-BETA"
+    COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
   lh)
-    REVISION=10.0
-    APPEND_TO_DIR="-lookahead"
-    COMPOSE_APPEND="-lookahead"
+    REVISION=10.1
+    PREREV=10.0
+    APPEND_TO_DIR="-LookAhead"
+    COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
   *)
-    echo "option no recognized"
+    echo "option not recognized"
     ;;
 esac
 
@@ -30,14 +32,14 @@ PRODUCTION_ROOT="/mnt/repos-production"
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
 RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
-RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJOR}/latest-${SHORT}-${MAJOR}${COMPOSE_APPEND}"
+RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJOR}${COMPOSE_APPEND}/latest-${SHORT}-${MAJOR}"
 
 # Set all repos that have no comps/groups associated with them. This is even in
 # cases where repos will not be available by normal means. It's just for
 # consistency.
 NONMODS_REPOS=(
   extras
-  Devel
+  devel
   plus
 )
 
@@ -52,7 +54,6 @@ MODS_REPOS=(
   BaseOS
   AppStream
   HighAvailability
-  ResilientStorage
   CRB
   RT
   NFV
@@ -67,6 +68,8 @@ ALL_REPOS=(
 
 NONSIG_COMPOSE=(
   Rocky
+  Extras
+  Rocky-devel
 )
 
 declare -A SIG_COMPOSE
