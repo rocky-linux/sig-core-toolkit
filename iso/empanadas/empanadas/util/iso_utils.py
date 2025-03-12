@@ -595,28 +595,6 @@ class IsoBuild:
         except:
             self.log.error('%s already exists??' % repo)
 
-
-    def run_boot_sync(self):
-        """
-        This unpacks into BaseOS/$arch/os, assuming there's no data actually
-        there. There should be checks.
-
-        1. Sync from work/lorax/$arch to work/lorax/$arch/dvd
-        2. Sync from work/lorax/$arch to work/lorax/$arch/minimal
-        3. Sync from work/lorax/$arch to BaseOS/$arch/os
-        4. Modify (3) .treeinfo
-        5. Modify (1) .treeinfo, keep out boot.iso checksum
-        6. Create a .treeinfo for AppStream
-        """
-        self._sync_boot(force_unpack=self.force_unpack, arch=self.arch, image=None)
-
-    def _sync_boot(self, force_unpack, arch, image):
-        """
-        Syncs whatever
-        """
-        self.log.info('Copying lorax to %s directory...' % image)
-        # checks here, report that it already exists
-
     def _treeinfo_wrapper(self, arch, variant):
         """
         Ensure treeinfo and discinfo is written correctly based on the variant
