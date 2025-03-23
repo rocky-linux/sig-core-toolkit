@@ -55,6 +55,12 @@ temp = AttributeDict(
             "kiwiProfile": "Container",
             "fileType": "tar.xz",
             "outputKey": "container"
+        },
+        "SBC": {
+            "kiwiType": "oem",
+            "kiwiProfile": "SBC",
+            "fileType": "raw",
+            "outputKey": "disk_image"
         }
     }
 )
@@ -73,6 +79,7 @@ def ensure_kiwi_conf(func):
 class KiwiBackend(BackendInterface):
     """Build an image using Kiwi"""
 
+    kiwi_file: str
     build_args: List[str] = field(factory=list)
     image_result: ImagesData = field(init=False)
     kiwi_conf: AttributeDict = field(init=False)
@@ -92,6 +99,7 @@ class KiwiBackend(BackendInterface):
 
         kiwi_command = [
             "kiwi-ng", "--color-output",
+            "--kiwi-file", self.kiwi_file,
             *self.build_args,
         ]
         if self.ctx.debug:
@@ -163,7 +171,7 @@ class KiwiBackend(BackendInterface):
 
     def run_mock_command(self, mock_command: List[str]):
         mock_args = ["--configdir", "/tmp/mock-rocky-configs/etc/mock", "-r", f"rl-9-{self.ctx.architecture.name}-core-infra"]
-        if self.ctx.image_type != 'Container':
+        if self.ctx.image_type not in ['Container']:
             mock_args.append("--isolation=simple")
         command = [
             "mock",

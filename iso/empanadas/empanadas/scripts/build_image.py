@@ -69,7 +69,11 @@ def run():
 
     for architecture in arches:
         if results.backend == "kiwi":
-            backend = KiwiBackend()
+            kiwi_file = "config.xml"
+            if results.variant == "RaspberryPi":
+               kiwi_file = "rocky-sbc-raspberrypi.xml" 
+
+            backend = KiwiBackend(kiwi_file=kiwi_file)
         else:
             backend = ImageFactoryBackend(
                 kickstart_dir="kickstart" if results.kickstartdir else "os",
