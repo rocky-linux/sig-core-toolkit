@@ -34,7 +34,7 @@ class common:
                 'HighAvailability': ['aarch64', 'ppc64le', 's390x', 'x86_64'],
                 'NFV': ['x86_64'],
                 'ResilientStorage': ['ppc64le', 's390x', 'x86_64'],
-                'RT': ['x86_64'],
+                'RT': ['x86_64', 'aarch64'],
                 'SAP': ['ppc64le', 's390x', 'x86_64'],
                 'SAPHANA': ['ppc64le', 'x86_64']
         }
