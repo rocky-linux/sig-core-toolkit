@@ -1,0 +1,22 @@
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+FROMMAIL="Compose Tracker <releng@rockylinux.org>"
+pushd /etc/pungi-10-lh/scripts
+git pull
+ret_val=$?
+if [ "$ret_val" -ne 0 ]; then
+  echo "Git pull failed for LookAhead pungi config" | mutt -e "set from=\"$FROM\"" \
+    -e 'set envelope_from=yes' \
+    -s "Git pull on /etc/pungi-lh failed" \
+    releng@rockylinux.org
+  exit 1
+fi
+bash produce-10-lookahead-full.sh
+ret_val=$?
+popd
+
+if [ "$ret_val" -eq 0 ]; then
+  pushd /root/sync-devel/sync
+  RLVER=10 bash lh-release-sync-to-staging.sh
+  popd
+fi

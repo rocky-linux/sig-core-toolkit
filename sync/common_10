@@ -44,10 +44,7 @@ NONMODS_REPOS=(
 )
 
 # These repos were originally separate from the main compose and need symlinks
-declare -A LINK_REPOS
-LINK_REPOS=(
-  [NFV]="nfv"
-)
+declare -A LINK_REPOS=()
 
 # These repos have comps/groups, except for debuginfo and sources
 MODS_REPOS=(
@@ -79,13 +76,10 @@ SIG_COMPOSE=(
 )
 
 # These repos have modules
-MODS=(
-  AppStream
-  PowerTools
-)
+declare -A MODS=()
 
 # functions
-# Note, EL8 and EL9 may not be the same, do not put in 'common'
+# Do not put in 'common'
 function treeinfoSaver() {
   BaseOSArch="${1}"
   TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo"
@@ -106,7 +100,7 @@ function treeinfoFixer() {
   fi
 }
 
-# Note, EL8 and EL9 may not be the same, do not put in 'common'
+# Do not put in 'common'
 function treeinfoModder() {
   BaseOSArch="${1}"
   TREEINFO_VAR="${STAGING_ROOT}/${RELEASE_DIR}/BaseOS/${BaseOSArch}/os/.treeinfo"
@@ -181,6 +175,6 @@ EOF
   /bin/cp "${TREEINFO_VAR}" "${PRISTINE_TREE}"
 }
 
-#export -f treeinfoFixer
-#export -f treeinfoModder
-#export -f treeinfoModderKickstart
+export -f treeinfoFixer
+export -f treeinfoModder
+export -f treeinfoModderKickstart
