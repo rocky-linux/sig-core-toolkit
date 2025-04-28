@@ -10,11 +10,7 @@ else
   exit 1
 fi
 
-if [ -f /usr/bin/dnf4 ]; then
-  SAFEDNF=/usr/bin/dnf4
-else
-  SAFEDNF=/usr/bin/dnf
-fi
+SAFEDNF=/usr/bin/dnf
 
 # Verify the date format
 echo "${DATE}" | grep -Eq '[0-9]+\.[0-9]'
@@ -32,12 +28,6 @@ drop="${PREPOPDROP}"
 current=$(pwd)
 tmpdir=$(mktemp -d)
 stream_compose_url="https://composes.stream.centos.org/stream-${MAJOR}/production/CentOS-Stream-${MAJOR}-${DATE}/compose"
-
-if [ -f /usr/bin/dnf4 ]; then
-  SAFEDNF=/usr/bin/dnf4
-else
-  SAFEDNF=/usr/bin/dnf
-fi
 
 pushd "${tmpdir}" || { echo "Could not change directory"; exit 1; }
 for x in "${REPO[@]}"; do

@@ -9,11 +9,7 @@ else
   exit 1
 fi
 
-if [ -f /usr/bin/dnf4 ]; then
-  SAFEDNF=/usr/bin/dnf4
-else
-  SAFEDNF=/usr/bin/dnf
-fi
+SAFEDNF=/usr/bin/dnf
 
 export RLVER=$MAJOR
 source common
