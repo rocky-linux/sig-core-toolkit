@@ -25,7 +25,8 @@ IGNORES = [
         'redhat-logos',
         'redhat-release',
         'redhat-flatpak-data',
-        'openssl-fips-provider'
+        'openssl-fips-provider',
+        'command-line-assistant'
 ]
 
 parser = argparse.ArgumentParser()
