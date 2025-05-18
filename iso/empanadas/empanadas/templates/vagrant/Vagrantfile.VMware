@@ -35,18 +35,12 @@ Vagrant.configure("2") do |config|
       vmware.vmx["numvcpus"] = "2"
       vmware.vmx["cpuid.coresPerSocket"] = "2"
 
-      # For compatility reasons version 10 (VMware Workstation 10.x and later)
-      # is used, this can be changed to every later version without any
-      # other changes if features are needed
-      # https://kb.vmware.com/s/article/1003746
-      vmware.vmx["virtualHW.version"] = "10"
-
-      # If you are on Apple aarch64 hardware (Mx) make sure you enable these:
+      # Setup custom VM configuration if necessary
       #vmware.vmx["virtualHW.version"] = "19" # or higher
-      #vmware.vmx["guestOS"] = "arm-rhel7-64"
       #vmware.vmx["ethernet0.virtualdev"] = "vmxnet3"
       #vmware.vmx["ethernet1.virtualdev"] = "vmxnet3" # if you connect more than 1 NIC
-      # Switching from SCSI to SATA disk
+      # Switch between SCSI and SATA disk
+      # default: (x86_64 SCSI) (aarch64 SATA)
       #vmware.vmx["sata0.present"] = "TRUE"
       #vmware.vmx["sata0:0.present"] = "TRUE"
       #vmware.vmx["scsi0.present"] = "FALSE"
