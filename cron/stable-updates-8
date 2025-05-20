@@ -7,7 +7,7 @@ rm -rf /mnt/compose/8_metadata
 git clone https://git.rockylinux.org/rocky/rocky-module-metadata.git -b r8 /mnt/compose/8_metadata
 ret_val=$?
 if [ "$ret_val" -ne 0 ]; then
-  echo "Git pull failed for prod pungi config" | mutt -e "set from=\"$FROM\"" \
+  echo "Git pull failed for prod pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
     -e 'set envelope_from=yes' \
     -s "Git pull on /etc/pungi-prod failed" \
     releng@rockylinux.org
@@ -19,7 +19,7 @@ ret_val=$?
 popd
 
 if [ "$ret_val" -eq 0 ]; then
-  pushd /root/sync-devel/sync
+  pushd /root/toolkit/sync
   RLVER=8 bash sync-to-staging.sh Rocky-devel
   RLVER=8 bash sync-to-staging.sh Extras
   RLVER=8 bash sync-to-staging.sh Rocky
@@ -29,7 +29,7 @@ if [ "$ret_val" -eq 0 ]; then
   python3.9 /usr/local/bin/apollo_tree -p $(pwd) -n 'Rocky Linux 8 $arch' -i Live -i Minimal -i devel -i extras -i images -i isos -i live -i metadata -i Devel -i plus -i nfv
   popd
 
-  pushd /root/sync-devel/sync
+  pushd /root/toolkit/sync
   RLVER=8 bash sign-repos-only.sh
   popd
 fi

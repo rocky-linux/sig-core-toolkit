@@ -1,24 +1,23 @@
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 FROMMAIL="Compose Tracker <releng@rockylinux.org>"
-git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r10s /etc/pungi-lh-10
-rm -rf /etc/pungi-lh-10
-pushd /etc/pungi-lh-10/scripts || { echo "Pungi directory not found"; exit; }
+rm -rf /etc/pungi-prod-10
+pushd /etc/pungi-prod-10/scripts || { echo "Pungi directory not found"; exit; }
 git pull
 ret_val=$?
 if [ "$ret_val" -ne 0 ]; then
   echo "Git pull failed for LookAhead pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
     -e 'set envelope_from=yes' \
-    -s "Git pull on /etc/pungi-lh-10 failed" \
+    -s "Git pull on /etc/pungi-prod-10 failed" \
     releng@rockylinux.org
   exit 1
 fi
-bash produce-10-lookahead-full.sh
+bash produce-10-full.sh
 ret_val=$?
 popd || { echo "Could not go back to the previous directory"; exit; }
 
 if [ "$ret_val" -eq 0 ]; then
   pushd /root/toolkit/sync || { echo "Toolkit directory not found"; exit; }
-  RLVER=10 bash lh-release-sync-to-staging.sh
+  RLVER=10 bash minor-release-sync-to-staging.sh
   popd || { echo "Could not go back to previous directory"; exit; }
 fi

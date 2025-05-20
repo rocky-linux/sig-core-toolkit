@@ -16,7 +16,7 @@ ret_val=$?
 popd
 
 if [ "$ret_val" -eq 0 ]; then
-  pushd /root/sync-devel/sync
+  pushd /root/toolkit/sync
   RLVER=8 bash lh-release-sync-to-staging.sh
   popd
 fi
