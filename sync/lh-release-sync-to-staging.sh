@@ -12,7 +12,7 @@ source $(dirname "$0")/common
 # Major Version (eg, 8)
 MAJ=${RLVER}
 
-if [[ "${RLVER}" -eq "9" ]]; then
+if [[ "${MAJ}" -eq "9" ]]; then
   echo "Invalid release"
   exit 1
 fi
@@ -25,11 +25,13 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
 
   if [[ "${COMPOSE}" == "Rocky" ]]; then
     # ISO Work before syncing
-    mkdir -p isos/{x86_64,aarch64}
+    for ARCH in "${ARCHES[@]}"; do
+      mkdir -p isos/${ARCH}
+    done
 
     # Sort the ISO's
     for ARCH in "${ARCHES[@]}"; do
-      for x in BaseOS Minimal; do
+      for x in "${ISO_TYPES[@]}"; do
         if [[ "${x}" != "BaseOS" ]]; then
           echo "${x} ${ARCH}: Removing unnecessary boot image"
           /bin/rm -v "${x}/${ARCH}/iso/Rocky-${REVISION}-20"*"${ARCH}"*.iso
@@ -38,21 +40,22 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
-#      ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${ARCH}-boot.iso"
-#      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${ARCH}-dvd1.iso"
-#      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${ARCH}-dvd.iso"
-#      ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${ARCH}-minimal.iso"
       for file in *.iso; do
         printf "# %s: %s bytes\n%s\n" \
           "${file}" \
           "$(stat -c %s ${file} -L)" \
           "$(sha256sum --tag ${file})" \
-        | sudo tee -a CHECKSUM;
+        | sudo tee -a "${file}.CHECKSUM"
       done
+      cat ./*.CHECKSUM > CHECKSUM
       popd || { echo "Could not change directory"; break; }
     done
-    mkdir -p live/x86_64
-    ln -s live Live
+    # Sort the cloud images here. Probably just a directory move.
+    # Live images should probably be fine. Check anyway what we want to do.
+    # Delete the unnecessary dirs here.
+    for EMPTYDIR in "${NONREPO_DIRS[@]}"; do
+      rm -rf "${EMPTYDIR}"
+    done
   fi
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 
@@ -66,7 +69,6 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   fi
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
-
 
 # Create symlinks for repos that were once separate from the main compose
 for LINK in "${!LINK_REPOS[@]}"; do

@@ -26,6 +26,8 @@ esac
 
 MAJOR="${REVISION%.*}"
 MINOR="${REVISION#*.}"
+ARCHES=(x86_64 aarch64)
+ISO_TYPES=(BaseOS Minimal)
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
 

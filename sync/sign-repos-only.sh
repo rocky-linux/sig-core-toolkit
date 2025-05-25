@@ -64,7 +64,7 @@ for x in "${ARCHES[@]}"; do
     fi
   done
 
-  echo "** Sign module repos"
+  echo "** Sign module repos if applicable"
   for y in "${MODS[@]}"; do
     test -d "${STAGING_ROOT}/${RELEASE_DIR}/${y}/${x}/os"
     ret_val=$?

@@ -36,8 +36,8 @@ SIG_VAULT_STUB="mirror/vault/sig"
 #RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
 
 # Define arches we support
-# Override: Not Allowed
-ARCHES=(x86_64 aarch64)
+# Override: Set in relevant common file
+#ARCHES=()
 
 # Source Major common
 # Override: Not Allowed
@@ -68,6 +68,10 @@ REV="${REVISION}${APPEND_TO_DIR}"
 # Used to iterate over ISOs?
 # Override: Allowed
 VARIANTS=(boot minimal dvd1 dvd)
+
+# Used to identify directories that should be removed
+# Override: Allowed
+NONREPO_DIRS=(Minimal Cloud)
 
 # Syncing functions
 function parallel_rsync_no_delete_staging() {
@@ -116,6 +120,7 @@ function rsync_no_delete_staging_pungi() {
     --exclude COMMUNITY-CHARTER \
     --exclude extra_files.json \
     --exclude Minimal \
+    --exclude Cloud \
     compose/ "${TARGET}"
 }
 
@@ -125,6 +130,7 @@ function rsync_no_delete_staging_with_excludes() {
   sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
     --exclude "${EXCLUDE}" \
     --exclude Minimal \
+    --exclude Cloud \
     compose/ "${TARGET}"
 }
 
@@ -134,6 +140,7 @@ function rsync_delete_staging_with_excludes() {
   sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
     --exclude "${EXCLUDE}" \
     --exclude Minimal \
+    --exclude Cloud \
     --delete \
     compose/ "${TARGET}"
 }
@@ -204,6 +211,7 @@ function rsync_no_delete_staging_pungi_dry() {
     --exclude COMMUNITY-CHARTER \
     --exclude extra_files.json \
     --exclude Minimal \
+    --exclude Cloud \
     --dry-run \
     compose/ "${TARGET}"
 }
@@ -214,6 +222,7 @@ function rsync_no_delete_staging_with_excludes_dry() {
   sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
     --exclude "${EXCLUDE}" \
     --exclude Minimal \
+    --exclude Cloud \
     --dry-run \
     compose/ "${TARGET}"
 }
@@ -224,6 +233,7 @@ function rsync_delete_staging_with_excludes_dry() {
   sudo -l && rsync -vrlptDSHog --chown=10004:10005 --progress --human-readable \
     --exclude "${EXCLUDE}" \
     --exclude Minimal \
+    --exclude Cloud \
     --dry-run \
     compose/ "${TARGET}"
 }

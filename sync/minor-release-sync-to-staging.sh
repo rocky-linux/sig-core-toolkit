@@ -10,7 +10,7 @@ source $(dirname "$0")/common
 # Major Version (eg, 8)
 MAJ=${RLVER}
 
-if [ "${MAJ}" == "9" ]; then
+if [ "${MAJ}" -eq "9" ]; then
   echo "Does not work for Rocky Linux 9. Please use sync-to-staging"
   exit 32
 fi
@@ -23,21 +23,22 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
 
   if [[ "${COMPOSE}" == "Rocky" ]]; then
     # ISO Work before syncing
-    mkdir -p isos/{x86_64,aarch64}
+    for ARCH in "${ARCHES[@]}"; do
+      mkdir -p "isos/${ARCH}"
+    done
 
     # Sort the ISO's
     for ARCH in "${ARCHES[@]}"; do
-      for x in BaseOS Minimal; do
+      for x in "${ISO_TYPES[@]}"; do
+        ## Check if the ISO even exists, if not skip
+        ## this is done using "continue" in a for loop
         echo "${x} ${ARCH}: Moving ISO images"
         mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
+        echo "${x} ${ARCH}: Removing original ISO directory"
+        rmdir "${x}/${ARCH}/iso"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
-      # old deprecated way
-      ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${ARCH}-boot.iso"
-      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${ARCH}-dvd1.iso"
-      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${ARCH}-dvd.iso"
-      ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${ARCH}-minimal.iso"
-      # new way
+      ## Should we also check for their existence before doing an ln?
       ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${MAJ}-latest-${ARCH}-boot.iso"
       ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
       ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${MAJ}-latest-${ARCH}-minimal.iso"
@@ -48,13 +49,16 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
           "$(sha256sum --tag ${file})" \
         | sudo tee -a "${file}.CHECKSUM"
       done
-      cat *.CHECKSUM > CHECKSUM
+      cat ./*.CHECKSUM > CHECKSUM
       popd || { echo "Could not change directory"; break; }
     done
-    rm -rf Minimal
-    mkdir -p live/x86_64
-    ln -s live Live
+    # Sort the cloud images here. Probably just a directory move, make some checksums (unless they're already there)
+    # Live images should probably be fine. Check anyway what we want to do. Might be a simple move.
   fi
+  # Delete the unnecessary dirs here.
+  for EMPTYDIR in "${NONREPO_DIRS[@]}"; do
+    rm -rf "${EMPTYDIR}"
+  done
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
@@ -67,7 +71,6 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   fi
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
-
 
 # Create symlinks for repos that were once separate from the main compose
 for LINK in "${!LINK_REPOS[@]}"; do
@@ -95,12 +98,15 @@ done
 
 # sign all repos
 echo "Signing all repositories"
-test -f $(dirname "$0")/sign-repos-only.sh
-ret_val=$?
-
-if [ "$ret_val" -eq 0 ]; then
-  $(dirname "$0")/sign-repos-only.sh
-fi
+for ARCH in "${ARCHES[@]}"; do
+  for REPO in "${MODS_REPOS[@]}"; do
+    OS_TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${REPO}/${ARCH}/os/repodata/repomd.xml"
+    GOLD_TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}/${REPO}/${ARCH}/kickstart/repodata/repomd.xml"
+    echo "Signing ${REPO} ${ARCH}"
+    sign_data "${OS_TARGET}" "${MAJ}"
+    sign_data "${GOLD_TARGET}" "${MAJ}"
+  done
+done
 
 # Change Symlink if required
 echo "Setting symlink to ${REV}"
