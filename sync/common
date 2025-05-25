@@ -296,8 +296,12 @@ function modifyrepo_module() {
 function sign_data() {
   local TARGET="${1}"
   local VER="${2}"
-  test -f "/root/bin/sign-repo-${VER}.sh" && "/root/bin/sign-repo-${VER}.sh" \
-    "${TARGET}"
+  if [ -f "${TARGET}" ]; then
+    test -f "/root/bin/sign-repo-${VER}.sh" && "/root/bin/sign-repo-${VER}.sh" \
+      "${TARGET}"
+  else
+    echo "${TARGET} does not exist."
+  fi
 }
 
 function fix_metadata() {

@@ -53,6 +53,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         | sudo tee -a "${file}.CHECKSUM"
       done
       cat ./*.CHECKSUM > CHECKSUM
+      # GPG sign the checksums
       popd || { echo "Could not change directory"; break; }
     done
     # Sort the cloud images here. Probably just a directory move, make some checksums (unless they're already there)
