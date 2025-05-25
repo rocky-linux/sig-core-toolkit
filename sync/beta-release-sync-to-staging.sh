@@ -24,35 +24,41 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
 
   if [[ "${COMPOSE}" == "Rocky" ]]; then
     # ISO Work before syncing
-    mkdir -p isos/{x86_64,aarch64}
+    for ARCH in "${ARCHES[@]}"; do
+      mkdir -p "isos/${ARCH}"
+    done
 
     # Sort the ISO's
     for ARCH in "${ARCHES[@]}"; do
-      for x in BaseOS Minimal; do
-        if [[ "${x}" != "BaseOS" ]]; then
-          echo "${x} ${ARCH}: Removing unnecessary boot image"
-          /bin/rm -v "${x}/${ARCH}/iso/Rocky-${REVISION}-20"*"${ARCH}"*.iso
+      for x in "${ISO_TYPES[@]}"; do
+        ## Check if the ISO even exists, if not skip
+        if ls "${x}/${ARCH}/iso/"*.iso 1> /dev/null 2>&1; then
+          echo "${x} ${ARCH}: Moving ISO images"
+          mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
+        else
+          echo "${x} ${ARCH}: No ISOs were found"
         fi
-        echo "${x} ${ARCH}: Moving ISO images"
-        mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
+        echo "${x} ${ARCH}: Removing original ISO directory if applicable"
+        test -d "${x}/${ARCH}/iso" && rmdir "${x}/${ARCH}/iso"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
-#      ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${ARCH}-boot.iso"
-#      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${ARCH}-dvd1.iso"
-#      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${ARCH}-dvd.iso"
-#      ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${ARCH}-minimal.iso"
       for file in *.iso; do
         printf "# %s: %s bytes\n%s\n" \
           "${file}" \
           "$(stat -c %s ${file} -L)" \
           "$(sha256sum --tag ${file})" \
-        | sudo tee -a CHECKSUM;
+        | sudo tee -a "${file}.CHECKSUM"
       done
+      cat ./*.CHECKSUM > CHECKSUM
       popd || { echo "Could not change directory"; break; }
     done
-    mkdir -p live/x86_64
-    ln -s live Live
+    # Sort the cloud images here. Probably just a directory move, make some checksums (unless they're already there)
+    # Live images should probably be fine. Check anyway what we want to do. Might be a simple move.
   fi
+  # Delete the unnecessary dirs here.
+  for EMPTYDIR in "${NONREPO_DIRS[@]}"; do
+    rm -rf "${EMPTYDIR}"
+  done
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
@@ -65,7 +71,6 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   fi
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
-
 
 # Create symlinks for repos that were once separate from the main compose
 for LINK in "${!LINK_REPOS[@]}"; do

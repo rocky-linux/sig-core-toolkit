@@ -31,17 +31,20 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
     for ARCH in "${ARCHES[@]}"; do
       for x in "${ISO_TYPES[@]}"; do
         ## Check if the ISO even exists, if not skip
-        ## this is done using "continue" in a for loop
-        echo "${x} ${ARCH}: Moving ISO images"
-        mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
-        echo "${x} ${ARCH}: Removing original ISO directory"
-        rmdir "${x}/${ARCH}/iso"
+        if ls "${x}/${ARCH}/iso/"*.iso 1> /dev/null 2>&1; then
+          echo "${x} ${ARCH}: Moving ISO images"
+          mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
+        else
+          echo "${x} ${ARCH}: No ISOs were found"
+        fi
+        echo "${x} ${ARCH}: Removing original ISO directory if applicable"
+        test -d "${x}/${ARCH}/iso" && rmdir "${x}/${ARCH}/iso"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
-      ## Should we also check for their existence before doing an ln?
-      ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${MAJ}-latest-${ARCH}-boot.iso"
-      ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
-      ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${MAJ}-latest-${ARCH}-minimal.iso"
+      echo "Symlinking to 'latest' if ISO exists"
+      test -f "Rocky-${REVISION}-${ARCH}-boot.iso" && ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${MAJ}-latest-${ARCH}-boot.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-dvd1.iso" && ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-minimal.iso" && ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${MAJ}-latest-${ARCH}-minimal.iso"
       for file in *.iso; do
         printf "# %s: %s bytes\n%s\n" \
           "${file}" \

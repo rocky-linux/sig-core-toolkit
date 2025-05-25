@@ -26,7 +26,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   if [[ "${COMPOSE}" == "Rocky" ]]; then
     # ISO Work before syncing
     for ARCH in "${ARCHES[@]}"; do
-      mkdir -p isos/${ARCH}
+      mkdir -p "isos/${ARCH}"
     done
 
     # Sort the ISO's
@@ -36,8 +36,15 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
           echo "${x} ${ARCH}: Removing unnecessary boot image"
           /bin/rm -v "${x}/${ARCH}/iso/Rocky-${REVISION}-20"*"${ARCH}"*.iso
         fi
-        echo "${x} ${ARCH}: Moving ISO images"
-        mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
+        ## Check if the ISO even exists, if not skip
+        if ls "${x}/${ARCH}/iso/"*.iso 1> /dev/null 2>&1; then
+          echo "${x} ${ARCH}: Moving ISO images"
+          mv "${x}/${ARCH}/iso/"* "isos/${ARCH}/"
+        else
+          echo "${x} ${ARCH}: No ISOs were found"
+        fi
+        echo "${x} ${ARCH}: Removing original ISO directory if applicable"
+        test -d "${x}/${ARCH}/iso" && rmdir "${x}/${ARCH}/iso"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
       for file in *.iso; do
@@ -50,13 +57,13 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
       cat ./*.CHECKSUM > CHECKSUM
       popd || { echo "Could not change directory"; break; }
     done
-    # Sort the cloud images here. Probably just a directory move.
-    # Live images should probably be fine. Check anyway what we want to do.
-    # Delete the unnecessary dirs here.
-    for EMPTYDIR in "${NONREPO_DIRS[@]}"; do
-      rm -rf "${EMPTYDIR}"
-    done
+    # Sort the cloud images here. Probably just a directory move, make some checksums (unless they're already there)
+    # Live images should probably be fine. Check anyway what we want to do. Might be a simple move.
   fi
+  # Delete the unnecessary dirs here.
+  for EMPTYDIR in "${NONREPO_DIRS[@]}"; do
+    rm -rf "${EMPTYDIR}"
+  done
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
