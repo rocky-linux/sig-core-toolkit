@@ -30,6 +30,9 @@ libjcat
 libsss_autofs
 libudisks2
 libxmlb
+policycoreutils
+policycoreutils-python-utils
+python3-libselinux
 python3-lxml
 rdma-core
 sssd-nfs-idmap

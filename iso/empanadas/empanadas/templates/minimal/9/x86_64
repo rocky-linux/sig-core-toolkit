@@ -35,6 +35,9 @@ libsss_autofs
 libudisks2
 libxmlb
 mokutil
+policycoreutils
+policycoreutils-python-utils
+python3-libselinux
 python3-lxml
 rdma-core
 shim-x64
