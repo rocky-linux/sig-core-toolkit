@@ -563,7 +563,7 @@ class IsoBuild:
         # For Rocky-ARCH-boot.iso
         if os.path.exists(path_to_src_image + '.manifest'):
             shutil.copy2(path_to_src_image + '.manifest', manifest)
-            os.symlink(manifest.split('/')[-1], manifestlink)
+            #os.symlink(manifest.split('/')[-1], manifestlink)
             os.symlink(manifest.split('/')[-1], latestmanifestlink)
 
         self.log.info('Creating checksum for %s boot iso...' % arch)
