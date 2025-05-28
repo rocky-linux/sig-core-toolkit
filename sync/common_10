@@ -27,7 +27,7 @@ MAJOR="${REVISION%.*}"
 MINOR="${REVISION#*.}"
 ARCHES=(x86_64 aarch64 ppc64le s390x riscv64)
 ISO_TYPES=(BaseOS Minimal)
-IMAGE_TYPES=(Cloud Live)
+IMAGE_TYPES=(images live)
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
 
