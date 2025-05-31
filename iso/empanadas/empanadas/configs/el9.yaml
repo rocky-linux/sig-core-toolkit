@@ -137,6 +137,13 @@
           type: "oem"
           profile_names:
             - Cloud-OCP-Base
+      WSL:
+        format: wsl
+        variants: [Base]
+        kiwi:
+          type: wsl
+          profile_names:
+            - WSL-Base
       Vagrant:
         format: box
         variants: [Libvirt, Vbox, VMware]

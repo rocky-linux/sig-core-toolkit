@@ -120,6 +120,7 @@ ALLOWED_TYPE_VARIANTS = {
     "Vagrant": ["Libvirt", "Vbox", "VMware"],
     "OCP": ["Base"],
     "SBC": ["RaspberryPi", "GenericArm"],
+    "WSL": ["Base"]
 }
 
 

@@ -71,7 +71,9 @@ def run():
         if results.backend == "kiwi":
             kiwi_file = "config.xml"
             if results.variant == "RaspberryPi":
-               kiwi_file = "rocky-sbc-raspberrypi.xml" 
+                kiwi_file = "rocky-sbc-raspberrypi.xml"
+            if results.type == "WSL":
+                kiwi_file = "rocky-wsl.xml"
 
             backend = KiwiBackend(kiwi_file=kiwi_file)
         else:

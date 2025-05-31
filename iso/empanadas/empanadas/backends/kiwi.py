@@ -61,6 +61,12 @@ temp = AttributeDict(
             "kiwiProfile": "SBC",
             "fileType": "raw",
             "outputKey": "disk_image"
+        },
+        "WSL": {
+            "kiwiType": "wsl",
+            "kiwiProfile": "WSL",
+            "fileType": "wsl",
+            "outputKey": "container"
         }
     }
 )
