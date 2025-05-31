@@ -3,7 +3,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 FROMMAIL="Compose Tracker <releng@rockylinux.org>"
 git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r10s /etc/pungi-lh-10
 rm -rf /etc/pungi-lh-10
-pushd /etc/pungi-lh-10/scripts || { echo "Pungi directory not found"; exit; }
+pushd /etc/pungi-lh-10/scripts/compose || { echo "Pungi directory not found"; exit; }
 git pull
 ret_val=$?
 if [ "$ret_val" -ne 0 ]; then
