@@ -46,4 +46,29 @@ fasttrack:
       branch: 'r9'
       list:
         - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-FastTrack'
+  '10':
+    profile: 'fasttrack'
+    project_id: 'ff236e29-03d4-4153-80e0-a9e5f0fb9622'
+    addtional_dirs: []
+    gpg_key:
+      - 'https://git.rockylinux.org/staging/src/rocky-release-fasttrack/-/raw/r10/SOURCES/RPM-GPG-KEY-Rocky-SIG-FastTrack'
+    repo:
+      fasttrack-new:
+        allowed_arches:
+          - x86_64
+          - aarch64
+          - ppc64le
+          - s390x
+      fasttrack-updates:
+        allowed_arches:
+          - x86_64
+          - aarch64
+          - ppc64le
+          - s390x
+    extra_files:
+      git_repo: 'https://git.rockylinux.org/staging/src/rocky-release-fasttrack.git'
+      git_raw_path: 'https://git.rockylinux.org/staging/src/rocky-release-fasttrack/-/raw/r10/'
+      branch: 'r10'
+      list:
+        - 'SOURCES/RPM-GPG-KEY-Rocky-SIG-FastTrack'
 ...
