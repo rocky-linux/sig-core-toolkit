@@ -57,6 +57,16 @@ TARGETS = {
                 {f'sig-core-{MAJOR}-infra': {'pri': 4, 'mode': 'koji'}}
             ],
             'extra': KIWI},
+        f'{PREFIX}-kiwi-altarch': {
+            'build': f'{PREFIX}-kiwi', 'dest': f'{PREFIX}',
+            'parent': f'{PREFIX}-build',
+            'arches': 'aarch64',
+            'external': [
+                {f'sig-core-{MAJOR}-infra': {'pri': 4, 'mode': 'koji'}},
+                {f'sig-altarch-{MAJOR}-common': {'pri': 7, 'mode': 'koji'}},
+                {f'sig-altarch-{MAJOR}-rockyrpi': {'pri': 8, 'mode': 'koji'}}
+            ],
+            'extra': KIWI},
 
         # Only very specific images need epel and cloud-common
         f'{PREFIX}-kiwi-cloud-epel': {
