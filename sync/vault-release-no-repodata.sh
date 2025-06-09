@@ -38,16 +38,16 @@ if [ "$RLVER" -eq "9" ]; then
   # groups
   for repo in "${MODS_REPOS[@]}"; do
     for arch in "${ARCHES[@]}"; do
-      createrepo_comps "${TARGET}/${repo}/${arch}/os" "${REV}" "${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV}/${repo}/${arch}/os/repodata/"*GROUPS.xml
+      createrepo_comps "${TARGET}/${repo}/${arch}/os" "${MAJOR}" "${PRODUCTION_ROOT}/${CATEGORY_STUB}/${REV}/${repo}/${arch}/os/repodata/"*GROUPS.xml
     done
   done
   # no groups
   for repo in "${NONMODS_REPOS[@]}"; do
     for arch in "${ARCHES[@]}"; do
-      createrepo_update "${TARGET}/${repo}/${arch}/os" "${REV}"
-      createrepo_update "${TARGET}/${repo}/${arch}/debug/tree" "${REV}"
+      createrepo_update "${TARGET}/${repo}/${arch}/os" "${MAJOR}"
+      createrepo_update "${TARGET}/${repo}/${arch}/debug/tree" "${MAJOR}"
     done
-      createrepo_update "${TARGET}/${repo}/source/tree" "${REV}"
+      createrepo_update "${TARGET}/${repo}/source/tree" "${MAJOR}"
   done
 fi
 

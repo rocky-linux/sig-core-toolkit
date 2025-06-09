@@ -260,7 +260,7 @@ function createrepo_only() {
   local TARGET="${1}"
   local TARGET_REV="${2}"
   createrepo "${TARGET}" \
-    "--distro=cpe:/o:rocky:rocky:${TARGET_REV:0:1},Rocky Linux ${TARGET_REV:0:1}" \
+    "--distro=cpe:/o:rocky:rocky:${TARGET_REV},Rocky Linux ${TARGET_REV}" \
     --workers 12
 }
 
@@ -268,7 +268,7 @@ function createrepo_update() {
   local TARGET="${1}"
   local TARGET_REV="${2}"
   createrepo --update "${TARGET}" \
-    "--distro=cpe:/o:rocky:rocky:${TARGET_REV:0:1},Rocky Linux ${TARGET_REV:0:1}" \
+    "--distro=cpe:/o:rocky:rocky:${TARGET_REV},Rocky Linux ${TARGET_REV}" \
     --workers 12
 }
 
@@ -279,7 +279,7 @@ function createrepo_comps() {
   createrepo --update "${TARGET}" \
     --groupfile="${TARGET_COMPS}" \
     --xz --revision="${TARGET_REV}" \
-    "--distro=cpe:/o:rocky:rocky:${TARGET_REV:0:1},Rocky Linux ${TARGET_REV:0:1}" \
+    "--distro=cpe:/o:rocky:rocky:${TARGET_REV},Rocky Linux ${TARGET_REV}" \
     --workers 12 --checksum=sha256
 }
 
@@ -313,7 +313,7 @@ function createrepo_updates() {
   local TARGET="${1}"
   local TARGET_REV="${2}"
   createrepo "${TARGET}" \
-    "--distro=cpe:/o:rocky:rocky:${TARGET_REV:0:1},Rocky Linux ${TARGET_REV:0:1}" \
+    "--distro=cpe:/o:rocky:rocky:${TARGET_REV},Rocky Linux ${TARGET_REV}" \
     --workers 12 --update
 }
 

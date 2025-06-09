@@ -57,7 +57,7 @@ if [ $ret_val -eq "0" ]; then
     test -d "${TARGET}/${src_repo}"
     ret_val=$?
     if [ $ret_val -eq "0" ]; then
-      createrepo_update "${TARGET}/${src_repo}" "${REVISION}"
+      createrepo_update "${TARGET}/${src_repo}" "${MAJOR}"
       fix_metadata "${TARGET}/${src_repo}/repodata/repomd.xml"
       sign_data "${TARGET}/${src_repo}/repodata/repomd.xml" "${RLVER}"
     else
@@ -75,7 +75,7 @@ if [ $ret_val -eq "0" ]; then
       test -d "${TARGET}/${debug_repo}"
       ret_val=$?
       if [ $ret_val -eq "0" ]; then
-        createrepo_update "${TARGET}/${debug_repo}" "${REVISION}"
+        createrepo_update "${TARGET}/${debug_repo}" "${MAJOR}"
         fix_metadata "${TARGET}/${debug_repo}/repodata/repomd.xml"
         sign_data "${TARGET}/${debug_repo}/repodata/repomd.xml" "${RLVER}"
       else
@@ -92,7 +92,7 @@ if [ $ret_val -eq "0" ]; then
         test -d "${REPO_PATH}"
         ret_val=$?
         if [ $ret_val -eq "0" ]; then
-          createrepo_comps "${REPO_PATH}" "${REVISION}" "${COMP_PATH}"
+          createrepo_comps "${REPO_PATH}" "${MAJOR}" "${COMP_PATH}"
           fix_metadata "${REPO_PATH}/repodata/repomd.xml"
           sign_data "${REPO_PATH}/repodata/repomd.xml" "${RLVER}"
         else
@@ -132,7 +132,7 @@ if [ $ret_val -eq "0" ]; then
       test -d "${TARGET}/${arch_repo}"
       ret_val=$?
       if [ $ret_val -eq "0" ]; then
-        createrepo_update "${TARGET}/${arch_repo}" "${REVISION}"
+        createrepo_update "${TARGET}/${arch_repo}" "${MAJOR}"
         fix_metadata "${TARGET}/${arch_repo}/repodata/repomd.xml"
         sign_data "${TARGET}/${arch_repo}/repodata/repomd.xml" "${RLVER}"
       else
