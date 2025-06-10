@@ -58,7 +58,7 @@ TARGETS = {
             ],
             'extra': KIWI},
         f'{PREFIX}-kiwi-altarch': {
-            'build': f'{PREFIX}-kiwi', 'dest': f'{PREFIX}',
+            'build': f'{PREFIX}-kiwi-altarch', 'dest': f'{PREFIX}',
             'parent': f'{PREFIX}-build',
             'arches': 'aarch64',
             'external': [
