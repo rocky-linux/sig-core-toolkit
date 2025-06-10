@@ -28,7 +28,7 @@ if [ "$ret_val" -eq 0 ]; then
   #python3 /usr/local/bin/apollo_tree -p $(pwd) -n 'Rocky Linux 10 $arch' -i Live -i Minimal -i devel -i extras -i images -i isos -i live -i metadata -i Devel -i plus -i nfv
   #popd
 
-  #pushd /root/toolkit/sync
-  #RLVER=10 bash sign-repos-only.sh
-  #popd
+  pushd /root/toolkit/sync
+  RLVER=10 bash sign-repos-only.sh
+  popd
 fi
