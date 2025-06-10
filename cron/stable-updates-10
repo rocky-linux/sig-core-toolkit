@@ -1,8 +1,10 @@
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 FROMMAIL="Compose Tracker <releng@rockylinux.org>"
+export RLVER=10
+source "/root/toolkit/sync/common"
 rm -rf /etc/pungi-prod-10
-git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r10.0 /etc/pungi-prod-10
+git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b "r${REVISION}" /etc/pungi-prod-10
 ret_val=$?
 if [ "$ret_val" -ne 0 ]; then
   echo "Git pull failed for prod pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
@@ -11,24 +13,24 @@ if [ "$ret_val" -ne 0 ]; then
     releng@rockylinux.org
   exit 1
 fi
-pushd /etc/pungi-prod-10/scripts/compose
+pushd /etc/pungi-prod-10/scripts/compose || { echo "Cron: Failed to change directory"; exit 1; }
 bash updates-10-full.sh
 ret_val=$?
-popd
+popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
 if [ "$ret_val" -eq 0 ]; then
-  pushd /root/toolkit/sync
+  pushd /root/toolkit/sync || { echo "Cron: Failed to change directory"; exit 1; }
   RLVER=10 bash sync-to-staging.sh Rocky-devel
   RLVER=10 bash sync-to-staging.sh Extras
   RLVER=10 bash sync-to-staging.sh Rocky
-  popd
+  popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
   # Errata is not ready for 10 yet.
-  #pushd /mnt/repos-staging/mirror/pub/rocky/10.0
+  #pushd /mnt/repos-staging/mirror/pub/rocky/${REVISION}
   #python3 /usr/local/bin/apollo_tree -p $(pwd) -n 'Rocky Linux 10 $arch' -i Live -i Minimal -i devel -i extras -i images -i isos -i live -i metadata -i Devel -i plus -i nfv
   #popd
 
-  pushd /root/toolkit/sync
+  pushd /root/toolkit/sync || { echo "Cron: Failed to change directory"; exit 1; }
   RLVER=10 bash sign-repos-only.sh
-  popd
+  popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 fi
