@@ -34,7 +34,9 @@ if [ "$ret_val" -eq 0 ]; then
     #fi
 {%- if deploy_extra_files %}
     pushd {{ download_path }}
-    curl -RO {{ gpg_key_url }}
+{% for key in gpg_key_list %}
+    curl -RO {{ key }}
+{% endfor %}
     popd
 {% endif %}
     exit 0
