@@ -1,7 +1,7 @@
 #!/bin/bash
 # Performs a full on sync of a minor release, directories and all. It calls the
 # other scripts in this directory to assist where necessary.
-# Note that this is EL8 specific
+# Note that this is EL8, EL10+ only
 #
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
@@ -41,10 +41,16 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         test -d "${x}/${ARCH}/iso" && rmdir "${x}/${ARCH}/iso"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
+
       echo "Symlinking to 'latest' if ISO exists"
       test -f "Rocky-${REVISION}-${ARCH}-boot.iso" && ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${MAJ}-latest-${ARCH}-boot.iso"
       test -f "Rocky-${REVISION}-${ARCH}-dvd1.iso" && ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
       test -f "Rocky-${REVISION}-${ARCH}-minimal.iso" && ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${MAJ}-latest-${ARCH}-minimal.iso"
+      echo "(Re)generating manifests"
+      for file in *.iso; do
+        xorriso -dev "${file}" --find | tail -n+2 | tr -d "'" | cut -c2- | sort > "${file}.manifest"
+      done
+
       for file in *.iso; do
         printf "# %s: %s bytes\n%s\n" \
           "${file}" \
@@ -75,6 +81,16 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   fi
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
+
+# Sync images, they are NOT part of the normal compose at the moment.
+# mv everything from iso/* and images/* to base, rmdir
+# if vagrant is in the name, rename them to drop the ending
+# for x in $(ls) ; do if [[ "${x}" =~ "vagrant" ]]; then mv ${x} $(echo ${x} | sed 's/\.vagrant\..*\(\.box\)/\1/g') ; fi ; done
+# create symlinks for live sed -E "s/${MAJOR}\.${MINOR}/${MAJOR}/g ; s/[0-9]+\.[0-9]+/latest/g"
+# create symlinks for images for x in * ; do ln -s ${x} $(echo $x | sed -E 's/-10.0-[0-9]+\.[0-9]+/.latest/g ; s/\.oci//g') ; done
+# remove original CHECKSUM file and then checksum everything
+# cat all checksums into single files, sign it
+# we need a separate script that can do this same stuff and not kill everything
 
 # Create symlinks for repos that were once separate from the main compose
 for LINK in "${!LINK_REPOS[@]}"; do
