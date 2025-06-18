@@ -1,7 +1,7 @@
 #!/bin/bash
 # Syncs every release at once (hardcoded)
 
-if [ -f "sync-to-prod.sh" ]; then
+if [ ! -f "sync-to-prod.sh" ]; then
   echo "Sync to prod script not in PWD."
   exit 1
 fi
