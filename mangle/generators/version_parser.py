@@ -20,6 +20,8 @@ REPOS = switcher.rlver(results.version,
 # Source packages we do not ship or are rocky branded
 IGNORES = [
         'insights-client',
+        'insights-core',
+        'insights-core-selinux',
         'shim',
         'shim-unsigned-x64',
         'shim-unsigned-aarch64',

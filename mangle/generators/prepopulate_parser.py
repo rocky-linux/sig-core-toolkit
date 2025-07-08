@@ -10,6 +10,8 @@ from common import *
 # Source packages we do not ship or are rocky branded
 IGNORES = [
         'insights-client',
+        'insights-core',
+        'insights-core-selinux',
         'lorax-templates-rhel',
         'shim',
         'shim-unsigned-x64',
