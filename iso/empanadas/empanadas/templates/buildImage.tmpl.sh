@@ -33,7 +33,7 @@ lorax --product="${PRODUCT}" \
   --buildarch="${ARCH}" \
   --volid="${VOLID}" \
   --logfile="${MOCKBLD}/${LOGFILE}" \
-  --rootfs-size=3 \
+  --rootfs-size=4 \
   "${LORAXRES}"
 
 ret_val=$?
