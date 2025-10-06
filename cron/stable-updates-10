@@ -25,10 +25,22 @@ if [ "$ret_val" -eq 0 ]; then
   RLVER=10 bash sync-to-staging.sh Rocky
   popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
-  # Errata is not ready for 10 yet.
-  #pushd /mnt/repos-staging/mirror/pub/rocky/${REVISION}
-  #python3 /usr/local/bin/apollo_tree -p $(pwd) -n 'Rocky Linux 10 $arch' -i Live -i Minimal -i devel -i extras -i images -i isos -i live -i metadata -i Devel -i plus -i nfv
-  #popd
+  # HighAvailability has no errata in the API at this time
+  pushd /mnt/repos-staging/mirror/pub/rocky/${REVISION}
+  python3 /usr/local/bin/apollo_tree -p $(pwd) \
+    -n "Rocky Linux ${REVISION} \$arch" \
+    -i extras \
+    -i images \
+    -i isos \
+    -i live \
+    -i metadata \
+    -i plus \
+    -i devel \
+    -i SAP \
+    -i SAPHANA \
+    -i HighAvailability \
+    -x riscv64
+  popd
 
   pushd /root/toolkit/sync || { echo "Cron: Failed to change directory"; exit 1; }
   RLVER=10 bash sign-repos-only.sh
