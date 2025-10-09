@@ -13,23 +13,23 @@ if [ "$ret_val" -ne 0 ]; then
     releng@rockylinux.org
   exit 1
 fi
-pushd /etc/pungi-prod/scripts
+pushd /etc/pungi-prod/scripts || { echo "Cron: Failed to change directory"; exit 1; }
 bash updates-8-full.sh
 ret_val=$?
-popd
+popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
 if [ "$ret_val" -eq 0 ]; then
-  pushd /root/toolkit/sync
+  pushd /root/toolkit/sync || { echo "Cron: Failed to changte directory"; exit 1; }
   RLVER=8 bash sync-to-staging.sh Rocky-devel
   RLVER=8 bash sync-to-staging.sh Extras
   RLVER=8 bash sync-to-staging.sh Rocky
-  popd
+  popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
-  pushd /mnt/repos-staging/mirror/pub/rocky/8.10
+  pushd /mnt/repos-staging/mirror/pub/rocky/8.10 || { echo "Cron: Directory doesn't exist"; exit 1; }
   python3.9 /usr/local/bin/apollo_tree -p $(pwd) -n 'Rocky Linux 8 $arch' -i Live -i Minimal -i devel -i extras -i images -i isos -i live -i metadata -i Devel -i plus -i nfv
-  popd
+  popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
-  pushd /root/toolkit/sync
+  pushd /root/toolkit/sync || { echo "Cron: Failed to change directory"; exit 1; }
   RLVER=8 bash sign-repos-only.sh
-  popd
+  popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 fi
