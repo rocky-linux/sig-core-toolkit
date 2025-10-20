@@ -7,7 +7,7 @@ case "${RLREL}" in
     APPEND_TO_DIR="-RC1"
     ;;
   beta)
-    REVISION=10.0
+    REVISION=10.1
     PREREV=10.0
     APPEND_TO_DIR="-BETA"
     COMPOSE_APPEND="${APPEND_TO_DIR}"
