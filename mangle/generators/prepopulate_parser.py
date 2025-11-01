@@ -10,6 +10,7 @@ from common import *
 # Source packages we do not ship or are rocky branded
 IGNORES = [
         'insights-client',
+        'insights-client-ros',
         'insights-core',
         'insights-core-selinux',
         'lorax-templates-rhel',
@@ -20,6 +21,7 @@ IGNORES = [
         'redhat-cloud-client-configuration-cdn',
         'rhc',
         'rhc-worker-playbook',
+        'rhc-playbook-verifier',
         'centos-indexhtml',
         'centos-logos',
         'centos-stream-release',
