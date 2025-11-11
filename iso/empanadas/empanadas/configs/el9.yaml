@@ -1,10 +1,10 @@
 ---
 '9':
-  fullname: 'Rocky Linux 9.6'
-  revision: '9.6'
+  fullname: 'Rocky Linux 9.7'
+  revision: '9.7'
   rclvl: 'RC1'
   major: '9'
-  minor: '6'
+  minor: '7'
   profile: '9'
   disttag: 'el9'
   code: "Blue Onyx"
@@ -20,7 +20,7 @@
     - ppc64le
     - s390x
   provide_multilib: True
-  project_id: '05d2a73d-41c8-4ee1-b079-99d02c23a4bd'
+  project_id: 'e285fe05-8c5f-417a-a4a3-caeca4011896'
   repo_symlinks:
     NFV: 'nfv'
   renames:
