@@ -9,10 +9,12 @@ parser = argparse.ArgumentParser(description="Generate tags")
 parser.add_argument('--major', type=str, required=True)
 parser.add_argument('--minor', type=str, required=True,
                     choices=('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'))
+parser.add_argument('--riscv', action='store_true')
 
 results = parser.parse_args()
 MAJOR = results.major
 MINOR = results.minor
+RISCV = results.riscv
 RELEASE = f'{MAJOR}.{MINOR}'
 PREFIX = f'dist-rocky{RELEASE}'
 TOOLS = f'dist-rocky{MAJOR}-build-tools'
@@ -24,10 +26,10 @@ DEFAULT_ARCHES = 'x86_64 aarch64 ppc64le s390x'
 # things like noarch_arches or even mock.new_chroot (e.g. for kiwi).
 DEFAULT_EXTRA = {'repo.auto': True}
 UPDATES = {'rpm.macro.distcore': f'.el{MAJOR}_{MINOR}'}
-RISCV = {'noarch_arches': 'riscv64'}
+RISCV_NOARCH = {'noarch_arches': 'riscv64'}
 UPDATES_EXTRA = {**DEFAULT_EXTRA, **UPDATES}
-RISCV_EXTRA = {**DEFAULT_EXTRA, **RISCV}
-RISCV_UPDATES_EXTRA = {**UPDATES_EXTRA, **RISCV}
+RISCV_EXTRA = {**DEFAULT_EXTRA, **RISCV_NOARCH}
+RISCV_UPDATES_EXTRA = {**UPDATES_EXTRA, **RISCV_NOARCH}
 KIWI = {**DEFAULT_EXTRA, 'mock.new_chroot': 0}
 
 # RelEng: riscv64 has separate build tags until we have more hardware or
@@ -40,15 +42,6 @@ TARGETS = {
         f'{PREFIX}-updates': {
             'build': f'{PREFIX}-updates-build', 'dest': f'{PREFIX}',
             'extra': UPDATES_EXTRA},
-        f'{PREFIX}-build-riscv64': {
-            'build': f'{PREFIX}-build-riscv64', 'dest': f'{PREFIX}',
-            'extra': RISCV_EXTRA,
-            'arches': 'riscv64'},
-        f'{PREFIX}-updates-riscv64': {
-            'build': f'{PREFIX}-updates-build-riscv64', 'dest': f'{PREFIX}',
-            'extra': RISCV_UPDATES_EXTRA,
-            'arches': 'riscv64'},
-
         # Kiwi build tags
         f'{PREFIX}-kiwi': {
             'build': f'{PREFIX}-kiwi', 'dest': f'{PREFIX}',
@@ -91,6 +84,20 @@ TARGETS = {
             'parent': f'{PREFIX}-build',
             'build': f'{PREFIX}-kiwi-nspawn', 'dest': f'{PREFIX}'},
 }
+
+RISCV_TARGETS = {
+        f'{PREFIX}-build-riscv64': {
+            'build': f'{PREFIX}-build-riscv64', 'dest': f'{PREFIX}',
+            'extra': RISCV_EXTRA,
+            'arches': 'riscv64'},
+        f'{PREFIX}-updates-riscv64': {
+            'build': f'{PREFIX}-updates-build-riscv64', 'dest': f'{PREFIX}',
+            'extra': RISCV_UPDATES_EXTRA,
+            'arches': 'riscv64'},
+}
+
+if RISCV:
+    TARGETS.update(RISCV_TARGETS)
 
 session = koji.ClientSession('https://kojidev.rockylinux.org/kojihub')
 try:
