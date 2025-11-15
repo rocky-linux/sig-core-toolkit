@@ -176,6 +176,10 @@ EOF
     echo "${TREEINFO_VAR}, or python3 does not exist on this system."
   fi
   /bin/cp "${TREEINFO_VAR}" "${PRISTINE_TREE}"
+
+  # double checking that 'os/' is 'kickstart/' - there are cases that the
+  # treeinfo may already have the relevant variant.
+  sed -i 's|os/|kickstart/|g' "${TREEINFO_VAR}"
 }
 
 export -f treeinfoFixer
