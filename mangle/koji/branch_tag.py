@@ -80,9 +80,15 @@ TARGETS = {
                 {f'epel-{MAJOR}-stable': {'pri': 6, 'mode': 'bare'}}
             ],
             'extra': KIWI},
+
+        # Some builds need nspawn on, so this facilitates it
         f'{PREFIX}-kiwi-nspawn': {
             'parent': f'{PREFIX}-build',
-            'build': f'{PREFIX}-kiwi-nspawn', 'dest': f'{PREFIX}'},
+            'build': f'{PREFIX}-kiwi-nspawn', 'dest': f'{PREFIX}',
+            'external': [
+                {f'sig-core-{MAJOR}-infra': {'pri': 4, 'mode': 'koji'}}
+            ],
+        },
 }
 
 RISCV_TARGETS = {
