@@ -17,6 +17,7 @@ HUB = 'https://kojidev.rockylinux.org/kojihub'
 # they are signed with the given key ID.
 KEYS = {
         'rocky-linux-8': {'id': '6d745a60'},
+        'rocky-linux-9': {'id': '350d275d'},
         'rocky-linux-10': {'id': '6fedfc85'}
 }
 
