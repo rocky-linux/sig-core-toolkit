@@ -123,17 +123,18 @@ function treeinfoModder() {
 from configparser import ConfigParser
 config = ConfigParser()
 config.read('${TREEINFO_VAR}')
-config.set('tree', 'variants', 'BaseOS,AppStream')
-config.add_section('variant-AppStream')
-config.set('variant-AppStream', 'id', 'AppStream')
-config.set('variant-AppStream', 'name', 'AppStream')
-config.set('variant-AppStream', 'type', 'variant')
-config.set('variant-AppStream', 'uid', 'AppStream')
-config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/os/Packages')
-config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/os/')
+if 'variant-AppStream' not in config.sections():
+    config.set('tree', 'variants', 'BaseOS,AppStream')
+    config.add_section('variant-AppStream')
+    config.set('variant-AppStream', 'id', 'AppStream')
+    config.set('variant-AppStream', 'name', 'AppStream')
+    config.set('variant-AppStream', 'type', 'variant')
+    config.set('variant-AppStream', 'uid', 'AppStream')
+    config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/os/Packages')
+    config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/os/')
 
-with open('${TREEINFO_VAR}', 'w') as configfile:
-    config.write(configfile)
+    with open('${TREEINFO_VAR}', 'w') as configfile:
+        config.write(configfile)
 EOF
   else
     echo "${TREEINFO_VAR}, or python3 does not exist on this system."
@@ -160,17 +161,23 @@ function treeinfoModderKickstart() {
 from configparser import ConfigParser
 config = ConfigParser()
 config.read('${TREEINFO_VAR}')
-config.set('tree', 'variants', 'BaseOS,AppStream')
-config.add_section('variant-AppStream')
-config.set('variant-AppStream', 'id', 'AppStream')
-config.set('variant-AppStream', 'name', 'AppStream')
-config.set('variant-AppStream', 'type', 'variant')
-config.set('variant-AppStream', 'uid', 'AppStream')
-config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/kickstart/Packages')
-config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/kickstart/')
+if 'variant-AppStream' not in config.sections():
+    config.set('tree', 'variants', 'BaseOS,AppStream')
+    config.add_section('variant-AppStream')
+    config.set('variant-AppStream', 'id', 'AppStream')
+    config.set('variant-AppStream', 'name', 'AppStream')
+    config.set('variant-AppStream', 'type', 'variant')
+    config.set('variant-AppStream', 'uid', 'AppStream')
+    config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/kickstart/Packages')
+    config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/kickstart/')
+    with open('${TREEINFO_VAR}', 'w') as configfile:
+        config.write(configfile)
+else:
+    config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/kickstart/Packages')
+    config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/kickstart/')
 
-with open('${TREEINFO_VAR}', 'w') as configfile:
-    config.write(configfile)
+    with open('${TREEINFO_VAR}', 'w') as configfile:
+        config.write(configfile)
 EOF
   else
     echo "${TREEINFO_VAR}, or python3 does not exist on this system."
@@ -179,7 +186,7 @@ EOF
 
   # double checking that 'os/' is 'kickstart/' - there are cases that the
   # treeinfo may already have the relevant variant.
-  sed -i 's|os/|kickstart/|g' "${TREEINFO_VAR}"
+  #sed -i 's|os/|kickstart/|g' "${TREEINFO_VAR}"
 }
 
 export -f treeinfoFixer
