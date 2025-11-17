@@ -28,13 +28,13 @@ if [ "$ret_val" -eq 0 ]; then
   # HighAvailability has no errata in the API at this time
   pushd /mnt/repos-staging/mirror/pub/rocky/${REVISION} || { echo "Cron: Directory doesn't exist"; exit 1; }
   python3 /usr/local/bin/apollo_tree -p $(pwd) \
-    -n "Rocky Linux ${RLVER} \$arch" \
+    -n 'Rocky Linux' \
+    --major-version 10 \
     -i extras \
     -i images \
     -i isos \
     -i live \
     -i metadata \
-    -i plus \
     -i devel \
     -i SAP \
     -i SAPHANA \
