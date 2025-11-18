@@ -10,11 +10,6 @@ source $(dirname "$0")/common
 # Major Version (eg, 8)
 MAJ=${RLVER}
 
-if [ "${MAJ}" -eq "9" ]; then
-  echo "Does not work for Rocky Linux 9. Please use sync-to-staging"
-  exit 32
-fi
-
 # sync all pieces of a release, including extras, nfv, etc
 for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   echo "${COMPOSE}: Syncing"

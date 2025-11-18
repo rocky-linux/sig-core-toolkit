@@ -10,14 +10,17 @@ parser.add_argument('--major', type=str, required=True)
 parser.add_argument('--minor', type=str, required=True,
                     choices=('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'))
 parser.add_argument('--riscv', action='store_true')
+parser.add_argument('--modularity', action='store_true')
 
 results = parser.parse_args()
 MAJOR = results.major
 MINOR = results.minor
 RISCV = results.riscv
+MODULES = results.modules
 RELEASE = f'{MAJOR}.{MINOR}'
 PREFIX = f'dist-rocky{RELEASE}'
 TOOLS = f'dist-rocky{MAJOR}-build-tools'
+MODULE_BUILD = f'module-rocky{RELEASE}-build'
 DEFAULT_ARCHES = 'x86_64 aarch64 ppc64le s390x'
 
 # RelEng: Every build tag will have repo.auto. Even though this isn't
@@ -31,10 +34,14 @@ UPDATES_EXTRA = {**DEFAULT_EXTRA, **UPDATES}
 RISCV_EXTRA = {**DEFAULT_EXTRA, **RISCV_NOARCH}
 RISCV_UPDATES_EXTRA = {**UPDATES_EXTRA, **RISCV_NOARCH}
 KIWI = {**DEFAULT_EXTRA, 'mock.new_chroot': 0}
+MODULE_EXTRA = {
+        'rpm.macro.distribution': f'Rocky Linux {MAJOR}',
+        'rpm.macro.vendor': 'Rocky Enterprise Software Foundation',
+}
 
 # RelEng: riscv64 has separate build tags until we have more hardware or
 # hardware that can actually build things in a relatively decent amount of
-# time. Please keep them separate for now.
+# time. Having separate build tags is important for this in particular.
 TARGETS = {
         # Standard build tags
         f'{PREFIX}-build': {
@@ -173,6 +180,11 @@ for target, info in TARGETS.items():
 try:
     print('!! Creating compose tag')
     session.createTag(f'{PREFIX}-compose', parent=PREFIX)
+
+    if MODULES:
+        print('!! Creating module build tag')
+        session.createTag(f'{MODULE_BUILD}', arches=DEFAULT_ARCHES, extra=MODULE_EXTRA)
+
 except koji.GenericError as exc:
     print(exc)
     print('There was an error; exiting to prevent further problems')

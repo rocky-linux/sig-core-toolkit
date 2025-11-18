@@ -27,13 +27,15 @@ esac
 MAJOR="${REVISION%.*}"
 MINOR="${REVISION#*.}"
 ARCHES=(x86_64 aarch64 ppc64le s390x)
+ISO_TYPES=(BaseOS Minimal)
+IMAGE_TYPES=(images live)
 STAGING_ROOT="/mnt/repos-staging"
 PRODUCTION_ROOT="/mnt/repos-production"
 
 # relative to ${ENV}_ROOT
 CATEGORY_STUB="mirror/pub/rocky"
 RELEASE_DIR="${CATEGORY_STUB}/${REVISION}${APPEND_TO_DIR}"
-RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJOR}/latest-${SHORT}-${MAJOR}${COMPOSE_APPEND}"
+RELEASE_COMPOSE_ROOT="${COMPOSE_ROOT}/${MAJOR}${COMPOSE_APPEND}/latest-${SHORT}-${MAJOR}"
 
 # Set all repos that have no comps/groups associated with them. This is even in
 # cases where repos will not be available by normal means. It's just for
@@ -70,6 +72,8 @@ ALL_REPOS=(
 
 NONSIG_COMPOSE=(
   Rocky
+  Extras
+  Rocky-devel
 )
 
 declare -A SIG_COMPOSE
@@ -82,7 +86,6 @@ SIG_COMPOSE=(
 export MODS=(
   AppStream
   CRB
-  devel
 )
 
 # functions
@@ -127,17 +130,18 @@ function treeinfoModder() {
 from configparser import ConfigParser
 config = ConfigParser()
 config.read('${TREEINFO_VAR}')
-config.set('tree', 'variants', 'BaseOS,AppStream')
-config.add_section('variant-AppStream')
-config.set('variant-AppStream', 'id', 'AppStream')
-config.set('variant-AppStream', 'name', 'AppStream')
-config.set('variant-AppStream', 'type', 'variant')
-config.set('variant-AppStream', 'uid', 'AppStream')
-config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/os/Packages')
-config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/os/')
+if 'variant-AppStream' not in config.sections():
+    config.set('tree', 'variants', 'BaseOS,AppStream')
+    config.add_section('variant-AppStream')
+    config.set('variant-AppStream', 'id', 'AppStream')
+    config.set('variant-AppStream', 'name', 'AppStream')
+    config.set('variant-AppStream', 'type', 'variant')
+    config.set('variant-AppStream', 'uid', 'AppStream')
+    config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/os/Packages')
+    config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/os/')
 
-with open('${TREEINFO_VAR}', 'w') as configfile:
-    config.write(configfile)
+    with open('${TREEINFO_VAR}', 'w') as configfile:
+        config.write(configfile)
 EOF
   else
     echo "${TREEINFO_VAR}, or python3 does not exist on this system."
@@ -164,17 +168,23 @@ function treeinfoModderKickstart() {
 from configparser import ConfigParser
 config = ConfigParser()
 config.read('${TREEINFO_VAR}')
-config.set('tree', 'variants', 'BaseOS,AppStream')
-config.add_section('variant-AppStream')
-config.set('variant-AppStream', 'id', 'AppStream')
-config.set('variant-AppStream', 'name', 'AppStream')
-config.set('variant-AppStream', 'type', 'variant')
-config.set('variant-AppStream', 'uid', 'AppStream')
-config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/kickstart/Packages')
-config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/kickstart/')
+if 'variant-AppStream' not in config.sections():
+    config.set('tree', 'variants', 'BaseOS,AppStream')
+    config.add_section('variant-AppStream')
+    config.set('variant-AppStream', 'id', 'AppStream')
+    config.set('variant-AppStream', 'name', 'AppStream')
+    config.set('variant-AppStream', 'type', 'variant')
+    config.set('variant-AppStream', 'uid', 'AppStream')
+    config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/kickstart/Packages')
+    config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/kickstart/')
+    with open('${TREEINFO_VAR}', 'w') as configfile:
+        config.write(configfile)
+else:
+    config.set('variant-AppStream', 'packages', '../../../AppStream/${BaseOSArch}/kickstart/Packages')
+    config.set('variant-AppStream', 'repository', '../../../AppStream/${BaseOSArch}/kickstart/')
 
-with open('${TREEINFO_VAR}', 'w') as configfile:
-    config.write(configfile)
+    with open('${TREEINFO_VAR}', 'w') as configfile:
+        config.write(configfile)
 EOF
   else
     echo "${TREEINFO_VAR}, or python3 does not exist on this system."
@@ -182,6 +192,6 @@ EOF
   /bin/cp "${TREEINFO_VAR}" "${PRISTINE_TREE}"
 }
 
-#export -f treeinfoFixer
-#export -f treeinfoModder
-#export -f treeinfoModderKickstart
+export -f treeinfoFixer
+export -f treeinfoModder
+export -f treeinfoModderKickstart
