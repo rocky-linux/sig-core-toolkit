@@ -17,6 +17,3 @@ RLVER=10 bash sync-to-prod.sh
 
 # Updates the file lists
 bash sync-file-list-parallel.sh
-
-# 9 is still in peridot, so there's no downgradable packages
-RLVER=9 bash vault-release-no-repodata.sh
