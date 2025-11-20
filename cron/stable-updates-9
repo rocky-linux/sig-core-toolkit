@@ -1,0 +1,47 @@
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+FROMMAIL="Compose Tracker <releng@rockylinux.org>"
+export RLVER=9
+source "/root/toolkit/sync/common"
+rm -rf /etc/pungi-prod-9
+git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b "r${REVISION}" /etc/pungi-prod-9
+rm -rf /mnt/compose/9_metadata
+git clone https://git.rockylinux.org/rocky/rocky-module-metadata.git -b r9 /mnt/compose/9_metadata
+ret_val=$?
+if [ "$ret_val" -ne 0 ]; then
+  echo "Git pull failed for prod pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
+    -e 'set envelope_from=yes' \
+    -s "Git pull on /etc/pungi-prod failed" \
+    releng@rockylinux.org
+  exit 1
+fi
+pushd /etc/pungi-prod-9/scripts || { echo "Cron: Failed to change directory"; exit 1; }
+bash updates-9-full.sh
+ret_val=$?
+popd || { echo "Cron: Could not change back to original directory"; exit 1; }
+
+if [ "$ret_val" -eq 0 ]; then
+  pushd /root/toolkit/sync || { echo "Cron: Failed to change directory"; exit 1; }
+  RLVER=9 bash sync-to-staging.sh Rocky-devel
+  RLVER=9 bash sync-to-staging.sh Extras
+  RLVER=9 bash sync-to-staging.sh Rocky
+  popd || { echo "Cron: Could not change back to original directory"; exit 1; }
+
+  pushd /mnt/repos-staging/mirror/pub/rocky/${REVISION} || { echo "Cron: Directory doesn't exist"; exit 1; }
+  python3 /usr/local/bin/apollo_tree -p $(pwd) \
+    -n "Rocky Linux ${REVISION} \$arch" \
+    -i extras \
+    -i images \
+    -i isos \
+    -i live \
+    -i metadata \
+    -i plus \
+    -i devel \
+    -i SAP \
+    -i SAPHANA
+  popd || { echo "Cron: Could not change back to original directory"; exit 1; }
+
+  pushd /root/toolkit/sync || { echo "Cron: Failed to change directory"; exit 1; }
+  RLVER=9 bash sign-repos-only.sh
+  popd || { echo "Cron: Could not change back to original directory"; exit 1; }
+fi

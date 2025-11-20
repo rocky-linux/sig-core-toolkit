@@ -1,0 +1,23 @@
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+FROMMAIL="Compose Tracker <releng@rockylinux.org>"
+rm -rf /etc/pungi-prod-9
+pushd /etc/pungi-prod-9/scripts/compose || { echo "Pungi directory not found"; exit; }
+git pull
+ret_val=$?
+if [ "$ret_val" -ne 0 ]; then
+  echo "Git pull failed for pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
+    -e 'set envelope_from=yes' \
+    -s "Git pull on /etc/pungi-prod-9 failed" \
+    releng@rockylinux.org
+  exit 1
+fi
+bash produce-9-full.sh
+ret_val=$?
+popd || { echo "Could not go back to the previous directory"; exit; }
+
+if [ "$ret_val" -eq 0 ]; then
+  pushd /root/toolkit/sync || { echo "Toolkit directory not found"; exit; }
+  RLVER=9 bash minor-release-sync-to-staging.sh
+  popd || { echo "Could not go back to previous directory"; exit; }
+fi
