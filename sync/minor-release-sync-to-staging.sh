@@ -39,6 +39,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
 
       echo "Symlinking to 'latest' if ISO exists"
       test -f "Rocky-${REVISION}-${ARCH}-boot.iso" && ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${MAJ}-latest-${ARCH}-boot.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-dvd.iso" && ln -s "Rocky-${REVISION}-${ARCH}-dvd.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
       test -f "Rocky-${REVISION}-${ARCH}-dvd1.iso" && ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
       test -f "Rocky-${REVISION}-${ARCH}-minimal.iso" && ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${MAJ}-latest-${ARCH}-minimal.iso"
       echo "(Re)generating manifests"
