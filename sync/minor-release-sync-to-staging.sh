@@ -129,6 +129,8 @@ echo "Setting symlink to ${REV}"
 pushd "${STAGING_ROOT}/${CATEGORY_STUB}" || exit
 /bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/latest-${MAJ}"
 ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" "latest-${MAJ}"
+/bin/rm "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
+ln -sr "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}" "${REVISION}"
 echo "Attempting hard link"
 perform_hardlink "${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
 popd || exit
