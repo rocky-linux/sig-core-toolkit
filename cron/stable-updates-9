@@ -15,7 +15,7 @@ if [ "$ret_val" -ne 0 ]; then
     releng@rockylinux.org
   exit 1
 fi
-pushd /etc/pungi-prod-9/scripts || { echo "Cron: Failed to change directory"; exit 1; }
+pushd /etc/pungi-prod-9/scripts/compose || { echo "Cron: Failed to change directory"; exit 1; }
 bash updates-9-full.sh
 ret_val=$?
 popd || { echo "Cron: Could not change back to original directory"; exit 1; }
