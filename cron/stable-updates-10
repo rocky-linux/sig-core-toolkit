@@ -35,6 +35,7 @@ if [ "$ret_val" -eq 0 ]; then
     -i isos \
     -i live \
     -i metadata \
+    -i plus \
     -i devel \
     -i SAP \
     -i SAPHANA \

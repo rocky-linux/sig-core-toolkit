@@ -29,16 +29,15 @@ if [ "$ret_val" -eq 0 ]; then
 
   pushd /mnt/repos-staging/mirror/pub/rocky/${REVISION} || { echo "Cron: Directory doesn't exist"; exit 1; }
   python3 /usr/local/bin/apollo_tree -p $(pwd) \
-    -n "Rocky Linux ${RLVER} \$arch" \
+    -n 'Rocky Linux' \
+    --major-version 9 \
     -i extras \
     -i images \
     -i isos \
     -i live \
     -i metadata \
     -i plus \
-    -i devel \
-    -i SAP \
-    -i SAPHANA
+    -i devel
   popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
   pushd /root/toolkit/sync || { echo "Cron: Failed to change directory"; exit 1; }

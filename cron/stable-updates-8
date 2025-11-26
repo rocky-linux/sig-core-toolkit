@@ -26,7 +26,20 @@ if [ "$ret_val" -eq 0 ]; then
   popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
   pushd /mnt/repos-staging/mirror/pub/rocky/8.10 || { echo "Cron: Directory doesn't exist"; exit 1; }
-  python3.9 /usr/local/bin/apollo_tree -p $(pwd) -n 'Rocky Linux' --major-version 8 -i Live -i Minimal -i devel -i extras -i images -i isos -i live -i metadata -i Devel -i plus -i nfv
+  python3.9 /usr/local/bin/apollo_tree -p $(pwd) \
+    -n 'Rocky Linux' \
+    --major-version 8 \
+    -i Live \
+    -i Minimal \
+    -i devel \
+    -i extras \
+    -i images \
+    -i isos \
+    -i live \
+    -i metadata \
+    -i Devel \
+    -i plus \
+    -i nfv
   popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
   pushd /root/toolkit/sync || { echo "Cron: Failed to change directory"; exit 1; }
