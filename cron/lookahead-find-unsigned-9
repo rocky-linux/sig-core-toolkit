@@ -4,7 +4,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 export RLVER=9
 FROMMAIL="Compose Tracker <releng@rockylinux.org>"
 source "/root/toolkit/sync/common"
-python3 /root/toolkit/mangle/koji/unsigned.py --key rocky-linux-9 --tag "dist-rocky${MAJOR}-lookahead" | grep '\.src' > "/tmp/unsigned_lookahead_${MAJOR}"
+python3 /root/toolkit/mangle/koji/unsigned.py --key rocky-linux-${MAJOR} --tag "dist-rocky${MAJOR}-lookahead" | grep '\.src' > "/tmp/unsigned_lookahead_${MAJOR}"
 ret_val=$?
 
 if [ "$ret_val" -ne 0 ]; then
