@@ -1,0 +1,23 @@
+#!/bin/bash
+# Reports unsigned packages for Rocky Linux 10 packages (lookahead)
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+export RLVER=10
+FROMMAIL="Compose Tracker <releng@rockylinux.org>"
+source "/root/toolkit/sync/common"
+python3 /root/toolkit/mangle/koji/unsigned.py --key rocky-linux-9 --tag "dist-rocky${MAJOR}-lookahead" | grep '\.src' > "/tmp/unsigned_lookahead_${MAJOR}"
+ret_val=$?
+
+if [ "$ret_val" -ne 0 ]; then
+  echo "Unable to check for unsigned builds for ${MAJOR} LookAhead" | mutt -e "set from=\"$FROMMAIL\"" \
+    -e 'set envelope_from=yes' \
+    releng@rockylinux.org
+  exit 1
+fi
+
+# Assumes we got a list
+sed -i 's/\.src//g' "/tmp/unsigned_lookahead_${MAJOR}"
+
+mutt -e "set from=\"$FROM\"" \
+  -e 'set envelope_from=yes' \
+  -s "Unsigned builds for ${MAJOR} LookAhead" \
+  releng@rockylinux.org < "/tmp/unsigned_lookahead_${MAJOR}"
