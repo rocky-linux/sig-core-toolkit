@@ -22,3 +22,5 @@ mutt -e "set from=\"$FROM\"" \
   -e 'set envelope_from=yes' \
   -s "Unsigned builds for ${MAJOR} LookAhead" \
   releng@rockylinux.org < "/tmp/unsigned_lookahead_${MAJOR}"
+
+/bin/rm "/tmp/unsigned_lookahead_${MAJOR}" "/tmp/unsigned_lookahead_${MAJOR}_all"

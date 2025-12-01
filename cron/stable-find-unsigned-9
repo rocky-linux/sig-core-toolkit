@@ -22,3 +22,5 @@ mutt -e "set from=\"$FROM\"" \
   -e 'set envelope_from=yes' \
   -s "Unsigned builds for ${REVISION}" \
   releng@rockylinux.org < "/tmp/unsigned_${REVISION}"
+
+/bin/rm "/tmp/unsigned_${REVISION}" "/tmp/unsigned_${REVISION}_all"
