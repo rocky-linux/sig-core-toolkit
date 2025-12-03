@@ -58,14 +58,36 @@ func getRegions(ec2Svc *ec2.EC2) ([]*string, error) {
 	return regions, nil
 }
 
+func countPublicAMIs(sess *session.Session, region string) (int, error) {
+	ec2Svc := ec2.New(sess, &aws.Config{Region: aws.String(region)})
+
+	input := &ec2.DescribeImagesInput{
+		Owners: []*string{aws.String("self")},
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("is-public"),
+				Values: []*string{aws.String("true")},
+			},
+		},
+	}
+
+	output, err := ec2Svc.DescribeImages(input)
+	if err != nil {
+		return 0, err
+	}
+
+	return len(output.Images), nil
+}
+
 type QuotaInfo struct {
 	CurrentQuota float64
 	DesiredValue float64
 	Status       string
 	CaseId       string
+	UsageCount   int
 }
 
-func getQuotaInfo(sqSvc *servicequotas.ServiceQuotas, quotaCode string, region string) *QuotaInfo {
+func getQuotaInfo(sess *session.Session, sqSvc *servicequotas.ServiceQuotas, quotaCode string, region string) *QuotaInfo {
 	input := &servicequotas.GetServiceQuotaInput{
 		ServiceCode: aws.String("ec2"),
 		QuotaCode:   aws.String(quotaCode),
@@ -110,11 +132,19 @@ func getQuotaInfo(sqSvc *servicequotas.ServiceQuotas, quotaCode string, region s
 			caseId = *lastQuota.CaseId
 		}
 	}
-	return &QuotaInfo{currentValue, desiredValue, status, caseId}
+
+	// Count public AMIs in use
+	usageCount, err := countPublicAMIs(sess, region)
+	if err != nil {
+		log.Printf("Error counting public AMIs in %s: %v", region, err)
+		usageCount = -1 // Use -1 to indicate error
+	}
+
+	return &QuotaInfo{currentValue, desiredValue, status, caseId, usageCount}
 }
 
 func listQuotas(sess *session.Session, quotaCode string, regions []*string) {
-	fmt.Println("Region\tQuota\tDesired\tStatus\tCaseId")
+	fmt.Println("Region\tUsage\tQuota\tDesired\tStatus\tCaseId")
 
 	var wg sync.WaitGroup
 	wg.Add(len(regions))
@@ -123,9 +153,9 @@ func listQuotas(sess *session.Session, quotaCode string, regions []*string) {
 		go func(region string) {
 			defer wg.Done()
 			regionSqSvc := servicequotas.New(sess, &aws.Config{Region: aws.String(region)})
-			quotaInfo := getQuotaInfo(regionSqSvc, quotaCode, region)
+			quotaInfo := getQuotaInfo(sess, regionSqSvc, quotaCode, region)
 			if quotaInfo != nil {
-				fmt.Printf("%s\t%.0f\t%.0f\t%s\t%s\n", region, quotaInfo.CurrentQuota, quotaInfo.DesiredValue, quotaInfo.Status, quotaInfo.CaseId)
+				fmt.Printf("%s\t%d\t%.0f\t%.0f\t%s\t%s\n", region, quotaInfo.UsageCount, quotaInfo.CurrentQuota, quotaInfo.DesiredValue, quotaInfo.Status, quotaInfo.CaseId)
 			}
 		}(aws.StringValue(region))
 	}
@@ -140,7 +170,7 @@ func requestQuotaIncrease(sess *session.Session, quotaCode string, regions []*st
 		go func(region string) {
 			defer wg.Done()
 			regionSqSvc := servicequotas.New(sess, &aws.Config{Region: aws.String(region)})
-			quotaInfo := getQuotaInfo(regionSqSvc, quotaCode, region)
+			quotaInfo := getQuotaInfo(sess, regionSqSvc, quotaCode, region)
 			if quotaInfo.CurrentQuota >= quota {
 				fmt.Printf("Quota for Public AMIs in region %s is already set to %.0f, skipping request.\n", region, quotaInfo.CurrentQuota)
 			} else {
