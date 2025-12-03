@@ -9,13 +9,15 @@ if [[ -z $source_ami || -z $source_region ]]; then
 fi
 
 RESF_AMI_ACCOUNT_ID=792107900819
+export AWS_REGION=us-east-1
+export AWS_PROFILE=resf-ami
 
-REGIONS=$(aws --profile resf-ami ec2 describe-regions \
+REGIONS=$(aws ec2 describe-regions \
 	--all-regions \
 	--query "Regions[].{Name:RegionName}" \
 	--output text | grep -vE "$source_region")
 
-SOURCE_AMI_NAME=$(aws --profile resf-ami ec2 describe-images \
+SOURCE_AMI_NAME=$(aws ec2 describe-images \
 	--region "$source_region" --image-ids "$source_ami" --query 'Images[0].Name' \
 	--output text)
 
@@ -38,7 +40,7 @@ function copy() {
 			continue
 		fi
 		echo -n "Creating copy job for $region..."
-		ami_id=$(aws --profile resf-ami ec2 copy-image \
+		ami_id=$(aws ec2 copy-image \
 			--region $region \
 			--name "${SOURCE_AMI_NAME}" \
 			--source-image-id "${source_ami}" \
@@ -73,23 +75,23 @@ function change_privacy() {
 		for region in "${!ami_ids[@]}"; do
 			image_id=${ami_ids[$region]}
 			echo -n "Making ${image_id} in $region $status..."
-			if aws --profile resf-ami ec2 modify-image-attribute \
+			if aws ec2 modify-image-attribute \
 				--region $region \
 				--image-id "$image_id" \
 				--launch-permission "${launch_permission}" 2>/dev/null; then
 
-				snapshot_id=$(aws --profile resf-ami ec2 describe-images \
+				snapshot_id=$(aws ec2 describe-images \
 					--region $region \
 					--image-ids "${image_id}" \
 					--query 'Images[*].BlockDeviceMappings[0].Ebs.SnapshotId' \
 					--output text 2>&1)
-				permissions=$(aws --profile resf-ami ec2 describe-snapshot-attribute \
+				permissions=$(aws ec2 describe-snapshot-attribute \
 					--region $region \
 					--snapshot-id "${snapshot_id}" \
 					--attribute createVolumePermission \
 					--query 'CreateVolumePermissions[0].Group' \
 					--output text 2>&1)
-				if [[ "$permissions" == "all" ]] || aws --profile resf-ami ec2 modify-snapshot-attribute \
+				if [[ "$permissions" == "all" ]] || aws ec2 modify-snapshot-attribute \
 					--region $region \
 					--snapshot-id "${snapshot_id}" \
 					--create-volume-permission "${launch_permission}" 2>/dev/null; then
@@ -124,7 +126,7 @@ function find_image_by_name() {
 	# ami-id "name"
 	local query="$(printf 'Images[?Name==`%s`]|[?Public==`true`].[ImageId,Name][]' "${SOURCE_AMI_NAME}")"
 	mapfile -t res < <(
-		aws --profile resf-ami ec2 describe-images --region $region --owners $RESF_AMI_ACCOUNT_ID \
+		aws ec2 describe-images --region $region --owners $RESF_AMI_ACCOUNT_ID \
 			--query "${query}" 2>/dev/null |
 			jq -r '.|@sh'
 	)
