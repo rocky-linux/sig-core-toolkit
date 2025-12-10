@@ -18,9 +18,12 @@ fi
 grep '\.src' "/tmp/unsigned_lookahead_${MAJOR}_all" > "/tmp/unsigned_lookahead_${MAJOR}"
 sed -i 's/\.src//g' "/tmp/unsigned_lookahead_${MAJOR}"
 
-mutt -e "set from=\"$FROM\"" \
-  -e 'set envelope_from=yes' \
-  -s "Unsigned builds for ${MAJOR} LookAhead" \
-  releng@rockylinux.org < "/tmp/unsigned_lookahead_${MAJOR}"
+# check if list is populated before sending email to avoid spam
+if [ -s "/tmp/unsigned_lookahead_${MAJOR}" ]; then
+  mutt -e "set from=\"$FROM\"" \
+    -e 'set envelope_from=yes' \
+    -s "Unsigned builds for ${MAJOR} LookAhead" \
+    releng@rockylinux.org < "/tmp/unsigned_lookahead_${MAJOR}"
+fi
 
 /bin/rm "/tmp/unsigned_lookahead_${MAJOR}" "/tmp/unsigned_lookahead_${MAJOR}_all"
