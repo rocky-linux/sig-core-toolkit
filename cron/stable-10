@@ -1,18 +1,20 @@
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 FROMMAIL="Compose Tracker <releng@rockylinux.org>"
+export RLVER=10
+source "/root/toolkit/sync/common"
 rm -rf /etc/pungi-prod-10
-pushd /etc/pungi-prod-10/scripts/compose || { echo "Pungi directory not found"; exit; }
-git pull
+git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r${REVISION} /etc/pungi-prod-${MAJOR}
 ret_val=$?
 if [ "$ret_val" -ne 0 ]; then
-  echo "Git pull failed for LookAhead pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
+  echo "Git pull failed for pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
     -e 'set envelope_from=yes' \
-    -s "Git pull on /etc/pungi-prod-10 failed" \
+    -s "Git pull on /etc/pungi-prod-${MAJOR} failed" \
     releng@rockylinux.org
   exit 1
 fi
-bash produce-10-full.sh
+pushd /etc/pungi-prod-${MAJOR}/scripts/compose || { echo "Pungi directory not found"; exit; }
+bash produce-${MAJOR}-full.sh
 ret_val=$?
 popd || { echo "Could not go back to the previous directory"; exit; }
 
