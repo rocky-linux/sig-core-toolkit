@@ -55,7 +55,7 @@ TARGETS = {
         f'{PREFIX}-updates': {
             'build': f'{PREFIX}-updates-build', 'dest': f'{PREFIX}',
             'extra': UPDATES_EXTRA},
-        f'{PREFIX}-updates': {
+        f'{PREFIX}-updates-nonspawn': {
             'build': f'{PREFIX}-updates-build-nonspawn', 'dest': f'{PREFIX}',
             'extra': UPDATES_EXTRA_NONSPAWN},
         # Kiwi build tags
