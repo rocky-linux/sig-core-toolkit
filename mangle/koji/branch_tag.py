@@ -29,11 +29,17 @@ DEFAULT_ARCHES = 'x86_64 aarch64 ppc64le s390x'
 # things like noarch_arches or even mock.new_chroot (e.g. for kiwi).
 DEFAULT_EXTRA = {'repo.auto': True}
 UPDATES = {'rpm.macro.distcore': f'.el{MAJOR}_{MINOR}'}
+NONSPAWN = {'mock.new_chroot': 0}
+NSPAWN = {'mock.new_chroot': 1}
 RISCV_NOARCH = {'noarch_arches': 'riscv64'}
+
+# merges
 UPDATES_EXTRA = {**DEFAULT_EXTRA, **UPDATES}
+UPDATES_EXTRA_NONSPAWN = {**DEFAULT_EXTRA, **UPDATES, **NONSPAWN}
 RISCV_EXTRA = {**DEFAULT_EXTRA, **RISCV_NOARCH}
 RISCV_UPDATES_EXTRA = {**UPDATES_EXTRA, **RISCV_NOARCH}
-KIWI = {**DEFAULT_EXTRA, 'mock.new_chroot': 0}
+KIWI_NONSPAWN = {**DEFAULT_EXTRA, **NONSPAWN}
+KIWI_NSPAWN = {**DEFAULT_EXTRA, **NSPAWN}
 MODULE_EXTRA = {
         'rpm.macro.distribution': f'Rocky Linux {MAJOR}',
         'rpm.macro.vendor': 'Rocky Enterprise Software Foundation',
@@ -49,6 +55,9 @@ TARGETS = {
         f'{PREFIX}-updates': {
             'build': f'{PREFIX}-updates-build', 'dest': f'{PREFIX}',
             'extra': UPDATES_EXTRA},
+        f'{PREFIX}-updates': {
+            'build': f'{PREFIX}-updates-build-nonspawn', 'dest': f'{PREFIX}',
+            'extra': UPDATES_EXTRA_NONSPAWN},
         # Kiwi build tags
         f'{PREFIX}-kiwi': {
             'build': f'{PREFIX}-kiwi', 'dest': f'{PREFIX}',
@@ -56,7 +65,7 @@ TARGETS = {
             'external': [
                 {f'sig-core-{MAJOR}-infra': {'pri': 4, 'mode': 'koji'}}
             ],
-            'extra': KIWI},
+            'extra': KIWI_NONSPAWN},
         f'{PREFIX}-kiwi-altarch': {
             'build': f'{PREFIX}-kiwi-altarch', 'dest': f'{PREFIX}',
             'parent': f'{PREFIX}-build',
@@ -66,7 +75,7 @@ TARGETS = {
                 {f'sig-altarch-{MAJOR}-common': {'pri': 7, 'mode': 'koji'}},
                 {f'sig-altarch-{MAJOR}-rockyrpi': {'pri': 8, 'mode': 'koji'}}
             ],
-            'extra': KIWI},
+            'extra': KIWI_NONSPAWN},
 
         # Only very specific images need epel and cloud-common
         f'{PREFIX}-kiwi-cloud-epel': {
@@ -78,7 +87,7 @@ TARGETS = {
                 {f'sig-cloud-{MAJOR}-common': {'pri': 5, 'mode': 'bare'}},
                 {f'epel-{MAJOR}-stable': {'pri': 6, 'mode': 'bare'}}
             ],
-            'extra': KIWI},
+            'extra': KIWI_NONSPAWN},
         f'{PREFIX}-kiwi-epel': {
             'build': f'{PREFIX}-kiwi-epel', 'dest': f'{PREFIX}',
             'parent': f'{PREFIX}-build',
@@ -86,16 +95,16 @@ TARGETS = {
                 {f'sig-core-{MAJOR}-infra': {'pri': 4, 'mode': 'bare'}},
                 {f'epel-{MAJOR}-stable': {'pri': 6, 'mode': 'bare'}}
             ],
-            'extra': KIWI},
+            'extra': KIWI_NONSPAWN},
 
-        # Some builds need nspawn on, so this facilitates it
+        # Some kiwi builds need nspawn on, so this facilitates it
         f'{PREFIX}-kiwi-nspawn': {
             'parent': f'{PREFIX}-build',
             'build': f'{PREFIX}-kiwi-nspawn', 'dest': f'{PREFIX}',
             'external': [
                 {f'sig-core-{MAJOR}-infra': {'pri': 4, 'mode': 'koji'}}
             ],
-        },
+            'extra': KIWI_NSPAWN},
 }
 
 RISCV_TARGETS = {
