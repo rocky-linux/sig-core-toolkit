@@ -12,11 +12,6 @@ source $(dirname "$0")/common
 # Major Version (eg, 8)
 MAJ=${RLVER}
 
-if [[ "${MAJ}" -eq "9" ]]; then
-  echo "Invalid release"
-  exit 1
-fi
-
 # sync all pieces of a release, including extras, nfv, etc
 for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   echo "${COMPOSE}: Syncing"
@@ -47,6 +42,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         test -d "${x}/${ARCH}/iso" && rmdir "${x}/${ARCH}/iso"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
+      # ISO checksums
       for file in *.iso; do
         printf "# %s: %s bytes\n%s\n" \
           "${file}" \
@@ -58,7 +54,48 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
       popd || { echo "Could not change directory"; break; }
     done
     # Sort the cloud images here. Probably just a directory move, make some checksums (unless they're already there)
+    for ARCH in "${ARCHES[@]}"; do
+      echo "${ARCH}: Sorting cloud images"
+      if [ -d "images/${ARCH}" ]; then
+        pushd "images/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
+        mv images/* .
+        rmdir images
+        test -f CHECKSUM && /bin/rm CHECKSUM
+        # Drop vagrant from name if they are there
+        echo "${ARCH}: Looking for vagrant names and dropping them"
+        for x in * ; do if [[ "${x}" =~ "vagrant" ]]; then mv "${x}" $(echo ${x} | sed 's/\.vagrant\..*\(\.box\)/\1/g') ; fi ; done
+        # Cloud checksums
+        for file in *; do
+          printf "# %s: %s bytes\n%s\n" \
+            "${file}" \
+            "$(stat -c %s ${file} -L)" \
+            "$(sha256sum --tag ${file})" \
+          | sudo tee -a "${file}.CHECKSUM"
+        done
+        cat ./*.CHECKSUM > CHECKSUM
+        popd || { echo "${ARCH}: Failed to change directory"; break; }
+      fi
+    done
     # Live images should probably be fine. Check anyway what we want to do. Might be a simple move.
+    for ARCH in "${ARCHES[@]}"; do
+      echo "${ARCH}: Sorting live images"
+      if [ -d "live/${ARCH}" ]; then
+        pushd "live/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
+        mv iso/* .
+        rmdir iso
+        test -f CHECKSUM && /bin/rm CHECKSUM
+        # live checksums
+        for file in *; do
+          printf "# %s: %s bytes\n%s\n" \
+            "${file}" \
+            "$(stat -c %s ${file} -L)" \
+            "$(sha256sum --tag ${file})" \
+          | sudo tee -a "${file}.CHECKSUM"
+        done
+        cat ./*.CHECKSUM > CHECKSUM
+        popd || { echo "${ARCH}: Failed to change directory"; break; }
+      fi
+    done
   fi
   # Delete the unnecessary dirs here.
   for EMPTYDIR in "${NONREPO_DIRS[@]}"; do

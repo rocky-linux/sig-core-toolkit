@@ -47,6 +47,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         xorriso -dev "${file}" --find | tail -n+2 | tr -d "'" | cut -c2- | sort > "${file}.manifest"
       done
 
+      # ISO checksums
       for file in *.iso; do
         printf "# %s: %s bytes\n%s\n" \
           "${file}" \
