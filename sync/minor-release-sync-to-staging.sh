@@ -1,10 +1,10 @@
 #!/bin/bash
 # Performs a full on sync of a minor release, directories and all. It calls the
 # other scripts in this directory to assist where necessary.
-# Note that this is EL8, EL10+ only
 #
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
+export SHORT=Rocky
 source $(dirname "$0")/common
 
 # Major Version (eg, 8)

@@ -1,7 +1,6 @@
 #!/bin/bash
 # Performs a full on sync of a minor release, directories and all. It calls the
 # other scripts in this directory to assist where necessary.
-# Note that this is EL8 specific
 #
 # Source common variables
 # shellcheck disable=SC2046,1091,1090
@@ -42,6 +41,17 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         test -d "${x}/${ARCH}/iso" && rmdir "${x}/${ARCH}/iso"
       done
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
+
+      echo "Symlinking to 'latest' if ISO exists"
+      test -f "Rocky-${REVISION}-${ARCH}-boot.iso" && ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${MAJ}-latest-${ARCH}-boot.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-dvd.iso" && ln -s "Rocky-${REVISION}-${ARCH}-dvd.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-dvd1.iso" && ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-minimal.iso" && ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${MAJ}-latest-${ARCH}-minimal.iso"
+      echo "(Re)generating manifests"
+      for file in *.iso; do
+        xorriso -dev "${file}" --find | tail -n+2 | tr -d "'" | cut -c2- | sort > "${file}.manifest"
+      done
+
       # ISO checksums
       for file in *.iso; do
         printf "# %s: %s bytes\n%s\n" \
@@ -51,6 +61,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         | sudo tee -a "${file}.CHECKSUM"
       done
       cat ./*.CHECKSUM > CHECKSUM
+      # GPG sign the checksums
       popd || { echo "Could not change directory"; break; }
     done
     # Sort the cloud images here. Probably just a directory move, make some checksums (unless they're already there)
@@ -108,22 +119,22 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
-  UTILS="${STAGING_ROOT}/${CATEGORY_STUB}/utils/${MAJOR}"
+  #UTILS="${STAGING_ROOT}/${CATEGORY_STUB}/utils/${MAJOR}"
   mkdir -p "${TARGET}"
   pushd "${SYNCSRC}" || { echo "${COMPOSE}: Failed to change directory"; break; }
   if [[ "${COMPOSE}" != "Rocky" ]]; then
     rsync_no_delete_staging_with_excludes "${TARGET}" "metadata"
   else
-    if [ -d "${TARGET}/devel" ]; then
-      echo "Moving devel directory temporarily..."
-      mv "${TARGET}/devel" "${UTILS}/devel"
-    fi
+    #if [ -d "${TARGET}/devel" ]; then
+    #  echo "Moving devel directory temporarily..."
+    #  mv "${TARGET}/devel" "${UTILS}/devel"
+    #fi
     echo "Begin syncing..."
     rsync_delete_staging "${TARGET}"
-    if [ -d "${UTILS}/devel" ]; then
-      echo "Moving devel back..."
-      mv "${UTILS}/devel" "${TARGET}/devel"
-    fi
+    #if [ -d "${UTILS}/devel" ]; then
+    #  echo "Moving devel back..."
+    #  mv "${UTILS}/devel" "${TARGET}/devel"
+    #fi
   fi
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
