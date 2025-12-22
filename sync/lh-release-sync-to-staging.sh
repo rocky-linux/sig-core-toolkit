@@ -108,12 +108,22 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
+  UTILS="${STAGING_ROOT}/${CATEGORY_STUB}/utils/${MAJOR}"
   mkdir -p "${TARGET}"
   pushd "${SYNCSRC}" || { echo "${COMPOSE}: Failed to change directory"; break; }
   if [[ "${COMPOSE}" != "Rocky" ]]; then
     rsync_no_delete_staging_with_excludes "${TARGET}" "metadata"
   else
+    if [ -d "${TARGET}/devel" ]; then
+      echo "Moving devel directory temporarily..."
+      mv "${TARGET}/devel" "${UTILS}/devel"
+    fi
+    echo "Begin syncing..."
     rsync_delete_staging "${TARGET}"
+    if [ -d "${UTILS}/devel" ]; then
+      echo "Moving devel back..."
+      mv "${UTILS}/devel" "${TARGET}/devel"
+    fi
   fi
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
