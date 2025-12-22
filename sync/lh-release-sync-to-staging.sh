@@ -64,6 +64,8 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         # Drop vagrant from name if they are there
         echo "${ARCH}: Looking for vagrant names and dropping them"
         for x in * ; do if [[ "${x}" =~ "vagrant" ]]; then mv "${x}" $(echo ${x} | sed 's/\.vagrant\..*\(\.box\)/\1/g') ; fi ; done
+        # Generate "latest" links
+        for x in * ; do ln -s "${x}" $(echo "${x}" | sed -E "s/-$REVISION-[0-9]+\.[0-9]+/.latest/g ; s/\.oci//g") ; done
         # Cloud checksums
         for file in *; do
           printf "# %s: %s bytes\n%s\n" \
@@ -84,6 +86,8 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         mv iso/* .
         rmdir iso
         test -f CHECKSUM && /bin/rm CHECKSUM
+        # Generate "latest" links
+        for x in * ; do ln -s "${x}" $(echo "${x}" | sed -E "s/${MAJOR}\.${MINOR}/${MAJOR}/g ; s/[0-9]+\.[0-9]+/latest/g") ; done
         # live checksums
         for file in *; do
           printf "# %s: %s bytes\n%s\n" \
