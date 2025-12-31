@@ -10,18 +10,23 @@ parser.add_argument('--major', type=str, required=True)
 parser.add_argument('--minor', type=str, required=True,
                     choices=('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'))
 parser.add_argument('--riscv', action='store_true')
+parser.add_argument('--multilib', action='store_true')
 parser.add_argument('--modularity', action='store_true')
 
 results = parser.parse_args()
 MAJOR = results.major
 MINOR = results.minor
 RISCV = results.riscv
+MULTILIB = results.multilib
 MODULES = results.modules
 RELEASE = f'{MAJOR}.{MINOR}'
 PREFIX = f'dist-rocky{RELEASE}'
 TOOLS = f'dist-rocky{MAJOR}-build-tools'
 MODULE_BUILD = f'module-rocky{RELEASE}-build'
 DEFAULT_ARCHES = 'x86_64 aarch64 ppc64le s390x'
+
+if MULTILIB:
+    DEFAULT_ARCHES += ' i686'
 
 # RelEng: Every build tag will have repo.auto. Even though this isn't
 # required (as per upstream), we're setting it anyway. Note that all other
