@@ -124,7 +124,8 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   if [[ "${COMPOSE}" != "Rocky" ]]; then
     rsync_no_delete_staging_with_excludes "${TARGET}" "metadata"
   else
-    rsync_delete_staging "${TARGET}"
+    echo "Begin syncing..."
+    rsync_delete_staging_with_excludes "${TARGET}" "devel"
   fi
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
