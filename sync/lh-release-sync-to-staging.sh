@@ -130,7 +130,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
     #  mv "${TARGET}/devel" "${UTILS}/devel"
     #fi
     echo "Begin syncing..."
-    rsync_delete_staging "${TARGET}"
+    rsync_delete_staging_with_excludes "${TARGET}" "devel"
     #if [ -d "${UTILS}/devel" ]; then
     #  echo "Moving devel back..."
     #  mv "${UTILS}/devel" "${TARGET}/devel"
