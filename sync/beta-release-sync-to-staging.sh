@@ -121,12 +121,21 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
   TARGET="${STAGING_ROOT}/${CATEGORY_STUB}/${REV}"
   mkdir -p "${TARGET}"
   pushd "${SYNCSRC}" || { echo "${COMPOSE}: Failed to change directory"; break; }
-  if [[ "${COMPOSE}" != "Rocky" ]]; then
-    rsync_no_delete_staging_with_excludes "${TARGET}" "metadata"
-  else
-    echo "Begin syncing..."
-    rsync_delete_staging_with_excludes "${TARGET}" "devel"
-  fi
+  echo "Begin syncing ${COMPOSE}..."
+  case "${COMPOSE}" in
+    "Rocky-devel")
+      rsync_delete_subdirectory "devel" "${TARGET}/devel"
+      ;;
+    "Extras")
+      rsync_delete_generic "extras" "${TARGET}/extras"
+      rsync_delete_generic "plus" "${TARGET}/plus"
+      ;;
+    "Rocky")
+      rsync_delete_staging_with_excludes "${TARGET}" "devel"
+      ;;
+    *)
+      echo "Unknown!" ;;
+  esac
   popd || { echo "${COMPOSE}: Failed to change directory"; break; }
 done
 
