@@ -487,6 +487,9 @@ class Shared:
 
         repolist = []
         for repo in repos:
+            actual_proj = project_id
+            if isinstance(repo, dict):
+                actual_proj = repo.get('subproject', project_id)
 
             if use_staging:
                 constructed_url = '{}/{}/{}/$basearch/os'.format(
@@ -503,14 +506,14 @@ class Shared:
             else:
                 constructed_url = '{}/{}/repo/{}{}/$basearch'.format(
                         repo_base_url,
-                        project_id,
+                        actual_proj,
                         prehashed,
                         repo,
                 )
 
                 constructed_url_src = '{}/{}/repo/{}{}/src'.format(
                         repo_base_url,
-                        project_id,
+                        actual_proj,
                         prehashed,
                         repo,
                 )

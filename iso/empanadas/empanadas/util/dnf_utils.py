@@ -1653,7 +1653,7 @@ class SigRepoSync:
 
         # Relevant major version items
         self.sigvars = sigvars
-        self.sigrepos = sigvars['repo'].keys()
+        self.sigrepos = sigvars['repo']
         self.extra_files = sigvars['extra_files']
         self.gpgkey = sigvars['gpg_key']
         if 'repo_gpg_key' in sigvars:
