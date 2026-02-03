@@ -127,8 +127,8 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
       rsync_delete_subdirectory "devel" "${TARGET}/devel"
       ;;
     "Extras")
-      rsync_delete_generic "extras" "${TARGET}/extras"
-      rsync_delete_generic "plus" "${TARGET}/plus"
+      rsync_delete_generic "compose/extras" "${TARGET}/extras"
+      rsync_delete_generic "compose/plus" "${TARGET}/plus"
       ;;
     "Rocky")
       rsync_delete_staging_with_excludes "${TARGET}" "devel"
