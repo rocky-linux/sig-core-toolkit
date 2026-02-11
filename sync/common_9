@@ -16,8 +16,8 @@ case "${RLREL}" in
   lh)
     REVISION=9.8
     PREREV=9.7
-    APPEND_TO_DIR="-lookahead"
-    COMPOSE_APPEND="-lookahead"
+    APPEND_TO_DIR="-LookAhead"
+    COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
   *)
     echo "option no recognized"
