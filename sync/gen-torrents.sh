@@ -58,6 +58,7 @@ for variant in "${VARIANTS[@]}"; do
             continue
         fi
 
+	if [ -d "${name_template}" ]; then continue ; fi
         printf "** Making directory: %s/%s\n" "${TORRENT_DOWNLOAD_DIR}" "${name_template}"
         mkdir "${name_template}" || exit 2
 

@@ -13,5 +13,6 @@ Directories
 -----------
 
 * generators -> A directory of python and bash scripts for pungi/peridot data generation
+* modularity -> Scripts to call MBS directly
 * ipa -> IPA specific scripts and utilities
 * versions -> simple version utilities

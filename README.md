@@ -14,8 +14,8 @@ What does this have?
 
 * analyze -> Analysis utilities (such as download stats)
 * chat -> mattermost related utilities
-* iso -> Contains `empanadas`, which provides ISO, Compose, and Sync related utilities.
-* mangle -> Manglers and other misc stuff
+* iso -> Contains `empanadas`, which provides legacy peridot ISO, Compose, and Sync related utilities.
+* mangle -> Manglers, misc scripts that do not fit anywhere else
 * sync -> Sync tools, used to sync from compose directories to mirror for Rocky Linux
 
 How can I help?
@@ -34,5 +34,5 @@ when you make changes:
 
 PR's against the main branch will be closed.
 
-PR's are preferred at the [RESF Git Service](https://git.resf.org).
-
+PR's are preferred at the [RESF Git Service](https://git.resf.org). PR's against
+github will be closed.

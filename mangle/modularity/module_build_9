@@ -3,7 +3,7 @@ set -x
 GIT_NAME="$1"
 GIT_HASH="$2"
 GIT_BRANCH="$3"
-PLATFORM="${4:=el8.10.0}"
+PLATFORM="${4:=el9.7.0}"
 TOKEN="TOKEN"
 
 curl -H "Authorization: Bearer ${TOKEN}" -d '{"scmurl":"https://git.rockylinux.org/staging/modules/'${GIT_NAME}'?#'${GIT_HASH}'","branch":"'${GIT_BRANCH}'","buildrequire_overrides": {"platform": ["'${PLATFORM}'"]}}' https://mbsstg.rockylinux.org/module-build-service/1/module-builds/
