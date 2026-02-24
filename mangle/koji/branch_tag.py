@@ -82,6 +82,28 @@ TARGETS = {
             ],
             'extra': KIWI_NONSPAWN},
 
+        # Potential kiwi images using CentOS or ELRepo
+        f'{PREFIX}-kiwi-centos-kmod': {
+            'build': f'{PREFIX}-kiwi-centos-kmod', 'dest': f'{PREFIX}',
+            'parent': f'{PREFIX}-build',
+            'arches': 'x86_64 aarch64 ppc64le',
+            'external': [
+                {f'centos-kmod-{MAJOR}': {'pri': 8, 'mode': 'bare'}},
+                {f'centos-kmod-kernel-{MAJOR}': {'pri': 9, 'mode': 'bare'}}
+            ],
+            'extra': KIWI_NONSPAWN},
+
+        f'{PREFIX}-kiwi-elrepo': {
+            'build': f'{PREFIX}-kiwi-elrepo', 'dest': f'{PREFIX}',
+            'parent': f'{PREFIX}-build',
+            'arches': 'x86_64 aarch64',
+            'external': [
+                {f'epel-{MAJOR}-stable': {'pri': 6, 'mode': 'bare'}},
+                {f'elrepo-{MAJOR}': {'pri': 8, 'mode': 'bare'}},
+                {f'elrepo-kernel-{MAJOR}': {'pri': 9, 'mode': 'bare'}}
+            ],
+            'extra': KIWI_NONSPAWN},
+
         # Only very specific images need epel and cloud-common
         f'{PREFIX}-kiwi-cloud-epel': {
             'build': f'{PREFIX}-kiwi-cloud-epel', 'dest': f'{PREFIX}',
