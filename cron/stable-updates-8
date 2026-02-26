@@ -1,20 +1,22 @@
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 FROMMAIL="Compose Tracker <releng@rockylinux.org>"
-rm -rf /etc/pungi-prod
-git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r8 /etc/pungi-prod
+export RLVER=8
+source "/root/toolkit/sync/common"
+rm -rf /etc/pungi-prod-${MAJOR}
+git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b "r${MAJOR}" "/etc/pungi-prod-${MAJOR}"
 rm -rf /mnt/compose/8_metadata
-git clone https://git.rockylinux.org/rocky/rocky-module-metadata.git -b r8 /mnt/compose/8_metadata
+git clone https://git.rockylinux.org/rocky/rocky-module-metadata.git -b "r${MAJOR}" /mnt/compose/8_metadata
 ret_val=$?
 if [ "$ret_val" -ne 0 ]; then
   echo "Git pull failed for prod pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
     -e 'set envelope_from=yes' \
-    -s "Git pull on /etc/pungi-prod failed" \
+    -s "Git pull on /etc/pungi-prod-${MAJOR} failed" \
     releng@rockylinux.org
   exit 1
 fi
-pushd /etc/pungi-prod/scripts || { echo "Cron: Failed to change directory"; exit 1; }
-bash updates-8-full.sh
+pushd /etc/pungi-prod-${MAJOR}/scripts || { echo "Cron: Failed to change directory"; exit 1; }
+bash updates-${MAJOR}-full.sh
 ret_val=$?
 popd || { echo "Cron: Could not change back to original directory"; exit 1; }
 
