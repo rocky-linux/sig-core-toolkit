@@ -1,10 +1,12 @@
 #!/bin/bash
 
-pushd /mnt/koji/compose/10-LookAhead/
+pushd /mnt/koji/compose/10-LookAhead/ || { echo "Could not change directories"; exit 1; }
 
-SRCS=$(find . -maxdepth 1 -type d -mtime +7 | grep -vE 'SIG-|Rocky-10.[0-9]+-20[2-3][0-9]' | sort)
+SRCS=$(find . -maxdepth 1 -type d -mtime +7 | sort)
 
 printf "The following will be deleted\n"
 for x in $SRCS ; do echo ${x} ; done
 
 rm -rf ${SRCS}
+
+popd || { echo "Could not switch back"; exit 1; }
