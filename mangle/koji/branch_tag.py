@@ -98,7 +98,7 @@ TARGETS = {
             'parent': f'{PREFIX}-build',
             'arches': 'x86_64 aarch64',
             'external': [
-                {f'epel-{MAJOR}-stable': {'pri': 6, 'mode': 'bare'}},
+                {f'epel-{MAJOR}-{MINOR}': {'pri': 6, 'mode': 'bare'}},
                 {f'elrepo-{MAJOR}': {'pri': 8, 'mode': 'bare'}},
                 {f'elrepo-kernel-{MAJOR}': {'pri': 9, 'mode': 'bare'}}
             ],
@@ -112,7 +112,7 @@ TARGETS = {
             'external': [
                 {f'sig-core-{MAJOR}-infra': {'pri': 4, 'mode': 'bare'}},
                 {f'sig-cloud-{MAJOR}-common': {'pri': 5, 'mode': 'bare'}},
-                {f'epel-{MAJOR}-stable': {'pri': 6, 'mode': 'bare'}}
+                {f'epel-{MAJOR}-{MINOR}': {'pri': 6, 'mode': 'bare'}}
             ],
             'extra': KIWI_NONSPAWN},
         f'{PREFIX}-kiwi-epel': {
@@ -120,7 +120,7 @@ TARGETS = {
             'parent': f'{PREFIX}-build',
             'external': [
                 {f'sig-core-{MAJOR}-infra': {'pri': 4, 'mode': 'bare'}},
-                {f'epel-{MAJOR}-stable': {'pri': 6, 'mode': 'bare'}}
+                {f'epel-{MAJOR}-{MINOR}': {'pri': 6, 'mode': 'bare'}}
             ],
             'extra': KIWI_NONSPAWN},
 
