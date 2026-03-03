@@ -89,7 +89,8 @@ TARGETS = {
             'arches': 'x86_64 aarch64 ppc64le',
             'external': [
                 {f'centos-kmod-{MAJOR}': {'pri': 8, 'mode': 'bare'}},
-                {f'centos-kmod-kernel-{MAJOR}': {'pri': 9, 'mode': 'bare'}}
+                {f'centos-kmod-{MAJOR}-userspace': {'pri': 9, 'mode': 'bare'}},
+                {f'centos-kmod-kernel-{MAJOR}': {'pri': 10, 'mode': 'bare'}}
             ],
             'extra': KIWI_NONSPAWN},
 
