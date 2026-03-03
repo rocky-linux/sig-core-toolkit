@@ -14,8 +14,8 @@ case "${RLREL}" in
     COMPOSE_APPEND="-beta"
     ;;
   lh)
-    REVISION=9.8
-    PREREV=9.7
+    REVISION=9.9
+    PREREV=9.8
     APPEND_TO_DIR="-LookAhead"
     COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
