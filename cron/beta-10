@@ -2,6 +2,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 FROMMAIL="Compose Tracker <releng@rockylinux.org>"
 export RLVER=10
+export RLREL=beta
 source "/root/toolkit/sync/common"
 rm -rf /etc/pungi-beta-${MAJOR}
 git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r${RLVER}s /etc/pungi-beta-${MAJOR}
