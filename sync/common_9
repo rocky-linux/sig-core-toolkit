@@ -11,7 +11,7 @@ case "${RLREL}" in
     REVISION=9.8
     PREREV=9.7
     APPEND_TO_DIR="-BETA"
-    COMPOSE_APPEND="-BETA"
+    COMPOSE_APPEND="${APPEND_TO_DIR}"
     ;;
   lh)
     REVISION=9.9
@@ -47,8 +47,7 @@ NONMODS_REPOS=(
 )
 
 # These repos were originally separate from the main compose and need symlinks
-declare -A LINK_REPOS
-LINK_REPOS=()
+declare -A LINK_REPOS=()
 
 # These repos have comps/groups, except for debuginfo and sources
 MODS_REPOS=(
