@@ -10,8 +10,8 @@ case "${RLREL}" in
   beta)
     REVISION=9.8
     PREREV=9.7
-    APPEND_TO_DIR="-beta"
-    COMPOSE_APPEND="-beta"
+    APPEND_TO_DIR="-BETA"
+    COMPOSE_APPEND="-BETA"
     ;;
   lh)
     REVISION=9.9
