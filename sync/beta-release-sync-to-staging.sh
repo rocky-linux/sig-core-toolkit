@@ -43,10 +43,10 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
       pushd "isos/${ARCH}" || { echo "${ARCH}: Failed to change directory"; break; }
 
       echo "Symlinking to 'latest' if ISO exists"
-      test -f "Rocky-${REVISION}-${ARCH}-boot.iso" && ln -s "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${MAJ}-latest-${ARCH}-boot.iso"
-      test -f "Rocky-${REVISION}-${ARCH}-dvd.iso" && ln -s "Rocky-${REVISION}-${ARCH}-dvd.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
-      test -f "Rocky-${REVISION}-${ARCH}-dvd1.iso" && ln -s "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
-      test -f "Rocky-${REVISION}-${ARCH}-minimal.iso" && ln -s "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${MAJ}-latest-${ARCH}-minimal.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-boot.iso" && ln -sf "Rocky-${REVISION}-${ARCH}-boot.iso" "Rocky-${MAJ}-latest-${ARCH}-boot.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-dvd.iso" && ln -sf "Rocky-${REVISION}-${ARCH}-dvd.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-dvd1.iso" && ln -sf "Rocky-${REVISION}-${ARCH}-dvd1.iso" "Rocky-${MAJ}-latest-${ARCH}-dvd.iso"
+      test -f "Rocky-${REVISION}-${ARCH}-minimal.iso" && ln -sf "Rocky-${REVISION}-${ARCH}-minimal.iso" "Rocky-${MAJ}-latest-${ARCH}-minimal.iso"
       echo "(Re)generating manifests"
       for file in *.iso; do
         xorriso -dev "${file}" --find | tail -n+2 | tr -d "'" | cut -c2- | sort > "${file}.manifest"
@@ -76,7 +76,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         echo "${ARCH}: Looking for vagrant names and dropping them"
         for x in * ; do if [[ "${x}" =~ "vagrant" ]]; then mv "${x}" $(echo ${x} | sed 's/\.vagrant\..*\(\.box\)/\1/g') ; fi ; done
         # Generate "latest" links
-        for x in * ; do ln -s "${x}" $(echo "${x}" | sed -E "s/-$REVISION-[0-9]+\.[0-9]+/.latest/g ; s/\.oci//g") ; done
+        for x in * ; do ln -sf "${x}" $(echo "${x}" | sed -E "s/-$REVISION-[0-9]+\.[0-9]+/.latest/g ; s/\.oci//g") ; done
         # Cloud checksums
         for file in *; do
           printf "# %s: %s bytes\n%s\n" \
@@ -98,7 +98,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         rmdir iso
         test -f CHECKSUM && /bin/rm CHECKSUM
         # Generate "latest" links
-        for x in * ; do ln -s "${x}" $(echo "${x}" | sed -E "s/${MAJOR}\.${MINOR}/${MAJOR}/g ; s/[0-9]+\.[0-9]+/latest/g") ; done
+        for x in * ; do ln -sf "${x}" $(echo "${x}" | sed -E "s/${MAJOR}\.${MINOR}/${MAJOR}/g ; s/[0-9]+\.[0-9]+/latest/g") ; done
         # live checksums
         for file in *; do
           printf "# %s: %s bytes\n%s\n" \
