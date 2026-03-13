@@ -98,7 +98,7 @@ for COMPOSE in "${NONSIG_COMPOSE[@]}"; do
         rmdir iso
         test -f CHECKSUM && /bin/rm CHECKSUM
         # Generate "latest" links
-        for x in * ; do ln -s "${x}" $(echo "${x}" | sed -E "s/${MAJOR}\.${MINOR}/${MAJOR}/g ; s/[0-9]+\.[0-9]+/latest/g") ; done
+        for x in * ; do ln -s "${x}" $(echo "${x}" | sed -E "s/-${REVISION}-/-${MAJOR}-/g ; s/-20[0-9]+\.[0-9]+/-latest/g") ; done
         # live checksums
         for file in *; do
           printf "# %s: %s bytes\n%s\n" \
