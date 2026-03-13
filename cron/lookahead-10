@@ -2,6 +2,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 FROMMAIL="Compose Tracker <releng@rockylinux.org>"
 export RLVER=10
+export RLREL=lh
 source "/root/toolkit/sync/common"
 rm -rf /etc/pungi-lh-${MAJOR}
 git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r${RLVER}s /etc/pungi-lh-${MAJOR}
@@ -27,5 +28,5 @@ fi
 
 if [ "$sync_val" -eq 0 ]; then
   DATE="$(date +%Y%m%d%H%M%S)"
-  test -f /root/bin/compose_message_mm && bash /root/bin/compose_message_mm "Compose for ${MAJOR} LookAhead has been synced to staging ($DATE)"
+  test -f /root/bin/compose_message_mm && bash /root/bin/compose_message_mm testing "Compose for ${MAJOR} LookAhead has been synced to staging ($DATE). See the [changelogs](https://kojidev.rockylinux.org/kojifiles/compose/logs)."
 fi
