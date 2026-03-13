@@ -21,5 +21,11 @@ popd || { echo "Could not go back to the previous directory"; exit; }
 if [ "$ret_val" -eq 0 ]; then
   pushd /root/toolkit/sync || { echo "Toolkit directory not found"; exit; }
   RLVER=10 bash lh-release-sync-to-staging.sh
+  sync_val=$?
   popd || { echo "Could not go back to previous directory"; exit; }
+fi
+
+if [ "$sync_val" -eq 0 ]; then
+  DATE="$(date +%Y%m%d%H%M%S)"
+  test -f /root/bin/compose_message_mm && bash /root/bin/compose_message_mm "Compose for ${MAJOR} LookAhead has been synced to staging ($DATE)"
 fi
