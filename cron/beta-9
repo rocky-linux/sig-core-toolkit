@@ -27,6 +27,6 @@ if [ "$ret_val" -eq 0 ]; then
 fi
 
 if [ "$sync_val" -eq 0 ]; then
-  DATE="$(date +%Y%m%d%H%M%S)"
+  DATE="$(date +%Y%m%d)"
   test -f /root/bin/compose_message_mm && bash /root/bin/compose_message_mm testing "Compose for ${REVISION} BETA has been synced to staging ($DATE). See the [changelogs](https://kojidev.rockylinux.org/kojifiles/compose/logs)."
 fi
