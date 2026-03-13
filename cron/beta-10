@@ -5,7 +5,7 @@ export RLVER=10
 export RLREL=beta
 source "/root/toolkit/sync/common"
 rm -rf /etc/pungi-beta-${MAJOR}
-git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r${RLVER}s /etc/pungi-beta-${MAJOR}
+git clone https://git.rockylinux.org/rocky/pungi-rocky.git -b r${REVISION} /etc/pungi-beta-${MAJOR}
 ret_val=$?
 if [ "$ret_val" -ne 0 ]; then
   echo "Git pull failed for beta pungi config" | mutt -e "set from=\"$FROMMAIL\"" \
